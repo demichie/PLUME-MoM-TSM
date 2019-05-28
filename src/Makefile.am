@@ -12,7 +12,7 @@ bindir=@bindir@
 PLUMEMoM_SOURCES = \
 		test.f90
 
-FCFLAGS         = -g -O3 -ffast-math
+FCFLAGS         = -g -O3 -finit-real=snan
 FCDEBUGFLAGS    = -Wall -g
 
 LIBS            = -lz -lm -llapack
