@@ -1,6 +1,6 @@
 !********************************************************************************
-!> \mainpage   PLUME-MoM  
-!> PLUME-MoM is a numerical code for the steady-state plume model, describing  
+!> \mainpage   PLUME-MoM-TSM
+!> PLUME-MoM-TSM is a numerical code for the steady-state plume model, describing  
 !> the rise in the atmosphere of a mixture of gas and volcanic ash during an  
 !> eruption. The system of equation is formally the same of that presented in 
 !> Barsotti et al. 2008, i.e. the equations we formulate describe the same 
@@ -11,13 +11,18 @@
 !> particle size distribution along the eruptive column.
 !> Version 1.0:\n
 !> 
-!> Github project page: http://demichie.github.io/PLUME-MoM/
+!> Github project page: http://demichie.github.io/PLUME-MoM-TSM/
 !> \n
 !> \author Mattia de' Michieli Vitturi (*) \n
 !> (*) Istituto Nazionale di Geofisica e vulcanologia, sezione di Pisa\n
 !>     Via della Faggiola, 36\n
 !>     I-56126 Pisa, Italy \n
 !>     E-mail: mattia.demichielivitturi@ingv.it \n
+!> \author Federica Pardini (*) \n
+!> (*) Istituto Nazionale di Geofisica e vulcanologia, sezione di Pisa\n
+!>     Via della Faggiola, 36\n
+!>     I-56126 Pisa, Italy \n
+!>     E-mail: federica.pardini@ingv.it \n
 !*********************************************************************
 
 !> \brief Main Program 
