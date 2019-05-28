@@ -1,0 +1,6 @@
+<map id="moments_module::linear_reconstruction" name="moments_module::linear_reconstruction">
+<area shape="rect" id="node2" href="$namespaceparticles__module.html#a3ad896ce2622b37a6abd567f9de33461" title="Quadrature values computation. " alt="" coords="217,57,369,98"/>
+<area shape="rect" id="node5" href="$namespacesolver__module.html#a4aeced542fad1a19662a1d88d8387371" title="Calculate physical variables from lumped variables. " alt="" coords="424,123,580,149"/>
+<area shape="rect" id="node3" href="$namespaceinpout.html#a95422eb21b8459c3be32ed3a87896e30" title="Read Input data. " alt="" coords="445,5,559,32"/>
+<area shape="rect" id="node4" href="$namespacemixture__module.html#ac066011ed3f999620875de4abdd429b1" title="Mixture properties initialization. " alt="" coords="417,57,587,98"/>
+</map>

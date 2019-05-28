@@ -1,0 +1,7 @@
+<map id="particles_module::eval_quad_values" name="particles_module::eval_quad_values">
+<area shape="rect" id="node2" href="$namespaceinpout.html#a95422eb21b8459c3be32ed3a87896e30" title="Read Input data. " alt="" coords="423,5,537,32"/>
+<area shape="rect" id="node4" href="$namespacemixture__module.html#ac066011ed3f999620875de4abdd429b1" title="Mixture properties initialization. " alt="" coords="205,53,375,94"/>
+<area shape="rect" id="node6" href="$namespacesolver__module.html#a4aeced542fad1a19662a1d88d8387371" title="Calculate physical variables from lumped variables. " alt="" coords="212,119,368,145"/>
+<area shape="rect" id="node3" href="$plume__model_8f90.html#ab7b7ef04f659c224b7baeb84368f2e08" title="Main Program. " alt="" coords="585,33,684,60"/>
+<area shape="rect" id="node5" href="$namespacerise.html#a419ab666e82d49270c0e924406903f83" title="Main subroutine for the integration. " alt="" coords="427,60,533,87"/>
+</map>
