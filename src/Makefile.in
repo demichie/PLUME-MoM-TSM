@@ -91,7 +91,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_PLUMEMoM_OBJECTS = moments.$(OBJEXT) plume.$(OBJEXT) \
 	variables.$(OBJEXT) meteo.$(OBJEXT) particles.$(OBJEXT) \
 	mixture.$(OBJEXT) solver_rise.$(OBJEXT) inpout.$(OBJEXT) \
-	rise.$(OBJEXT) plume_model.$(OBJEXT)
+	rise.$(OBJEXT) inversion.$(OBJEXT) plume_model.$(OBJEXT)
 PLUMEMoM_OBJECTS = $(am_PLUMEMoM_OBJECTS)
 PLUMEMoM_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -238,6 +238,7 @@ PLUMEMoM_SOURCES = \
                 solver_rise.f90 \
                 inpout.f90 \
 		rise.f90 \
+                inversion.f90 \
                 plume_model.f90
 
 FCDEBUGFLAGS = -Wall -g

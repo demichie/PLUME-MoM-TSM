@@ -5,12 +5,12 @@ AUTOMAKE_OPTIONS = foreign
 ###############################################################################
 
 # the program to build (the names of the final binaries)
-bin_PROGRAMS = TEST
+bin_PROGRAMS = PLUME-MoM
 bindir=@bindir@
 
 # list of sources for the binary
 PLUMEMoM_SOURCES = \
-		test.f90
+		plume_model.f90
 
 FCFLAGS         = -g -O3 -finit-real=snan
 FCDEBUGFLAGS    = -Wall -g
