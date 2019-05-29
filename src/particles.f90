@@ -150,11 +150,15 @@ MODULE particles_module
   LOGICAL, ALLOCATABLE, DIMENSION(:,:,:,:,:) :: q_flag
 
   !> constant factor of the integrand for aggregation
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:,:) :: integrand
+  ! REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:,:) :: integrand
 
   !> aggregation kernel computed for ip/is+jp/js
   REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:) :: kernel_aggr
   
+  REAL*8,ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: A
+
+  REAL*8,ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: Wij
+
   SAVE
 
 CONTAINS
@@ -227,10 +231,15 @@ CONTAINS
 
     ALLOCATE( kernel_aggr(n_part,n_part,n_sections,n_sections,n_nodes,n_nodes) )
 
-    ALLOCATE( integrand(n_part,n_part,n_sections,n_sections,n_sections,         &
-         0:n_mom-1,n_nodes,n_nodes) )
+    ! ALLOCATE( integrand(n_part,n_part,n_sections,n_sections,n_sections,         &
+    !      0:n_mom-1,n_nodes,n_nodes) )
     
-    
+    ALLOCATE( A(n_part,n_part,n_sections,n_sections,n_sections,n_nodes,n_nodes) )
+
+    ALLOCATE( Wij(n_part,n_part,n_sections,n_sections,0:n_mom-1,n_nodes,        &
+         n_nodes) )
+  
+
   END SUBROUTINE allocate_particles
 
   SUBROUTINE deallocate_particles
@@ -282,8 +291,11 @@ CONTAINS
     DEALLOCATE ( M)
 
     DEALLOCATE ( q_flag )
-    DEALLOCATE ( integrand )
+    ! DEALLOCATE ( integrand )
     DEALLOCATE ( kernel_aggr )
+
+    DEALLOCATE ( A )
+    DEALLOCATE ( Wij )
     
   END SUBROUTINE deallocate_particles
 
@@ -1491,7 +1503,8 @@ CONTAINS
                       END DO
                       
                       integrand_ijkm = SUM(                                     &
-                           integrand(i_part,j_part,i_sect,j_sect,k_sect,0,:,:)  &
+                           A(i_part,j_part,i_sect,j_sect,k_sect,:,:)            &
+                           * Wij(i_part,j_part,i_sect,j_sect,0,:,:)             &
                            * kernel_aggr(i_part,j_part,i_sect,j_sect,:,:)       &
                            * f1i_f2j )
                       
@@ -1508,7 +1521,8 @@ CONTAINS
                            + 0.5 * integrand_ijkm
                       
                       integrand_ijkm = SUM(                                     &
-                           integrand(i_part,j_part,i_sect,j_sect,k_sect,1,:,:)  &
+                           A(i_part,j_part,i_sect,j_sect,k_sect,:,:)            &
+                           * Wij(i_part,j_part,i_sect,j_sect,1,:,:)             &
                            * kernel_aggr(i_part,j_part,i_sect,j_sect,:,:)       &
                            * f1i_f2j )
                       
@@ -1574,12 +1588,6 @@ CONTAINS
     INTEGER :: i_mom
     INTEGER :: i_node , j_node
     
-    REAL*8 :: A(n_part,n_part,n_sections,n_sections,n_sections,0:n_mom-1,       &
-         n_nodes,n_nodes)
-    REAL*8 :: Wij(n_part,n_part,n_sections,n_sections,n_sections,0:n_mom-1,     &
-         n_nodes,n_nodes)
-    
-    
     DO i_part=1,n_part 
 
        DO i_sect=1,n_sections
@@ -1612,11 +1620,7 @@ CONTAINS
                    ! to particles n_part/k_sect
                    q_flag(i_part,j_part,i_sect,j_sect,k_sect) = SUM(Aijk)
  
-                   DO i_mom=0,n_mom-1
-
-                      A(i_part,j_part,i_sect,j_sect,k_sect,i_mom,:,:) = Aijk
-
-                   END DO
+                   A(i_part,j_part,i_sect,j_sect,k_sect,:,:) = Aijk
 
                 END DO
 
@@ -1629,12 +1633,8 @@ CONTAINS
 
                    END DO
 
-                   DO k_sect=1,n_sections
-
-                      Wij(i_part,j_part,i_sect,j_sect,k_sect,i_mom,:,:) = Wijm
+                   Wij(i_part,j_part,i_sect,j_sect,i_mom,:,:) = Wijm
                       
-                   END DO
-
                 END DO
 
              END DO
@@ -1644,8 +1644,6 @@ CONTAINS
        END DO
 
     END DO
-
-    integrand = A * Wij
 
     WRITE(*,*) 'Aggregation initialization completed'
     
