@@ -691,8 +691,15 @@ CONTAINS
     ice_mass_fraction = 0.D0    
 
 
-    ! CASE1: all water is liquid       
-    lw_mf0 = water_mass_fraction 
+    ! CASE1: all water is liquid   
+    
+    water_vapor_mass_fraction = 1.D-10
+
+    liquid_water_mass_fraction = water_mass_fraction-water_vapor_mass_fraction  &
+         - ice_mass_fraction
+
+    lw_mf0 = liquid_water_mass_fraction
+ 
 
     liquid_water_mass_fraction = lw_mf0
     water_vapor_mass_fraction = water_mass_fraction-liquid_water_mass_fraction  &
