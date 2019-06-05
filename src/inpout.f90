@@ -1824,56 +1824,60 @@ CONTAINS
     volcgas_mol_wt(1:n_gas) = -1.D0
     volcgas_mass_fraction0(1:n_gas) = -1.D0
     
-    READ(inp_unit, mixture_parameters) 
+    IF ( n_gas .GT. 0.D0 ) THEN
 
-    IF ( ANY( rvolcgas(1:n_gas) ==-1.D0 ) ) THEN
+       READ(inp_unit, mixture_parameters) 
 
-       WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-       WRITE(*,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
-       STOP
+       IF ( ANY( rvolcgas(1:n_gas) ==-1.D0 ) ) THEN
+          
+          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
+          STOP
+          
+       END IF
+       
+       IF ( ANY( cpvolcgas(1:n_gas) ==-1.D0 ) ) THEN
+          
+          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
+          STOP
+          
+       END IF
+       
+       IF ( ANY( volcgas_mol_wt(1:n_gas) ==-1.D0 ) ) THEN
+          
+          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Please check the values of rvolcgas',volcgas_mol_wt(1:n_gas)
+          STOP
+          
+       END IF
+       
+       IF ( ANY( volcgas_mass_fraction0(1:n_gas) ==-1.D0 ) ) THEN
+          
+          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Please check the values of rvolcgas',                        &
+               volcgas_mass_fraction0(1:n_gas)
+          STOP
+          
+       END IF
+       
+       
+       IF ( ( SUM( volcgas_mass_fraction0(1:n_gas) ) + water_mass_fraction0 )      &
+            .GE. 1.D0 ) THEN
+          
+          WRITE(*,*) 'WARNING: Sum of gas mass fractions :',                       &
+               SUM( volcgas_mass_fraction0(1:n_part) + water_mass_fraction0 )
+          
+          !READ(*,*)
+          
+       END IF
        
     END IF
 
-    IF ( ANY( cpvolcgas(1:n_gas) ==-1.D0 ) ) THEN
-
-       WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-       WRITE(*,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
-       STOP
-       
-    END IF
-
-    IF ( ANY( volcgas_mol_wt(1:n_gas) ==-1.D0 ) ) THEN
-
-       WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-       WRITE(*,*) 'Please check the values of rvolcgas',volcgas_mol_wt(1:n_gas)
-       STOP
-       
-    END IF
-
-    IF ( ANY( volcgas_mass_fraction0(1:n_gas) ==-1.D0 ) ) THEN
-
-       WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-       WRITE(*,*) 'Please check the values of rvolcgas',                        &
-            volcgas_mass_fraction0(1:n_gas)
-       STOP
-       
-    END IF
-
-    
-    IF ( ( SUM( volcgas_mass_fraction0(1:n_gas) ) + water_mass_fraction0 )      &
-         .GE. 1.D0 ) THEN
-
-       WRITE(*,*) 'WARNING: Sum of gas mass fractions :',                       &
-            SUM( volcgas_mass_fraction0(1:n_part) + water_mass_fraction0 )
-
-       !READ(*,*)
-
-    END IF
-    
     rvolcgas_mix = 0.D0
     cpvolcgas_mix = 0.D0
     Rrhovolcgas_mix = 0.D0
-
+    
     CALL initialize_meteo
 
     CALL phiFromM
@@ -1950,9 +1954,7 @@ CONTAINS
        
     END IF
     
-    WRITE(bak_unit, mixture_parameters) 
-
-
+    IF ( n_gas .GT. 0 ) WRITE(bak_unit, mixture_parameters) 
 
     IF ( SUM( solid_partial_mass_fraction(1:n_part) ) .NE. 1.D0 ) THEN
 
