@@ -1,0 +1,69 @@
+This folder contains the input files to reproduce the two test cases presented in Costa et al. (2016) for strong and weak plumes.
+
+Parameters for strong plume test are:
+	
+Vent elevation: 1500 m 
+Mass Flow Rate: 1.5x10^9 kg/s
+Exit Velocity: 275 m/s
+Exit Temperature: 1053 K
+Exit Water Fraction: 5.0 wt%
+Particle size distribution: coarse class at Φ=1 with ρ=2500 kg/m^3
+                            fine class at Φ=6 with ρ=2700 kg/m^3
+
+Parameters for weak plume test are:
+	
+Vent elevation: 1500 m 
+Mass Flow Rate: 1.5x10^6 kg/s
+Exit Velocity: 135 m/s
+Exit Temperature: 1273 K
+Exit Water Fraction: 3.0 wt%
+Particle size distribution: coarse class at Φ=0 with ρ=2200 kg/m^3
+                            fine class at Φ=4 with ρ=2700 kg/m^3
+
+
+
+Reference
+
+Costa, A., Suzuki, Y., Cerminara, M., Devenish, B., Esposti, O. T., Herzog, M., Van, E. A., et al. (2016). 
+Results of the eruptive column model inter-comparison study. Journal of Volcanology and Geothermal Research, 
+326 2-25. https://doi.org/10.1016/j.jvolgeores.2016.01.017 
+
+  	
+  
+	
+  
+
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+  	
+
+  
