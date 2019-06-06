@@ -1,0 +1,30 @@
+The scripts provided in this folder have been written by F.Pardini(1) and M.de' Michieli Vitturi(2)
+
+(1) School of Earth, Atmospheric and Environmental Sciences, 
+    The University of Manchester
+    federica.pardini@.manchester.ac.uk 
+
+(2) Istituto Nazionale di Geofisica e Vulcanologia
+    Sezione di Pisa
+    mattia.demichielivitturi@ingv.it
+
+
+To run a PlumeMoM & Hysplit simulation
+
+1. Edit input_file.py 
+
+2. Execute run_plumemom_hysplit.sh   - To run the PlumeMoM & Hysplit simulation
+
+3. Execute create_plots.sh           - HYSPLIT plotting routines for solid particles and gas concentrations
+
+4. Execute plot_ground_mass.sh       - To plot the deposit
+
+5. Execute extract_samples.sh        - To extract particles mass loading at specific lat-lon locations (see input_file.py)
+
+6. Execute calculate_solid_mass.sh   - To compute the mass of solid material in the domain 
+
+7. Execute calculate_gas_mass.sh     - To compute the mass of volcanic gases in the domain
+
+8. Execute clean_all.py              - To clean the working directory
+
+From point 3 to point 8 the execution order can be varied by the user

@@ -1,0 +1,11 @@
+1 - Line not printed by concplot 
+2 - Line not printed by concplot 
+Run name: {runname}  Job Start: {jobstart}
+4 - Line not printed by concplot 
+Lat: {lat} Lon: {lon} Vent Hgt: {vent_height} m, asl
+6 - Line not printed by concplot 
+7 - Line not printed by concplot 
+Emission Start: {starttime} 
+Emission End: {endemittime}
+Release Quantity: {released_mass} kg      
+Meteorological Data: {meteo_file}
