@@ -89,7 +89,7 @@ def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list):
     rho = rho_da * ( 1 + Q ) / ( 1 + Q * Rw / Rd )
     # where Q is the specific humidity in kgkg-1
 
-    if 'HGTSa' in fields_list:
+    if 'HGTS' in fields_list:
 
         z_idx = fields_list.index("HGTS") + 1
 
