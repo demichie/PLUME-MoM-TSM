@@ -1447,7 +1447,7 @@ CONTAINS
 
                    DO j_node=1,n_nodes
 
-                      ! If the kernel is a fonction of particle sizes only, then
+                      ! If the kernel is a function of particle sizes only, then
                       ! it can be initialized before the integration of the
                       ! plume equation
                       aggregation_model = 'brownian'
@@ -1612,13 +1612,14 @@ CONTAINS
                 DO k_sect=1,n_sections
 
                    ! the mask depends only on the sections i, j and k
-                   Aijk = ( mi12 .GE. M(n_part,k_sect) ) .AND.                  &
-                        ( mi12 .LE. M(n_part,k_sect+1) )
+                   Aijk = MERGE(1 , 0 , ( mi12 .GE. M(n_part,k_sect) ) .AND.    &
+                        ( mi12 .LE. M(n_part,k_sect+1) ) )
 
                    ! this logical variable is true only when particles
                    ! i_part/i_sect and particles j_part/j_sect aggregate
                    ! to particles n_part/k_sect
-                   q_flag(i_part,j_part,i_sect,j_sect,k_sect) = SUM(Aijk)
+                   q_flag(i_part,j_part,i_sect,j_sect,k_sect) =                 &
+                        ( SUM(Aijk) .LT. 0 )
  
                    A(i_part,j_part,i_sect,j_sect,k_sect,:,:) = Aijk
 
