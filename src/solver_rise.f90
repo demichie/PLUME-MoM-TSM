@@ -254,11 +254,15 @@ CONTAINS
     cp_solid_term =SUM( set_cp_mom( 1:n_part , 1:n_sections , 1 )               &
          * mom( 1:i_part , 1:n_sections , 1 ) )
 
-    !---- Energy conservation    (Eq.2d Folch 2016) 
+    !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
+    !---- due to particle sedimentation
+
     rhs1(4) = 2.D0 * r * ueps * rho_atm * ( cpair * ta * ( 1.D0 - sphu_atm )    &
          + sphu_atm * ( h_wv0 - c_wv * ta ) + gi * z                            &
-         + 0.5D0 * ueps**2 ) - t_mix * prob_factor * 2.D0 * r * cp_solid_term   &
-         + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )   
+         + 0.5D0 * ueps**2 ) - prob_factor * 2.D0 * r * ( t_mix * cp_solid_term &
+         + 0.5D0 * mag_u**2.D0 * solid_term)                                    &
+         + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
+         
 
 
     !---- Z integration   (Eq. 30 PlumeMoM - GMD)
