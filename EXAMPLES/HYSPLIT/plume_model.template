@@ -50,7 +50,7 @@
  DS0=  2.5000000000000000     ,
  N_GAS=         {ngas},
  /
-&MIXTURE_PARAMETERS
+&VOLCGAS_PARAMETERS
  RVOLCGAS=  {rvolcgas}   ,
  CPVOLCGAS=  {cpvolcgas} ,
  VOLCGAS_MOL_WT=  {volcgas_mol_wt} ,

@@ -184,7 +184,7 @@ MODULE inpout
          
   NAMELIST / hysplit_parameters / hy_deltaz , nbl_stop , n_cloud
  
-  NAMELIST / mixture_parameters / rvolcgas , cpvolcgas , volcgas_mol_wt ,       &
+  NAMELIST / volcgas_parameters / rvolcgas , cpvolcgas , volcgas_mol_wt ,       &
        volcgas_mass_fraction0
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
@@ -358,7 +358,7 @@ CONTAINS
             volcgas_mass_fraction(n_gas) , volcgas_mass_fraction0(n_gas) ,      &
             rhovolcgas(n_gas) )
        
-       !---------- parameters of the MIXTURE_PARAMETERS namelist ----------------
+       !---------- parameters of the VOLCGAS_PARAMETERS namelist ----------------
        RVOLCGAS(1) = 189.000000    
        RVOLCGAS(2) =  130.000000   
        CPVOLCGAS(1)=  844.000000
@@ -385,7 +385,7 @@ CONTAINS
        WRITE(inp_unit, atm_parameters )
        WRITE(inp_unit, std_atm_parameters )
        WRITE(inp_unit, initial_values )
-       WRITE(inp_unit, mixture_parameters )
+       WRITE(inp_unit, volcgas_parameters )
        WRITE(inp_unit, lognormal_parameters )
 
        CLOSE(inp_unit)
@@ -1826,7 +1826,7 @@ CONTAINS
     
     IF ( n_gas .GT. 0.D0 ) THEN
 
-       READ(inp_unit, mixture_parameters) 
+       READ(inp_unit, volcgas_parameters) 
 
        IF ( ANY( rvolcgas(1:n_gas) ==-1.D0 ) ) THEN
           
@@ -1954,7 +1954,7 @@ CONTAINS
        
     END IF
     
-    IF ( n_gas .GT. 0 ) WRITE(bak_unit, mixture_parameters) 
+    IF ( n_gas .GT. 0 ) WRITE(bak_unit, volcgas_parameters) 
 
     IF ( SUM( solid_partial_mass_fraction(1:n_part) ) .NE. 1.D0 ) THEN
 
