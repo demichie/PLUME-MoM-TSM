@@ -38,7 +38,9 @@ CONTAINS
          volcgas_mix_mass_fraction , water_mass_fraction ,                      &
          liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction
     USE particles_module, ONLY : n_part , n_sections , mom , phiL , phiR , n_mom
-    USE particles_module, ONLY : solid_partial_mass_fraction, particle_loss_rate
+    USE particles_module, ONLY : solid_partial_mass_fraction ,                  &
+         particle_loss_rate , cum_particle_loss_rate
+
     USE plume_module, ONLY: s , w , x , y , z , vent_height , r , mag_u ,       &
          log10_mfr
     USE solver_module, ONLY: ds, ds0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
@@ -214,6 +216,7 @@ CONTAINS
     ds = ds0
 
     particle_loss_rate(1:n_part,1:n_sections) = 0.D0
+    cum_particle_loss_rate(1:n_part,1:n_sections) = 0.D0
     
     IF ( write_flag ) CALL write_column
 
@@ -340,9 +343,9 @@ CONTAINS
 
              idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
-             particle_loss_rate(i_part,i_sect) = 0.5D0 *                        &
+             particle_loss_rate(i_part,i_sect) = 0.5D0 * ds *                   &
                   ( particle_loss_rate(i_part,i_sect) - pi_g * rhs1(idx) )
-             
+                          
           END DO
           
        END DO
@@ -389,6 +392,11 @@ CONTAINS
        END IF
 
        ! ------ update the solution ---------------------------------------------
+
+       cum_particle_loss_rate(1:n_part,1:n_sections) =                          &
+            cum_particle_loss_rate(1:n_part,1:n_sections) +                     &
+            particle_loss_rate(1:n_part,1:n_sections)
+
 
        !WRITE(*,"(30ES12.4)") mom(1:n_part,1,1), pi_g ,  (r**2) , mag_u
        !READ(*,*)

@@ -116,8 +116,6 @@ MODULE inpout
 
   INTEGER :: hy_lines
 
-  INTEGER :: read_col_unit
-
   INTEGER :: col_lines
 
   !> hysplit volcanic gas data unit
@@ -2289,7 +2287,7 @@ CONTAINS
     USE meteo_module, ONLY: rho_atm , ta, pa
 
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
-         mom , set_mom , particle_loss_rate
+         mom , set_mom , cum_particle_loss_rate
 
     USE plume_module, ONLY: x , y , z , w , r , mag_u
 
@@ -2375,16 +2373,17 @@ CONTAINS
          w , mag_u, dry_air_mass_fraction , water_vapor_mass_fraction ,         & 
          liquid_water_mass_fraction , ice_mass_fraction
 
-    WRITE(sed_unit,101,advance="no") z , r , x , y
+    WRITE(sed_unit,141,advance="no") z , r , x , y
 
 101 FORMAT(12(1x,es15.8))
+141 FORMAT(4(1x,es15.8))
     
     DO i_part=1,n_part
 
        DO i_sect=1,n_sections
 
           WRITE(col_unit,102,advance="no") mom(i_part,i_sect,1)
-          WRITE(sed_unit,102,advance="no") particle_loss_rate(i_part,i_sect)
+          WRITE(sed_unit,102,advance="no") cum_particle_loss_rate(i_part,i_sect)
           
        END DO
 
@@ -2608,13 +2607,14 @@ CONTAINS
     REAL*8 :: temp_k,mfr
     REAL*8 :: da_mf,wv_mf,lw_mf, ice_mf, volcgas_tot_mf
     REAL*8, ALLOCATABLE :: x_col(:) , y_col(:) , z_col(:) , r_col(:) 
-    REAL*8, ALLOCATABLE :: mom_col(:,:) , gas_mf(:) , mfr_col(:)
+    REAL*8, ALLOCATABLE :: mom_col(:,:) , mfr_col(:)
     REAL*8, ALLOCATABLE :: volcgas_mf(:,:)
     REAL*8, ALLOCATABLE :: solid_mass_flux(:,:) , solid_mass_loss_cum(:,:)
     REAL*8, ALLOCATABLE :: volcgas_mass_flux(:,:) 
     REAL*8 :: z_min , z_max , z_bot , z_top , x_top , x_bot , y_bot , y_top
     REAL*8 :: r_bot , r_top
     REAL*8 :: solid_bot , solid_top
+    REAL*8 :: solid_loss_bot , solid_loss_top
     REAL*8 :: gas_top
     REAL*8, ALLOCATABLE :: delta_solid(:) , cloud_solid(:)
     REAL*8, ALLOCATABLE :: cloud_gas(:) 
@@ -2631,12 +2631,14 @@ CONTAINS
     INTEGER :: i_part , i_sect
     INTEGER :: n_tot
 
+    INTEGER :: read_col_unit , read_sed_unit
+  
+
     n_tot = n_part * n_sections
     
     ALLOCATE( x_col(col_lines) , y_col(col_lines) , z_col(col_lines) )
     ALLOCATE( r_col(col_lines) )
     ALLOCATE( mom_col(n_tot,col_lines) )
-    ALLOCATE( gas_mf(col_lines) )
     ALLOCATE( mfr_col(col_lines) )
     ALLOCATE( volcgas_mf(n_gas,col_lines) )
     ALLOCATE( solid_mass_flux(n_tot,col_lines) )
@@ -2660,22 +2662,16 @@ CONTAINS
             mom_col(1:n_tot,i) , volcgas_mf(1:n_gas,i) , volcgas_tot_mf ,       &
             rho_atm , mfr_col(i) , ta, pa
 
-       gas_mf(i) = da_mf + wv_mf + volcgas_tot_mf
-
        solid_mass_flux(1:n_tot,i) = mom_col(1:n_tot,i) * pi_g * r_col(i)**2     &
             * mag_u
 
-       solid_mass_loss_cum(1:n_tot,i) = 1.D0 -  solid_mass_flux(1:n_tot,i) /    &
-            solid_mass_flux(1:n_tot,1)
-
        volcgas_mass_flux(1:n_gas,i) = volcgas_mf(1:n_gas,i)                     &
-            *rho_mix * pi_g * r_col(i)**2 * mag_u 
+            * rho_mix * pi_g * r_col(i)**2 * mag_u 
 
        !WRITE(*,*) 'Solid mass flux (kg/s): ',solid_mass_flux(1:n_tot,i)
        !WRITE(*,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
        !WRITE(*,*) 'solid_pmf: ',solid_pmf(1:n_tot,i)
        !WRITE(*,*) 'Sum solid mass fractions: ',SUM(solid_pmf(1:n_tot,i))
-       !WRITE(*,*) 'gas mass fraction: ',gas_mf(i)
        !WRITE(*,*) z_col(i) , solid_mass_loss_cum(1:n_tot,i)
        !READ(*,*)
        !WRITE(*,*) 'volcgas_mass_flux ',volcgas_mass_flux(1:n_gas,i), z_col(i)
@@ -2686,7 +2682,25 @@ CONTAINS
 111 FORMAT(90(1x,es15.8))
 
     CLOSE(read_col_unit)    
+  
+    n_unit = n_unit + 1
+    read_sed_unit = n_unit
     
+    OPEN(read_sed_unit,FILE=sed_file)
+  
+    READ(read_sed_unit,*)
+
+    DO i = 1,col_lines
+
+       READ(read_sed_unit,112) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
+            solid_mass_loss_cum(1:n_tot,i)
+
+    END DO
+
+112    FORMAT(200(1x,es15.8))
+
+    CLOSE(read_sed_unit)  
+
     OPEN(hy_unit,FILE=hy_file)
     
     WRITE(hy_unit,107,advance="no")
@@ -2732,9 +2746,6 @@ CONTAINS
 
        DO j = 1,n_tot
 
-          CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
-          CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
-
           CALL interp_1d_scalar(z_col, x_col, z_bot, x_bot)
           CALL interp_1d_scalar(z_col, x_col, z_top, x_top)
 
@@ -2744,14 +2755,14 @@ CONTAINS
           CALL interp_1d_scalar(z_col, r_col, z_bot, r_bot)
           CALL interp_1d_scalar(z_col, r_col, z_top, r_top)
           
-          delta_solid(j) = solid_bot - solid_top
+          ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
+          ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
+          ! delta_solid(j) = solid_bot - solid_top
 
-          !WRITE(*,*) ' solid_mass_flux(j,:) ',solid_mass_flux(j,:)
-          !WRITE(*,*) ' j ',j 
-          !WRITE(*,*) ' solid_bot ',solid_bot
-          !WRITE(*,*) ' solid_top ',solid_top
-          !WRITE(*,*) ' delta_solid(j) ',delta_solid(j)
+          CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_bot, solid_loss_bot)
+          CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_top, solid_loss_top)
 
+          delta_solid(j) = solid_loss_top - solid_loss_bot
 
        END DO
 
@@ -2859,8 +2870,6 @@ CONTAINS
     
     DO j = 1,n_tot
        
-       CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
-       CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
 
        CALL interp_1d_scalar(z_col, x_col, z_bot, x_bot)
        CALL interp_1d_scalar(z_col, x_col, z_top, x_top)
@@ -2871,9 +2880,17 @@ CONTAINS
        CALL interp_1d_scalar(z_col, r_col, z_bot, r_bot)
        CALL interp_1d_scalar(z_col, r_col, z_top, r_top)
           
-       delta_solid(j) = solid_bot - solid_top
+       ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
+       CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
+       ! delta_solid(j) = solid_bot - solid_top
+
        cloud_solid(j) = solid_top
 
+       CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_bot, solid_loss_bot)
+       CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_top, solid_loss_top)
+
+       delta_solid(j) = solid_loss_top - solid_loss_bot
+     
     END DO
   
     solid_tot(1:n_tot) = solid_tot(1:n_tot) + delta_solid(1:n_tot)

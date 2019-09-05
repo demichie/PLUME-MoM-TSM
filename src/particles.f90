@@ -34,8 +34,12 @@ MODULE particles_module
   !> mass fraction of the bins of particle with respect to the total solid
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: bin_partial_mass_fraction
 
+  !> rate of particles lost from the plume in the integration steps ( kg s^-1)
   REAL*8, ALLOCATABLE, DIMENSION(:,:) :: particle_loss_rate
   
+  !> cumulative rate of particles lost up to the integration height ( kg s^-1)
+  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: cum_particle_loss_rate
+
   !> Moments of the particles diameter
   REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: mom
 
@@ -186,6 +190,7 @@ CONTAINS
     ALLOCATE ( bin_partial_mass_fraction(1:n_part,1:n_sections) )
 
     ALLOCATE ( particle_loss_rate(1:n_part,1:n_sections) )
+    ALLOCATE ( cum_particle_loss_rate(1:n_part,1:n_sections) )
     
     ! Allocation of the arrays for the moments
     ALLOCATE ( mom0(1:n_part,1:n_sections,0:n_mom-1) )
@@ -253,7 +258,7 @@ CONTAINS
 
     DEALLOCATE ( bin_partial_mass_fraction )
 
-    DEALLOCATE ( particle_loss_rate )
+    DEALLOCATE ( particle_loss_rate , cum_particle_loss_rate )
     
     ! Allocation of the arrays for the moments
     DEALLOCATE ( mom0 )

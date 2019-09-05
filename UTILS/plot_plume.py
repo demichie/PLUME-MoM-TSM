@@ -61,8 +61,7 @@ with open("%s.col" % filename, "r") as file1:
     n_gas = 0
 
 
-    for i in range(len(header_split)-1):
-
+    for i in range(len(header_split)):
 
         d1["smf{0}".format(i)] = smf_array() 
 
@@ -82,6 +81,7 @@ with open("%s.col" % filename, "r") as file1:
     n_part = int(last_part[0:2])
     n_bin = int(last_part[3:])
 
+       
 print 'number of particles phases', n_part
 print 'number of bins ', n_bin
 print 'number of volcanic gases ',n_gas
@@ -134,6 +134,7 @@ n_levels = results.shape[0]
 solid_partial_mass_fraction = np.zeros((results.shape[0],n_part_sect))
 rhoBsolid = np.zeros((results.shape[0],n_part_sect))
 
+
 for i in range(n_part_sect):
 
     rhoBsolid[:,i] = results[:,d1["smf"+str(i+1)].column_org]
@@ -144,7 +145,7 @@ rhoBsolidTot = rhoBsolidTot.reshape((-1,1))
 for i in range(n_levels):
 
     solid_partial_mass_fraction[i,:] = rhoBsolid[i,:] / rhoBsolidTot[i]
-    # print i,solid_partial_mass_fraction[i,:]
+
 
 if n_gas == 0:
 
@@ -444,53 +445,114 @@ idx_steps = []
 for value in time_steps:
     idx_steps.append((np.abs(time - value)).argmin())
 
-# print idx_steps
+print idx_steps
 
-plt.subplot(1, 3, 1)
+plt.subplot(1, 2, 1)
 
-# profile_plot = plt.line
+x = np.flip(phi_min + delta_phi*np.arange(n_bin))
+x = np.tile(x,n_part)
 
-solid_pmf = solid_partial_mass_fraction[idx_steps,:]
+solid_pmf_bot = np.zeros((n_part_sect))
 
-solid_Delta_mf = np.zeros((solid_pmf.shape[0],n_part_sect))
-solid_Delta_mf[0,:] = 0.0
-solid_Delta_mf[1:,:] = np.diff(solid_mass_flux[idx_steps,:],axis=0)
+for i in range(1,n_part):
 
-for i in range(n_frames):
-    # print solid_Delta_mf[i,:] 
-    solid_Delta_mf[i,:] = solid_Delta_mf[i,:]/np.sum(solid_Delta_mf[i,:])
-    # print solid_Delta_mf[i,:]
-    # raw_input("Press Enter to continue...")
-
-x = np.arange(n_bin)
-y1 = np.flipud(solid_pmf[0,:])
-
-plt.subplot(1, 3, 2)
+    solid_pmf_bot[i*n_bin:(i+1)*n_bin] += solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection1 = plt.bar(x,y1)
+barcollection1 = plt.bar(x, solid_partial_mass_fraction[0,:], bottom=solid_pmf_bot)
 
-objects = []
-for i in range(n_sections):
+plt.subplot(1, 2, 2)
 
-    objects.append(str(phi_min+i*delta_phi))
 
-y_pos = np.arange(len(objects))
-plt.xticks(y_pos, objects, rotation=90)
+sed1={}
 
-y2 = np.flipud(solid_Delta_mf[1,:])
-plt.subplot(1, 3, 3)
-barcollection2 = plt.bar(x,y2)
-plt.xticks(y_pos, objects, rotation=90)
+with open("%s.sed" % filename, "r") as file1:
+    line=file1.readlines()
+    header_line=line[0]
+    header_split = header_line.split()
+    n_part_sect = 0
+
+    for i in range(len(header_split)):
+
+        sed1["smf{0}".format(i)] = smf_array() 
+
+        if header_split[i][0:4] == "rhoB":
+
+            last_part = header_split[i][4:]
+
+            n_part_sect = n_part_sect +1
+
+            print "smf{0}".format(n_part_sect) 
+                         
+            sed1["smf{0}".format(n_part_sect)].org = n_part_sect 
+
+            sed1["smf{0}".format(n_part_sect)].column_org = i
+
+sed_results = np.loadtxt("%s.sed" % filename, skiprows = 1)
+
+sed_results = sed_results.reshape((z_levels,-1))
+
+sed_solid_partial_mass_fraction = np.zeros((sed_results.shape[0],n_part_sect))
+sed_solid = np.zeros((sed_results.shape[0],n_part_sect))
+
+
+for i in range(n_part_sect):
+
+    sed_solid[:,i] = sed_results[:,sed1["smf"+str(i+1)].column_org]
+
+
+sed_solidTot = np.sum(sed_solid, axis=1)
+sed_solidTot = sed_solidTot.reshape((-1,1))
+
+
+
+sed_solid_partial_mass_fraction[0,:] = sed_solid[0,:] 
+
+for i in range(1,n_levels):
+
+    sed_solid_partial_mass_fraction[i,:] = sed_solid[i,:] / sed_solidTot[i]
+
+print sed_solid_partial_mass_fraction.shape
+
+sed_solid_pmf_bot = np.zeros((n_part_sect))
+
+for i in range(1,n_part):
+
+    sed_solid_pmf_bot[i*n_bin:(i+1)*n_bin] += sed_solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
+
+
+barcollection2 = plt.bar(x, sed_solid_partial_mass_fraction[0,:], bottom=sed_solid_pmf_bot)
 
 
 def animate(i):
-    y1=np.flipud(solid_pmf[i,:])
-    for i, b in enumerate(barcollection1):
-        b.set_height(y1[i])
-    y2=np.flipud(solid_Delta_mf[i,:])
-    for i, b in enumerate(barcollection2):
-        b.set_height(y2[i])
+
+    y1 = solid_partial_mass_fraction[idx_steps[i],:]
+
+    solid_pmf_bot[0:n_part_sect] = 0.0
+
+    for i_part in range(1,n_part):
+
+        solid_pmf_bot[i_part*n_bin:(i_part+1)*n_bin] += solid_partial_mass_fraction[idx_steps[i],(i_part-1)*n_bin:i_part*n_bin]
+
+   
+    for j, b in enumerate(barcollection1):
+        b.set_height(y1[j])
+        b.set_y(solid_pmf_bot[j])
+
+
+    y2 = sed_solid_partial_mass_fraction[idx_steps[i],:]
+
+    sed_solid_pmf_bot[0:n_part_sect] = 0.0
+
+    for i_part in range(1,n_part):
+
+        sed_solid_pmf_bot[i_part*n_bin:(i_part+1)*n_bin] += sed_solid_partial_mass_fraction[idx_steps[i],(i_part-1)*n_bin:i_part*n_bin]
+
+   
+    for j, b in enumerate(barcollection2):
+        b.set_height(y2[j])
+        b.set_y(sed_solid_pmf_bot[j])
+
     
 
 anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames,
