@@ -192,6 +192,8 @@ CONTAINS
     
     w0_init = w_min*DSQRT(w_max/w_min)
 
+    w0_init = w0
+
     CALL plumerise
     ! WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
 
@@ -200,8 +202,7 @@ CONTAINS
     opt_height = plume_height
     opt_mfr = mass_flow_rate
     opt_regime = column_regime
-
-    
+  
     
     IF ( ( plume_height .GT. height_obj ) ) THEN
 
@@ -233,7 +234,7 @@ CONTAINS
           
        END IF
 
-       !WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
+       ! WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
 
        IF ( (plume_height-height_obj)*init_sign .LT. 0.D0 ) EXIT search_interval
        
@@ -241,7 +242,7 @@ CONTAINS
 
     IF ( iter_interval .EQ. 5 ) THEN
 
-       !WRITE(*,*) 'optimal velocity not found in the interval',w0_init,w0
+       ! WRITE(*,*) 'optimal velocity not found in the interval',w0_init,w0
        w0 = w0_init
        search_flag = .FALSE.
        return
@@ -262,7 +263,6 @@ CONTAINS
        plume_height_0 = plume_height
        w0_2 = w0 / mult_fact
 
-
     END IF
 
     sign_0 = plume_height_0-height_obj
@@ -272,7 +272,7 @@ CONTAINS
 
        w0 = 0.5D0 * ( w0_0 + w0_2 )
 
-       !WRITE(*,*) 'search_zero',r0,w0
+       ! WRITE(*,*) 'search_zero',r0,w0,w0_0,w0_2
        
        CALL plumerise
 
@@ -286,10 +286,10 @@ CONTAINS
 
        END IF
        
-       !WRITE(*,*) 'plume_height,regime',plume_height,INT(column_regime)
-       !WRITE(*,*) 'w0_0,w0_2',w0_0,w0_2
-       !WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
-       !READ(*,*)
+       ! WRITE(*,*) 'plume_height,regime',plume_height,INT(column_regime)
+       ! WRITE(*,*) 'w0_0,w0_2',w0_0,w0_2
+       ! WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
+       ! READ(*,*)
 
        IF ( DABS(plume_height_0-plume_height_2) .LT. 1.D-3 ) EXIT search_zero
        IF ( DABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero

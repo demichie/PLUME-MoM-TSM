@@ -24,7 +24,8 @@ MODULE inpout
 
     USE particles_module, ONLY : solid_partial_mass_fraction , phi1 , rho1 ,    &
          phi2 , rho2 , cp_part , settling_model , distribution ,                &
-         solid_mass_fraction , shape_factor , bin_partial_mass_fraction
+         solid_mass_fraction0 , shape_factor , bin_partial_mass_fraction ,      &
+         solid_partial_mass_fraction0 
 
     USE particles_module, ONLY : aggregation_model , phiL , phiR , M
     
@@ -1962,11 +1963,12 @@ CONTAINS
 
        END IF
 
-
     END IF
 
+    solid_partial_mass_fraction0 = solid_partial_mass_fraction
+
     ! solid mass fractions in the mixture
-    solid_mass_fraction(1:n_part) = ( 1.d0 - water_mass_fraction0               &
+    solid_mass_fraction0(1:n_part) = ( 1.d0 - water_mass_fraction0              &
          - volcgas_mix_mass_fraction ) * solid_partial_mass_fraction(1:n_part)
 
     WRITE(*,*) '---------- INITIALIZATION ------------'
@@ -2084,7 +2086,7 @@ CONTAINS
        WRITE(*,*) 'rho_mix',rho_mix
 
        WRITE(*,*) 'gas_mass_fraction',gas_mass_fraction
-       WRITE(*,*) 'solid_mass_fractions',solid_mass_fraction(1:n_part)
+       WRITE(*,*) 'solid_mass_fractions',solid_mass_fraction0(1:n_part)
 
     END IF
     
@@ -2105,7 +2107,7 @@ CONTAINS
           WRITE(*,*) 'solid_volume_fraction0',solid_volume_fraction0(i_part)
           WRITE(*,*) 'solid_partial_mass_fract',                                &
                solid_partial_mass_fraction(i_part)
-          WRITE(*,*) 'solid_mass_fract', solid_mass_fraction(i_part)
+          WRITE(*,*) 'solid_mass_fract', solid_mass_fraction0(i_part)
           WRITE(*,*) 
 
        END IF

@@ -150,9 +150,10 @@ CONTAINS
     USE moments_module, ONLY : n_nodes , n_mom , n_sections
 
     USE particles_module, ONLY: n_part , solid_partial_mass_fraction , mom ,    &
-         distribution , cp_part , mom0
+         distribution , cp_part , mom0 , solid_partial_mass_fraction0
 
-    USE particles_module, ONLY: cpsolid , solid_mass_fraction
+    USE particles_module, ONLY: cpsolid , solid_mass_fraction ,                 &
+         solid_mass_fraction0
          
     USE particles_module, ONLY : m_quad , f_quad , w_quad , rho_quad
     
@@ -207,6 +208,14 @@ CONTAINS
     !--- Mass fractions in the erutped mixture (before adding external water) ---
 
     volcgas_mass_fraction(1:n_gas) = volcgas_mass_fraction0(1:n_gas)
+
+    solid_partial_mass_fraction = solid_partial_mass_fraction0
+
+    solid_mass_fraction(1:n_part) = solid_mass_fraction0(1:n_part)
+
+    mom = mom0
+    
+    CALL eval_quad_values
 
     IF ( n_gas .GT. 0 ) THEN
 
@@ -285,12 +294,10 @@ CONTAINS
        
     END DO
 
-    !WRITE(*,*) 'rho_solid_avg',rho_solid_avg
-
     rho_solid_tot_avg = 1.D0 / SUM( solid_partial_mass_fraction(1:n_part) /     &
          rho_solid_avg(1:n_part) )
 
-    !WRITE(*,*) 'rho_solid_tot_avg',rho_solid_tot_avg
+    ! WRITE(*,*) 'rho_solid_tot_avg',rho_solid_tot_avg
 
     DO i_part = 1,n_part
 
@@ -307,7 +314,7 @@ CONTAINS
 
     END DO
 
-    !WRITE(*,*) 'alfa_s',alfa_s
+    ! WRITE(*,*) 'alfa_s',alfa_s
 
     !---------- Specific enthalpy after addition of external water --------------
     mixt_enth = erupted_mass_fraction * enth_at_vent +                          &

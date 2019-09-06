@@ -22,11 +22,17 @@ MODULE particles_module
   !> mass fraction of the particle phases with respect to the total solid
   REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction
 
+  !> init mass fraction of the particle phases with respect to the total solid
+  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction0
+
   !> volume fraction of the particle phases with respect to the total solid
   REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_volume_fraction
 
   !> mass fraction of the particle phases with respect to the mixture
   REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction
+
+  !> initial mass fraction of the particle phases with respect to the mixture
+  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction0
 
   !> volume fraction of the particle phases with respect to the mixture
   REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_volume_fraction
@@ -183,8 +189,10 @@ CONTAINS
     IMPLICIT NONE
 
     ALLOCATE ( solid_partial_mass_fraction(1:n_part) )
+    ALLOCATE ( solid_partial_mass_fraction0(1:n_part) )
     ALLOCATE ( solid_partial_volume_fraction(1:n_part) )
     ALLOCATE ( solid_mass_fraction(1:n_part) )
+    ALLOCATE ( solid_mass_fraction0(1:n_part) )
     ALLOCATE ( solid_volume_fraction(1:n_part) )
 
     ALLOCATE ( bin_partial_mass_fraction(1:n_part,1:n_sections) )
@@ -252,8 +260,10 @@ CONTAINS
     IMPLICIT NONE
 
     DEALLOCATE ( solid_partial_mass_fraction )
+    DEALLOCATE ( solid_partial_mass_fraction0 )
     DEALLOCATE ( solid_partial_volume_fraction )
     DEALLOCATE ( solid_mass_fraction )
+    DEALLOCATE ( solid_mass_fraction0 )
     DEALLOCATE ( solid_volume_fraction )
 
     DEALLOCATE ( bin_partial_mass_fraction )
