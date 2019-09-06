@@ -12,6 +12,12 @@ from matplotlib.pyplot import cm
 from mpl_toolkits.mplot3d import Axes3D
 import easygui
 
+# increase the default widht of figures
+fig_size = plt.rcParams["figure.figsize"]
+fig_size[0] *= 1.5 
+plt.rcParams["figure.figsize"] = fig_size
+
+
 #option 1
 #filename = easygui.fileopenbox( filetypes=['*.col'])
 
@@ -20,8 +26,8 @@ from tkFileDialog import askopenfilename
 filename = askopenfilename(filetypes=[("col files", "*.col")])
 
 bakfile = filename.replace('col','bak')
-print filename
-print bakfile
+print(filename)
+print(bakfile)
 
 with open(bakfile) as fp:  
    for cnt, line in enumerate(fp):
@@ -82,14 +88,14 @@ with open("%s.col" % filename, "r") as file1:
     n_bin = int(last_part[3:])
 
        
-print 'number of particles phases', n_part
-print 'number of bins ', n_bin
-print 'number of volcanic gases ',n_gas
+print( 'number of particles phases', n_part)
+print( 'number of bins ', n_bin)
+print( 'number of volcanic gases ',n_gas)
 
 labels =[]
 for i in range(n_part):
     for j in range(n_bin):
-        labels.append("CL {},{}".format(i+1,j+1))
+        labels.append(r'$\phi=$'+"{}".format(phi_min+j*delta_phi))
         
 
 results = np.loadtxt("%s.col" % filename, skiprows = 1)
@@ -133,7 +139,6 @@ n_levels = results.shape[0]
 
 solid_partial_mass_fraction = np.zeros((results.shape[0],n_part_sect))
 rhoBsolid = np.zeros((results.shape[0],n_part_sect))
-
 
 for i in range(n_part_sect):
 
@@ -205,8 +210,18 @@ rho_rel = rho_mix - rho_atm
 rho_rel = rho_rel.reshape((-1,1))
 
 
-
 # PLOT FIGURES
+
+cm_subsection = np.linspace(0.0,1.0,n_bin) 
+
+colors = [ cm.jet(xj) for xj in cm_subsection ]
+
+colors = np.tile(colors,(n_part,1))
+
+linestyle_str = [ 'solid','dotted','dashed','dashdot'] 
+
+linestyle_str = np.repeat(linestyle_str,n_bin)
+
 
 # MASS FRACTION 
 
@@ -236,14 +251,13 @@ plt.legend(lines, [names[j] for j in range(len(names))])
 
 plt.subplot(2, 2, 3)
 
-color=iter(cm.rainbow(np.linspace(0,1,n_part_sect)))
-
 for i in range(n_part_sect):
-    c=next(color)
-    plt.plot(solid_mass_fraction[:,i],z,'-', c=c, label=labels[i])
+
+    plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i], label=labels[i])
     
 
-plt.legend()
+plt.legend(ncol=n_part,fontsize = 'x-small')
+
 
 plt.xlabel('Particles mass fraction')
 plt.ylabel('Height (km)')
@@ -287,10 +301,9 @@ for i in range(n_part_sect):
 
     solid_mass_loss_cum[:,i] =  1.0 - solid_mass_flux[:,i]/solid_mass_flux[0,i]
 
-    plt.plot(solid_mass_loss_cum[:,i],z,'-' , label=labels[i])
+    plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i], label=labels[i])
 
-
-plt.legend()
+plt.legend(ncol=n_part,fontsize = 'x-small')
 plt.xlabel('Particles mass loss fraction')
 plt.ylabel('Height (km)')
 
@@ -340,6 +353,7 @@ fig.savefig(str(filename)+'_profiles.pdf')   # save the figure to file
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
+
 ax.scatter(x, y,z)
 
 angle = np.linspace(0, 2*math.pi, num=50)
@@ -426,7 +440,21 @@ ax.set_zlabel('z (km)')
 fig.tight_layout()   
 fig.savefig(str(filename)+'_plume.pdf')   # save the figure to file
 
+#--------- Animation of evolution of GSD
+
 from matplotlib import animation
+
+cm_subsection = np.linspace(0.0,1.0,n_part) 
+
+bar_colors = [ cm.jet(xj) for xj in cm_subsection ]
+
+bar_colors = np.tile(bar_colors,n_bin)
+bar_colors = bar_colors.reshape((n_part_sect,4))
+
+fig_size[0] *= 2.5 
+plt.rcParams["figure.figsize"] = fig_size
+
+
 fig=plt.figure()
 time = np.zeros((x.shape[0],1))
 time[0] = 0.0
@@ -445,12 +473,10 @@ idx_steps = []
 for value in time_steps:
     idx_steps.append((np.abs(time - value)).argmin())
 
-print idx_steps
+plt.subplot(1, 3, 1)
 
-plt.subplot(1, 2, 1)
-
-x = np.flip(phi_min + delta_phi*np.arange(n_bin))
-x = np.tile(x,n_part)
+x_bin = np.flip(phi_min + delta_phi*np.arange(n_bin))
+x_bin = np.tile(x_bin,n_part)
 
 solid_pmf_bot = np.zeros((n_part_sect))
 
@@ -459,9 +485,14 @@ for i in range(1,n_part):
     solid_pmf_bot[i*n_bin:(i+1)*n_bin] += solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection1 = plt.bar(x, solid_partial_mass_fraction[0,:], bottom=solid_pmf_bot)
+barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], bottom=solid_pmf_bot)
 
-plt.subplot(1, 2, 2)
+solid_pmf = np.sum(solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
+max_solid_pmf = np.max(solid_pmf)
+plt.ylim(0.0, 1.1*max_solid_pmf)
+plt.xlabel('phi')
+
+plt.subplot(1, 3, 2)
 
 
 sed1={}
@@ -481,9 +512,7 @@ with open("%s.sed" % filename, "r") as file1:
             last_part = header_split[i][4:]
 
             n_part_sect = n_part_sect +1
-
-            print "smf{0}".format(n_part_sect) 
-                         
+             
             sed1["smf{0}".format(n_part_sect)].org = n_part_sect 
 
             sed1["smf{0}".format(n_part_sect)].column_org = i
@@ -504,15 +533,11 @@ for i in range(n_part_sect):
 sed_solidTot = np.sum(sed_solid, axis=1)
 sed_solidTot = sed_solidTot.reshape((-1,1))
 
-
-
 sed_solid_partial_mass_fraction[0,:] = sed_solid[0,:] 
 
 for i in range(1,n_levels):
 
     sed_solid_partial_mass_fraction[i,:] = sed_solid[i,:] / sed_solidTot[i]
-
-print sed_solid_partial_mass_fraction.shape
 
 sed_solid_pmf_bot = np.zeros((n_part_sect))
 
@@ -521,7 +546,29 @@ for i in range(1,n_part):
     sed_solid_pmf_bot[i*n_bin:(i+1)*n_bin] += sed_solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection2 = plt.bar(x, sed_solid_partial_mass_fraction[0,:], bottom=sed_solid_pmf_bot)
+barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], bottom=sed_solid_pmf_bot)
+
+sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
+max_sed_solid_pmf = np.max(sed_solid_pmf)
+plt.ylim(0.0, 1.1*max_sed_solid_pmf)
+plt.xlabel('phi')
+
+
+ax = plt.subplot(1, 3, 3)
+
+plt.plot(np.sqrt(x**2+y**2),z)
+
+
+ax.yaxis.set_label_position("right")
+ax.yaxis.tick_right()
+
+mark_pos, = plt.plot(np.sqrt(x[0]**2+y[0]**2),z[0],'o')
+plt.ylabel('Height [km]')
+plt.xlabel('[km]')
+
+title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+                transform=ax.transAxes, ha="center")
+
 
 
 def animate(i):
@@ -538,6 +585,7 @@ def animate(i):
     for j, b in enumerate(barcollection1):
         b.set_height(y1[j])
         b.set_y(solid_pmf_bot[j])
+        b.set_color(bar_colors[j])
 
 
     y2 = sed_solid_partial_mass_fraction[idx_steps[i],:]
@@ -547,18 +595,22 @@ def animate(i):
     for i_part in range(1,n_part):
 
         sed_solid_pmf_bot[i_part*n_bin:(i_part+1)*n_bin] += sed_solid_partial_mass_fraction[idx_steps[i],(i_part-1)*n_bin:i_part*n_bin]
-
    
     for j, b in enumerate(barcollection2):
         b.set_height(y2[j])
         b.set_y(sed_solid_pmf_bot[j])
+        b.set_color(bar_colors[j])
 
-    
+    mark_pos.set_xdata(np.sqrt(x[idx_steps[i]]**2+y[idx_steps[i]]**2))  
+    mark_pos.set_ydata(z[idx_steps[i]])  
+
+    title.set_text("t="+"{:6.1f}".format(time_steps[i])+'s')
 
 anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames,
                              interval=100)
 
 anim.save('mymovie.mp4',writer=animation.FFMpegWriter(fps=10))
+
 
 plt.show()
 
