@@ -47,6 +47,9 @@ with open(bakfile) as fp:
            delta_phi = np.float(delta_phi_str)
            print("delta_phi",delta_phi)
 
+phi_max = phi_min + (n_sections-1)*delta_phi
+
+
 filename = filename.split('/')[-1]
 filename = re.sub('\.col$', '', filename)
 
@@ -454,8 +457,11 @@ bar_colors = bar_colors.reshape((n_part_sect,4))
 fig_size[0] *= 2.5 
 plt.rcParams["figure.figsize"] = fig_size
 
-
 fig=plt.figure()
+ax1 = fig.add_subplot(131)
+ax2 = fig.add_subplot(132)
+ax3 = fig.add_subplot(133)
+
 time = np.zeros((x.shape[0],1))
 time[0] = 0.0
 for i in range(1,n_levels):
@@ -490,8 +496,9 @@ barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], bottom=solid_p
 solid_pmf = np.sum(solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_solid_pmf = np.max(solid_pmf)
 plt.ylim(0.0, 1.1*max_solid_pmf)
+plt.xlim(phi_min-1,phi_max+1)
 plt.xlabel('phi')
-
+ax1.title.set_text('Plume GSD')
 plt.subplot(1, 3, 2)
 
 
@@ -551,6 +558,8 @@ barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], bottom=sed
 sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_sed_solid_pmf = np.max(sed_solid_pmf)
 plt.ylim(0.0, 1.1*max_sed_solid_pmf)
+plt.xlim(phi_min-1,phi_max+1)
+ax2.title.set_text('Sedimentation GSD')
 plt.xlabel('phi')
 
 
@@ -565,6 +574,7 @@ ax.yaxis.tick_right()
 mark_pos, = plt.plot(np.sqrt(x[0]**2+y[0]**2),z[0],'o')
 plt.ylabel('Height [km]')
 plt.xlabel('[km]')
+ax3.title.set_text('Position on plume axis')
 
 title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
