@@ -1602,10 +1602,8 @@ CONTAINS
        
        END IF
 
-    END IF
-    
-    
-    IF ( isSet(mfr0) ) THEN
+  
+    ELSEIF ( isSet(mfr0) ) THEN
 
        IF ( isSet(log10_mfr) ) THEN
 
@@ -1637,9 +1635,7 @@ CONTAINS
              
        END IF
 
-    END IF
-
-    IF ( isSet(w0) ) THEN
+    ELSEIF ( isSet(w0) ) THEN
            
        IF ( isSet(log10_mfr) .AND. ( .NOT.isSet(r0) ) ) THEN 
        
@@ -1665,9 +1661,7 @@ CONTAINS
           
        END IF
 
-    END IF
-
-    IF ( isSet(r0) ) THEN
+    ELSEIF ( isSet(r0) ) THEN
            
        IF ( isSet(log10_mfr) .AND. ( .NOT.isSet(w0) ) ) THEN 
        
@@ -1693,9 +1687,7 @@ CONTAINS
           
        END IF
 
-    END IF
-    
-    IF ( ( .NOT.isSet(log10_mfr) ).AND. ( .NOT.isSet(r0) ) .AND.                &
+    ELSEIF ( ( .NOT.isSet(log10_mfr) ).AND. ( .NOT.isSet(r0) ) .AND.                &
          ( .NOT.isSet(w0) ) ) THEN
        
        WRITE(*,*) ''
