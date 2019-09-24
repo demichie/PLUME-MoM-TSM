@@ -39,9 +39,7 @@
  READ_ATM_PROFILE="card  ",
  /
 &INITIAL_VALUES
- R0=  NaN     ,
  W0=  275.00000000000000     ,
- LOG10_MFR=                      NaN,
  MFR0=   1.5E9                 ,
  T_MIX0=  1053.0000000000000     ,
  INITIAL_NEUTRAL_DENSITY=F,
