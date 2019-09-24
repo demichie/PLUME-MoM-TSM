@@ -14,6 +14,8 @@ MODULE rise
   REAL*8 :: plume_height
   REAL*8 :: column_regime
 
+  INTEGER, PARAMETER :: n_RK = 6
+
   SAVE
 
 CONTAINS
@@ -44,7 +46,7 @@ CONTAINS
     USE plume_module, ONLY: s , w , x , y , z , vent_height , r , mag_u ,       &
          log10_mfr
     USE solver_module, ONLY: ds, ds0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
-    USE solver_module, ONLY: f_stepold
+    USE solver_module, ONLY: f_stepold , itotal
     USE variables, ONLY : verbose_level , inversion_flag , height_obj
     USE variables, ONLY : dakota_flag , hysplit_flag , nbl_stop
     USE variables, ONLY : write_flag
@@ -74,7 +76,7 @@ CONTAINS
 
     REAL*8 :: mu_phi , sigma_phi , skew_phi
 
-    REAL*8 :: mass_fract
+    REAL*8 :: mass_fract(n_part)
 
     REAL*8 :: solid_mass_flux , solid_mass_flux0
 
@@ -89,17 +91,8 @@ CONTAINS
     REAL*8 :: check_sb
     REAL*8 :: eps_sb
 
-    REAL*8 :: z_array(10000000)
-    REAL*8 :: w_array(10000000)
 
-    REAL*8, ALLOCATABLE :: z_norm(:) , w_norm(:)
-    REAL*8, ALLOCATABLE :: first_der_right(:) , first_der_left(:)
-    REAL*8, ALLOCATABLE :: sec_der(:) , k(:)
-    REAL*8, ALLOCATABLE :: first_der_central(:)
-
-    REAL*8 :: k_max
-    
-    INTEGER :: idx , max_idx
+    INTEGER :: idx
 
     REAL*8 :: rho_mix_init , rho_mix_final
     
@@ -113,7 +106,33 @@ CONTAINS
 
     REAL*8 :: partial_mf(n_sections)
 
-    INTEGER :: jdx , i_sect
+    REAL*8 :: rhs_RK(itotal,n_RK)
+    REAL*8 :: rhs1_RK(itotal,n_RK)
+    REAL*8 :: rhs2_RK(itotal,n_RK)
+    REAL*8 :: f_RK(itotal,n_RK)
+
+    REAL*8 :: A_RK(n_RK,n_RK)
+    REAL*8 :: B_RK(n_RK)
+    REAL*8 :: C_RK(n_RK)
+
+    REAL*8 :: f5th(itotal)
+    REAL*8 :: f4th(itotal)
+    REAL*8 :: fscal(itotal)
+
+    INTEGER :: i_sect
+
+    INTEGER :: i_RK
+
+    INTEGER :: i
+
+    REAL*8 :: delta
+    REAL*8 :: eps_RK
+    REAL*8 :: errmax
+
+    REAL*8, PARAMETER :: SAFETY = 0.9D0
+    REAL*8, PARAMETER :: PGROW = -0.2D0
+    REAL*8, PARAMETER :: PSHRNK = -0.25D0
+    REAL*8, PARAMETER :: ERRCON = 1.89D-4
 
     !
     ! ... Set initial conditions at the release height
@@ -141,10 +160,6 @@ CONTAINS
     w_minrel = w
     w_maxrel = w
 
-    idx = 1
-
-    z_array(idx) = z
-    w_array(idx) = w
 
     delta_rho = rho_mix - rho_atm
 
@@ -156,12 +171,7 @@ CONTAINS
 
        description = 'Mean Diameter '//trim(x1)
 
-       ! CALL write_dakota(description,mom(i_part,1)/mom(i_part,0))
-
        description = 'Sau. Mean Diam. '//trim(x1)
-
-       ! CALL write_dakota(description,mom(i_part,3)/mom(i_part,2))
-
 
     END DO
        
@@ -170,7 +180,7 @@ CONTAINS
        ! converting integer to string using a 'internal file'
        WRITE(x1,'(I2.2)') i_part 
 
-       mass_fract = solid_partial_mass_fraction(i_part) * ( 1.D0 -              &
+       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.D0 -      &
             gas_mass_fraction)
 
        solid_mass_flux0 = solid_partial_mass_fraction(i_part) * ( 1.D0 -        &
@@ -179,9 +189,9 @@ CONTAINS
        
        IF ( write_flag ) THEN
        
-          mu_phi = SUM( phiR(:)*mom(i_part,:,1) ) / SUM( mom(i_part,:,1) )
-          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(i_part,:,1) ) /      &
-               SUM( mom(i_part,:,1) ) )
+          mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
+          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
+               SUM( mom(1,:,i_part) ) )
 
           description = 'Init Avg Diam '//trim(x1)
           
@@ -193,7 +203,7 @@ CONTAINS
           
           description = 'Init Mass Fract '//trim(x1)
           
-          CALL write_dakota(description,mass_fract)
+          CALL write_dakota(description,SUM(mass_fract))
           
           description = 'Init Solid Flux '//trim(x1)
           
@@ -232,136 +242,193 @@ CONTAINS
     deltarho_min = 1000.D0
 
     deltarho_old = 0.D0
+    
+    
+    A_RK(1,1) = 0.D0
+    A_RK(1,2) = 0.D0
+    
+    A_RK(2,1) = 1.D0
+    A_RK(2,2) = 0.D0
+    
+    B_RK(1) = 0.5D0
+    B_RK(2) = 0.5D0
+    
+    C_RK(1) = 1.D0
+    C_RK(2) = 0.D0
+    
+    A_RK(1,1) = 0.D0
+    A_RK(1,2) = 0.D0
+    A_RK(1,3) = 0.D0
+    A_RK(1,4) = 0.D0
+    A_RK(1,5) = 0.D0
+    A_RK(1,6) = 0.D0
+        
+    A_RK(2,1) = 0.25D0
+    A_RK(2,2) = 0.D0
+    A_RK(2,3) = 0.D0
+    A_RK(2,4) = 0.D0
+    A_RK(2,5) = 0.D0
+    A_RK(2,6) = 0.D0
+    
+    A_RK(3,1) = 3.D0 / 32.D0
+    A_RK(3,2) = 9.D0 / 32.D0
+    A_RK(3,3) = 0.D0
+    A_RK(3,4) = 0.D0
+    A_RK(3,5) = 0.D0
+    A_RK(3,6) = 0.D0
+    
+    A_RK(4,1) = 1932.D0 / 2197.D0
+    A_RK(4,2) = -7200.D0 / 2197.D0
+    A_RK(4,3) = 7296.D0 / 2197.D0
+    A_RK(4,4) = 0.D0
+    A_RK(4,5) = 0.D0
+    A_RK(4,6) = 0.D0
+    
+    A_RK(5,1) = 439.D0 / 216.D0
+    A_RK(5,2) = -8.D0
+    A_RK(5,3) = 3680.D0 / 513.D0
+    A_RK(5,4) = -845.D0 / 4104.D0
+    A_RK(5,5) = 0.D0
+    A_RK(5,6) = 0.D0
+    
+    A_RK(6,1) = -8.D0 / 27.D0
+    A_RK(6,2) = 2.D0
+    A_RK(6,3) = -3544.D0 / 2565.D0
+    A_RK(6,4) = 1859.D0 / 4104.D0
+    A_RK(6,5) = -11.D0 / 40.D0
+    A_RK(6,6) = 0.D0
+
+    ! 5th order solution coefficients
+    B_RK(1) = 16.D0 / 135.D0
+    B_RK(2) = 0.D0
+    B_RK(3) = 6656.D0 / 12825.D0
+    B_RK(4) = 28561.D0 / 56430.D0
+    B_RK(5) = -9.D0 / 50.D0
+    B_RK(6) = 2.D0 / 55.D0
+
+    ! 4th order solution coefficients
+    C_RK(1) = 25.D0 / 216.D0
+    C_RK(2) = 0.D0
+    C_RK(3) = 1408.D0 / 2565.D0
+    C_RK(4) = 2197.D0 / 4104.D0
+    C_RK(5) = -1.D0 / 5.D0
+    C_RK(6) = 0.D0
+
+    eps_RK = 1.D-8
 
     main_loop: DO
 
        f_stepold = f
-
-       IF ( verbose_level .GE. 2 ) THEN
-
-          WRITE(*,*)
-          WRITE(*,*) '**************** BEFORE PREDICTOR STEP *****************'
-          WRITE(*,*)
-
-       END IF
-
-       ! ----- predictor step (compute temporary quantities) --------------------
-
+       
        CALL unlump(f)
 
+       CALL rate
+
+       IF ( aggregation_flag ) THEN
+          
+          CALL aggr_rate
+          
+       ELSE
+          
+          rhs2(1:itotal) = 0.D0
+          
+       END IF
+       
+       fscal = ABS( f_stepold)+ABS(ds*rhs1+rhs2)+1.E-10
+       
        w_oldold = w_old
        w_old = w
 
-       CALL rate
-       IF ( aggregation_flag ) THEN
+       rhs_RK(1:itotal,1:n_RK) = 0.D0
 
-          CALL aggr_rate
-          rhs = rhs1+rhs2
+       RungeKutta:DO i_RK = 1,n_RK
 
-       ELSE
-
-          rhs = rhs1
-
-       END IF
-
-       DO i_part=1,n_part
-          
-          DO i_sect=1,n_sections
-
-             idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          DO i=1,itotal
              
-             particle_loss_rate(i_part,i_sect) = - pi_g * rhs1(idx)
-                
+             ftemp(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK)               &
+                  * A_RK(i_RK,1:n_RK) )
+             
           END DO
           
-       END DO
-       
-       !WRITE(*,*) 'plumerise: rhs',rhs
-       
-       CALL marching(f,ftemp,rhs) 
-
-       IF ( verbose_level .GE. 2 ) THEN
-
-          WRITE(*,*)
-          WRITE(*,*) '**************** BEFORE CORRECTOR STEP *****************'
-          WRITE(*,*)
-
-       END IF
-
-       CALL unlump(ftemp)
-
-       ! ----- Check on the solution to reduce step-size condition -------------
-
-       IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
-
-          ds = 0.5D0 * ds
-          f = f_stepold
-
-          IF ( verbose_level .GT. 0 ) THEN
-
-             IF ( w .LE. 0.D0) THEN
-
-                WRITE(*,*) 'WARNING: negative velocit w= ',w
-
-             ELSE
-
-                WRITE(*,*) 'WARNING: rgasmix =',rgasmix
-
-                WRITE(*,*) 'rair =',rair,' rvolcgas_mix =',rvolcgas_mix
-
+          CALL unlump( ftemp )
+          
+          ! ----- Check on the solution to reduce step-size condition -------------
+          
+          IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
+             
+             ds = 0.5D0 * ds
+             f = f_stepold
+             
+             IF ( verbose_level .GT. 0 ) THEN
+                
+                IF ( w .LE. 0.D0) THEN
+                   
+                   WRITE(*,*) 'WARNING: negative velocity w= ',w
+                   
+                ELSE
+                   
+                   WRITE(*,*) 'WARNING: rgasmix =',rgasmix
+                   
+                   WRITE(*,*) 'rair =',rair,' rvolcgas_mix =',rvolcgas_mix
+                   
+                END IF
+                
+                WRITE(*,*) 'reducing step-size ds= ',ds
+                READ(*,*) 
+                
              END IF
-
-             WRITE(*,*) 'reducing step-size ds= ',ds
-             READ(*,*) 
+             
+             ! Repeat the iteration with reduced step-size
+             CYCLE main_loop
              
           END IF
-
-          ! Repeat the iteration with reduced step-size
-          CYCLE 
-
-       END IF
-
-       ! ----- Corrector step ---------------------------------------------------
-
-       CALL rate
-       IF ( aggregation_flag ) THEN
-
-          CALL aggr_rate
-          rhstemp = rhs1+rhs2
-
-       ELSE
-
-          rhstemp = rhs1
-
-       END IF
-
-       rhs = 0.5D0 * ( rhstemp - rhs )
-
-       DO i_part=1,n_part
           
-          DO i_sect=1,n_sections
 
-             idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
-             
-             particle_loss_rate(i_part,i_sect) = 0.5D0 * ds *                   &
-                  ( particle_loss_rate(i_part,i_sect) - pi_g * rhs1(idx) )
-                          
-          END DO
-          
-       END DO
+          ! RATE uses the values computed from the last call of UNLUMP
+          CALL rate
        
-       CALL marching(ftemp,f,rhs)
+          rhs1_RK(1:itotal,i_RK) = rhs1(1:itotal)
+          
+          IF ( aggregation_flag ) THEN
+             
+             CALL aggr_rate
+             rhs2_RK(1:itotal,i_RK) = rhs2(1:itotal) 
+             
+          ELSE
+             
+             rhs2_RK(1:itotal,i_RK) = 0.D0
+             
+          END IF
+          
+          rhs_RK(1:itotal,i_RK) = rhs1_RK(1:itotal,i_RK) + rhs2_RK(1:itotal,i_RK)
 
-       IF ( verbose_level .GE. 2 ) THEN
+       END DO RungeKutta
 
-          WRITE(*,*)
-          WRITE(*,*) '**************** AFTER CORRECTOR STEP *****************'
-          WRITE(*,*)
+       ! Compute the new solution
+       DO i=1,itotal
+
+          f5th(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK) * B_RK(1:n_RK) )
+          f4th(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK) * C_RK(1:n_RK) )
+
+       END DO
+ 
+       errmax = MAXVAL( DABS( (f5th-f4th)/fscal ) ) / eps_RK
+
+       IF ( errmax .GT. 1.D0 ) THEN
+
+          delta = SAFETY*errmax**PSHRNK
+          ds = SIGN( MAX(DABS(ds*delta),0.1D0*DABS(ds)) , ds )
+          f = f_stepold
+
+          ! go to the next iteration
+          CYCLE main_loop
 
        END IF
+
+       f(1:itotal) = f5th(1:itotal)
 
        CALL unlump(f)
- 
+
        ! ----- Reduce step-size condition and repeat iteration ------------------
  
        IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
@@ -387,31 +454,34 @@ CONTAINS
           END IF
 
           ! go to the next iteration
-          CYCLE
+          CYCLE main_loop
 
        END IF
 
        ! ------ update the solution ---------------------------------------------
 
+       ! Compute the rate of particle loss due to settling from plume margin
+       DO i_part=1,n_part
+          
+          DO i_sect=1,n_sections
+
+             idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+             
+             particle_loss_rate(i_part,i_sect) = ds * pi_g *                    &
+                  SUM( rhs1_RK(idx,1:n_RK) * B_RK(1:n_RK) )
+                          
+          END DO
+          
+       END DO
+    
        cum_particle_loss_rate(1:n_part,1:n_sections) =                          &
             cum_particle_loss_rate(1:n_part,1:n_sections) +                     &
             particle_loss_rate(1:n_part,1:n_sections)
 
 
-       !WRITE(*,"(30ES12.4)") mom(1:n_part,1,1), pi_g ,  (r**2) , mag_u
-       !READ(*,*)
-
-       
-       idx = idx + 1
-       
-       z_array(idx) = z
-       w_array(idx) = w
-       
        IF ( ( w_old .LT. w ) .AND. ( w_old .LT. w_oldold ) )  THEN
           
           w_minrel = w_old
-          
-          !WRITE(*,*) 'minrel',w_oldold,w_old,w
           
        END IF
        
@@ -420,8 +490,6 @@ CONTAINS
        IF ( ( w_old .GT. w ) .AND. ( w_old .GT. w_oldold ) )  THEN
           
           w_maxrel = w_old
-          
-          !WRITE(*,*) 'maxrel',w_oldold,w_old,w
           
        END IF
        
@@ -438,39 +506,24 @@ CONTAINS
           y_nbl = y
           
        END IF
-       
+
        s = s + ds
        
        deltarho_old = deltarho
        
-       IF ( verbose_level .GE. 2 ) THEN
-          
-          DO i_part=1,n_part
-             
-             ! WRITE(*,*) '**',mom(i_part,1)/mom(i_part,0)
-             
-          END DO
-          
-          READ(*,*)
-          
-       END IF
-       
        IF ( write_flag ) CALL write_column
-       
-       ! IF ( hysplit_flag ) CALL write_hysplit(x,y,z,.FALSE.)
-       
-       IF ( ( w .GE. 1.D-1) .AND. ( MAXVAL(( f - f_stepold ) / MAX(f,f_stepold) &
-            * ds) .LT. 1.D-4 ) ) THEN
 
-          ds = MIN(1.1D0*ds,5.D0)
-          IF ( verbose_level .GT. 0 ) THEN
+       IF ( errmax .GT. ERRCON ) THEN
 
-             WRITE(*,*) 'increasing step-size z,ds= ',z,ds
-             READ(*,*)
+          ds = ds * SAFETY * ( errmax**PGROW )
 
-          END IF
-                    
+       ELSE
+
+          ds = 5.D0 * ds
+
        END IF
+       
+       ds = MIN( ds, 50.D0 )
 
        ! ----- Exit condition ---------------------------------------------------
        
@@ -482,6 +535,7 @@ CONTAINS
        
     END DO main_loop
 
+
     IF ( write_flag) THEN
 
         WRITE(*,*)
@@ -490,36 +544,7 @@ CONTAINS
 
     END IF
     
-    max_idx = idx
-
-    ALLOCATE( z_norm(max_idx) , w_norm(idx) )
-    ALLOCATE( first_der_right(max_idx-1) , first_der_left(max_idx-1) )
-    ALLOCATE( sec_der(max_idx-2) , k(max_idx-2) )
-    ALLOCATE( first_der_central(max_idx-2) )
-
-    z_norm = ( z_array(1:max_idx) - MINVAL( z_array(1:max_idx) ) )              &
-         / ( MAXVAL( z_array(1:max_idx) ) - MINVAL( z_array(1:max_idx) ) )
-
-    w_norm = w_array(1:max_idx) / MAXVAL( w_array(1:max_idx) )
-
-    first_der_right(1:max_idx-2) = ( z_norm(3:max_idx) - z_norm(2:max_idx-1) )  &
-         / ( w_norm(3:max_idx) - w_norm(2:max_idx-1) )
-
-    first_der_left(1:max_idx-2) = ( z_norm(2:max_idx-1) - z_norm(1:max_idx-2) ) &
-         / ( w_norm(2:max_idx-1) - w_norm(1:max_idx-2) )
-
-    sec_der(1:max_idx-2) = ( first_der_right(1:max_idx-2) -                     &
-         first_der_left(1:max_idx-2) ) / ( 0.5 * ( w_norm(3:max_idx) -          &
-         w_norm(1:max_idx-2 ) ) )
-
-    first_der_central = ( z_norm(3:max_idx) - z_norm(1:max_idx-2) )             &
-         / ( w_norm(3:max_idx) - w_norm(1:max_idx-2) )
-
-    k(1:max_idx-2) = sec_der(1:max_idx-2) / ( ( 1.0 +                           &
-         first_der_central(1:max_idx-2)**2 )**(1.5d0) )
-
-    k_max = MAXVAL( k(1:max_idx-2) )
-
+    ! ---- check plume regime 
     check_sb = ( w_maxrel - w_minrel ) / w_maxabs
     
     eps_sb = 0.05D0
@@ -597,7 +622,7 @@ CONTAINS
 
        WRITE(x1,'(I2.2)') i_part ! convert int to string using an 'internal file'
 
-       mass_fract = solid_partial_mass_fraction(i_part) * ( 1.D0 -              &
+       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.D0 -      &
             gas_mass_fraction)
 
        solid_mass_flux = solid_partial_mass_fraction(i_part) * ( 1.D0 -         &
@@ -608,9 +633,9 @@ CONTAINS
        
        IF ( write_flag ) THEN
 
-          mu_phi = SUM( phiR(:)*mom(i_part,:,1) ) / SUM( mom(i_part,:,1) )
-          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(i_part,:,1) ) /      &
-               SUM( mom(i_part,:,1) ) )
+          mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
+          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
+               SUM( mom(1,:,i_part) ) )
           
           description = 'Final Avg Diam '//trim(x1)
           
@@ -622,7 +647,7 @@ CONTAINS
           
           description = 'Final Mass Fract '//trim(x1)
           
-          CALL write_dakota(description,mass_fract)
+          CALL write_dakota(description,SUM(mass_fract))
           
           description = 'Final Mass Flux '//trim(x1)
           
@@ -678,7 +703,7 @@ CONTAINS
        
        DO i_part=1,n_part
 
-          partial_mf(:) = mom(i_part,:,1) / SUM( mom(i_part,:,1) )
+          partial_mf(:) = mom(1,:,i_part) / SUM( mom(1,:,i_part) )
           
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 

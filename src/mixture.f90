@@ -182,7 +182,7 @@ CONTAINS
 
     INTEGER :: i_part
 
-    INTEGER :: i
+    INTEGER :: i_mom
 
     INTEGER :: i_gas
 
@@ -287,10 +287,10 @@ CONTAINS
 
     DO i_part=1,n_part
 
-       rho_solid_avg(i_part) = 1.D0 / ( SUM( f_quad(i_part,:,:)                 &
-            * w_quad(i_part,:,:) * m_quad(i_part,:,:)                           &
-            / rho_quad(i_part,:,:) ) / SUM(f_quad(i_part,:,:)                   &
-            * w_quad(i_part,:,:) * m_quad(i_part,:,:) ) )
+       rho_solid_avg(i_part) = 1.D0 / ( SUM( f_quad(:,:,i_part)                 &
+            * w_quad(:,:,i_part) * m_quad(:,:,i_part)                           &
+            / rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)                   &
+            * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
        
     END DO
 
@@ -427,12 +427,12 @@ CONTAINS
        ! the coefficient C0 (=mom0) for the particles size distribution is
        ! evaluated in order to have the corrected bulk density
        C0 = rho_mix * solid_mass_fraction(i_part)                               &
-            / SUM( mom(i_part,1:n_sections,1) )
+            / SUM( mom(1,1:n_sections,i_part) )
        
        ! the moments are corrected with the factor C0
-       DO i = 0, n_mom-1
+       DO i_mom = 0, n_mom-1
           
-          mom(i_part,1:n_sections,i) = C0 * mom(i_part,1:n_sections,i)
+          mom(i_mom,1:n_sections,i_part) = C0 * mom(i_mom,1:n_sections,i_part)
           
        END DO
 

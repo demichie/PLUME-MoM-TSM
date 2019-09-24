@@ -14,6 +14,8 @@ MODULE particles_module
 
   USE variables, ONLY : aggregation_flag , verbose_level , indent_space , FMT
 
+  USE variables, ONLY : k_b
+
   IMPLICIT NONE
   
   !> number of particle phases 
@@ -142,8 +144,6 @@ MODULE particles_module
   !> Values of linear reconstructions at quadrature points
   REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: f_quad
   
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:) :: part_beta_array 
-
   !> Particle temperature for aggregation (Costa model)
   REAL*8 :: t_part
 
@@ -158,9 +158,6 @@ MODULE particles_module
 
   !> logical defining if particles ip/is+jp/js aggregates on section ks 
   LOGICAL, ALLOCATABLE, DIMENSION(:,:,:,:,:) :: q_flag
-
-  !> constant factor of the integrand for aggregation
-  ! REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:,:) :: integrand
 
   !> aggregation kernel computed for ip/is+jp/js
   REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:) :: kernel_aggr
@@ -201,12 +198,12 @@ CONTAINS
     ALLOCATE ( cum_particle_loss_rate(1:n_part,1:n_sections) )
     
     ! Allocation of the arrays for the moments
-    ALLOCATE ( mom0(1:n_part,1:n_sections,0:n_mom-1) )
-    ALLOCATE ( mom(1:n_part,1:n_sections,0:n_mom-1) )
-    ALLOCATE ( set_mom(1:n_part,1:n_sections,0:n_mom-1) )
-    ALLOCATE ( set_cp_mom(1:n_part,1:n_sections,0:n_mom-1) )
-    ALLOCATE ( birth_mom(1:n_part,1:n_sections,0:n_mom-1) )
-    ALLOCATE ( death_mom(1:n_part,1:n_sections,0:n_mom-1) )
+    ALLOCATE ( mom0(0:n_mom-1,1:n_sections,1:n_part) )
+    ALLOCATE ( mom(0:n_mom-1,1:n_sections,1:n_part) )
+    ALLOCATE ( set_mom(0:n_mom-1,1:n_sections,1:n_part) )
+    ALLOCATE ( set_cp_mom(0:n_mom-1,1:n_sections,1:n_part) )
+    ALLOCATE ( birth_mom(0:n_mom-1,1:n_sections,1:n_part) )
+    ALLOCATE ( death_mom(0:n_mom-1,1:n_sections,1:n_part) )
 
     ! Allocation of the parameters for the variable density
     ALLOCATE ( shape_factor(n_part) )
@@ -218,39 +215,35 @@ CONTAINS
     ALLOCATE ( cp_part(n_part) )
 
     !Allocation of arrays for quadrature variables
-    ALLOCATE ( m_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( w_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( f_quad(n_part,n_nodes,n_sections) )
+    ALLOCATE ( m_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( w_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( f_quad(n_nodes,n_sections,n_part) )
 
-    ALLOCATE ( phi_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( diam_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( vol_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( rho_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( set_vel_quad(n_part,n_nodes,n_sections) )
+    ALLOCATE ( phi_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( diam_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( vol_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( rho_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( set_vel_quad(n_nodes,n_sections,n_part) )
     
     ! Allocation of arrays for aggregation
     ALLOCATE ( aggregation_array(n_part) )
     ALLOCATE ( aggregate_porosity(n_part) )
     ALLOCATE ( aggr_idx(n_part) )
 
-    ALLOCATE ( cp_quad(n_part,n_nodes,n_sections) )
-    ALLOCATE ( part_beta_array(n_part,n_part,n_nodes,n_nodes) )
+    ALLOCATE ( cp_quad(n_nodes,n_sections,n_part) )
 
     ALLOCATE ( phiL(1:n_sections) , phiR(1:n_sections) )
 
-    ALLOCATE ( M(1:n_part,1:n_sections+1) )
+    ALLOCATE ( M(1:n_sections+1,1:n_part) )
 
-    ALLOCATE( q_flag(1:n_part,1:n_part,n_sections,n_sections,n_sections) )
+    ALLOCATE( q_flag(n_sections,n_sections,n_sections,1:n_part,1:n_part) )
 
-    ALLOCATE( kernel_aggr(n_part,n_part,n_sections,n_sections,n_nodes,n_nodes) )
+    ALLOCATE( kernel_aggr(n_nodes,n_nodes,n_sections,n_part,n_sections,n_part) )
 
-    ! ALLOCATE( integrand(n_part,n_part,n_sections,n_sections,n_sections,         &
-    !      0:n_mom-1,n_nodes,n_nodes) )
-    
-    ALLOCATE( A(n_part,n_part,n_sections,n_sections,n_sections,n_nodes,n_nodes) )
+    ALLOCATE( A(n_nodes,n_nodes,n_sections,n_sections,n_part,n_sections,n_part) )
 
-    ALLOCATE( Wij(n_part,n_part,n_sections,n_sections,0:n_mom-1,n_nodes,        &
-         n_nodes) )
+    ALLOCATE( Wij(n_nodes,n_nodes,0:n_mom-1,n_sections,n_part,n_sections,       &
+         n_part) )
   
 
   END SUBROUTINE allocate_particles
@@ -299,14 +292,11 @@ CONTAINS
     DEALLOCATE ( aggregate_porosity )
     DEALLOCATE ( aggr_idx )
 
-    DEALLOCATE ( part_beta_array )
-
     DEALLOCATE ( phiL , phiR )
 
     DEALLOCATE ( M)
 
     DEALLOCATE ( q_flag )
-    ! DEALLOCATE ( integrand )
     DEALLOCATE ( kernel_aggr )
 
     DEALLOCATE ( A )
@@ -647,12 +637,15 @@ CONTAINS
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
-  FUNCTION particles_beta(diam_i,diam_j,rho_i,rho_j,Vs_i,Vs_j,lw_mf,ice_mf)
+  FUNCTION particles_beta(temp,visc,diam_i,diam_j,rho_i,rho_j,Vs_i,Vs_j,lw_mf,  &
+       ice_mf)
 
     IMPLICIT NONE
 
     REAL*8 :: particles_beta
 
+    REAL*8, INTENT(IN) :: temp
+    REAL*8, INTENT(IN) :: visc
     REAL*8, INTENT(IN) :: diam_i
     REAL*8, INTENT(IN) :: diam_j
     REAL*8, INTENT(IN), OPTIONAL :: rho_i
@@ -670,21 +663,21 @@ CONTAINS
 
     CASE ( 'constant' )
 
-       particles_beta = 1.D-10
+       particles_beta = 2.D+4
 
     CASE ( 'brownian' )
 
-       ! Marchisio et al. 2003, Table 1
-       particles_beta = ( diam_i + diam_j ) ** 2 / ( diam_i * diam_j ) 
+       particles_beta = ( 2.D0 * k_b * temp ) / ( 3.D0 * visc ) *               &
+            ( diam_i + diam_j ) ** 2 / ( diam_i * diam_j ) 
 
     CASE ( 'sum' )
 
-       particles_beta =  diam_i**3 + diam_j**3
+       particles_beta = diam_i**3 + diam_j**3
 
     CASE ( 'costa')
 
        particles_beta = aggregation_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j, &
-            lw_mf,ice_mf)
+            lw_mf,ice_mf,temp,visc)
 
     END SELECT
 
@@ -717,13 +710,15 @@ CONTAINS
   !> \param[in]   Vs_j     second particle settling velocity (m/s)
   !> \param[in]   lw_mf    liquid water mass fraction
   !> \param[in]   ice_mf   ice mass fraction
+  !> \param[in]   temp     mixture temperature (K)
+  !> \param[in]   visc     air kinematic viscosity (m2s-1)
   !> \date 24/01/2014
   !> @author 
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
   FUNCTION aggregation_kernel( diam_i , rho_i , Vs_i , diam_j , rho_j , Vs_j ,  &
-       lw_mf , ice_mf )
+       lw_mf , ice_mf , temp , visc )
 
     IMPLICIT NONE
 
@@ -737,6 +732,8 @@ CONTAINS
     REAL*8, INTENT(IN) :: Vs_j
     REAL*8, INTENT(IN) :: lw_mf 
     REAL*8, INTENT(IN) :: ice_mf 
+    REAL*8, INTENT(IN) :: temp
+    REAL*8, INTENT(IN) :: visc
 
     REAL*8 :: beta
     REAL*8 :: alfa
@@ -751,12 +748,16 @@ CONTAINS
 
     END IF
 
-    beta = collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j)
+    !WRITE(*,*) 'aggregation_kernel: Vs_i,Vs_j',Vs_i,Vs_j
 
-    alfa = coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_mf,ice_mf)
+    beta = collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,temp,visc)
+
+    alfa = coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_mf,    &
+         ice_mf)
 
     aggregation_kernel = beta * alfa
 
+    !WRITE(*,*) 'lw_mf,ice_mf',lw_mf,ice_mf
     !WRITE(*,*) 'aggregation_kernel, beta, alfa',aggregation_kernel, beta, alfa
     !READ(*,*)
 
@@ -782,12 +783,14 @@ CONTAINS
   !> \param[in]   diam_j   second particle diameter (m) 
   !> \param[in]   rho_j    second particle density (kg/m3)
   !> \param[in]   Vs_j     second particle settling velocity (m/s)
+  !> \param[in]   temp     mixture temperature (K)
+  !> \param[in]   visc     air kinematic viscosity (m2s-1)
   !> \date 24/01/2014
   !> @author 
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
-  FUNCTION collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j)
+  FUNCTION collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,temp,visc)
 
     USE meteo_module, ONLY : visc_atm
 
@@ -803,6 +806,8 @@ CONTAINS
     REAL*8,INTENT(IN) :: diam_j
     REAL*8,INTENT(IN) :: rho_j
     REAL*8,INTENT(IN) :: Vs_j
+    REAL*8,INTENT(IN) :: temp
+    REAL*8,INTENT(IN) :: visc
 
     !> Brownian motion collisions kernel
     REAL*8 :: beta_B   
@@ -813,9 +818,6 @@ CONTAINS
     !> Differential sedimentation kernel
     REAL*8 :: beta_DS
 
-    !> Boltzmann constant
-    REAL*8 :: k_b
-
     !> Gravitational collision efficiency
     REAL*8 :: E_coll
 
@@ -825,8 +827,7 @@ CONTAINS
     !> Fluid shear
     REAL*8 :: Gamma_s
 
-    !> Air kinematic viscosity
-    REAL*8 :: air_kin_viscosity
+    !WRITE(*,*) 'collision_kernel'
 
     IF ( verbose_level .GE. 2 ) THEN
 
@@ -838,13 +839,11 @@ CONTAINS
 
     END IF
 
-    k_b =1.3806488D-23 
-
-    visc_atm = 1.98D-5
-
     ! Eq. 3, first term Costa et al. JGR 2010
-    beta_B = 2.D0 / 3.D0 * k_b * t_part / visc_atm * ( diam_i + diam_j )**2     &
+    beta_B = 2.D0 / 3.D0 * k_b * temp / visc * ( diam_i + diam_j )**2           &
          / ( diam_i*diam_j ) 
+
+    !WRITE(*,*) 'beta_B',beta_B
 
     ! Gamma_s = DSQRT( 1.3D0 * epsilon * air_kin_viscosity )
 
@@ -854,10 +853,20 @@ CONTAINS
     ! Eq. 3, second term Costa et al. JGR 2010
     beta_S = 1.D0 / 6.D0 * Gamma_s * ( diam_i + diam_j )**3
 
+    !WRITE(*,*) 'beta_S',beta_S
+
+    !WRITE(*,*) pi_g , diam_i , diam_j 
+    !WRITE(*,*) Vs_j , Vs_i
+    
     ! Eq. 3, third term Costa et al. JGR 2010
-    beta_DS = pi_g / 4.D0 * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
+    beta_DS = pi_g / 4.D0 * ( diam_i + diam_j )**2 * DABS( Vs_j - Vs_i )
+
+    !WRITE(*,*) 'beta_DS',beta_DS
 
     collision_kernel = beta_B + beta_S + beta_DS
+
+    !WRITE(*,*) 'collision_kernel',collision_kernel
+    !READ(*,*)
 
     IF ( verbose_level .GE. 2 ) THEN
 
@@ -871,94 +880,6 @@ CONTAINS
     RETURN
 
   END FUNCTION collision_kernel
-
-  !******************************************************************************
-  !> \brief Collision efficiency 
-  !
-  !> \param[in]   diam_i   first particle diameter (m)
-  !> \param[in]   rho_i    first particle density (kg/m3)
-  !> \param[in]   Vs_i     first particle settling velocity (m/s)
-  !> \param[in]   diam_j   second particle diameter (m) 
-  !> \param[in]   rho_j    second particle density (kg/m3)
-  !> \param[in]   Vs_j     second particle settling velocity (m/s)
-  !> \date 24/01/2014
-  !> @author 
-  !> Mattia de' Michieli Vitturi
-  !******************************************************************************
-
-  FUNCTION collision_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j)
-
-    USE variables, ONLY : gi
-
-    IMPLICIT NONE
-
-    REAL*8 :: collision_efficiency
-
-    REAL*8, INTENT(IN) :: diam_i
-    REAL*8, INTENT(IN) :: rho_i
-    REAL*8, INTENT(IN) :: Vs_i
-    REAL*8, INTENT(IN) :: diam_j
-    REAL*8, INTENT(IN) :: rho_j
-    REAL*8, INTENT(IN) :: Vs_j
-
-    REAL*8 :: E_V , E_A
-
-    REAL*8 :: Re
-
-    REAL*8 :: Stokes
-
-    REAL*8 :: kin_visc_air
-
-
-    IF ( verbose_level .GE. 2 ) THEN
-
-       indent_space = indent_space + 2
-       WRITE(FMT,*) indent_space
-       FMT = "(A" // TRIM(FMT) // ",A)"
-       WRITE(*,FMT) ' ','BEGINNING collision_efficiency'
-
-    END IF
-
-    IF ( diam_i .GT. diam_j ) THEN
-
-       Re = diam_i * Vs_i / kin_visc_air
-
-       Stokes = 2.D0 * Vs_j * ABS( Vs_i - Vs_j ) / diam_i * gi
-
-    ELSE
-
-       Re = diam_j * Vs_j / kin_visc_air 
-
-       Stokes = 2.D0 * Vs_i * ABS( Vs_j - Vs_i ) / diam_j * gi
-
-    END IF
-
-    IF ( Stokes > 1.214 ) THEN
-
-       E_V = ( 1.D0 + ( 0.75 * LOG( 2.D0 * Stokes ) / ( Stokes - 1.214 ) ) )** &
-            ( -2.D0 )
-
-    ELSE
-
-       E_V = 0.D0
-
-    END IF
-
-    collision_efficiency = ( 60.D0 * E_V + E_A * Re ) / ( 60.D0 * Re )
-
-    IF ( verbose_level .GE. 2 ) THEN
-
-       WRITE(*,FMT) ' ','END collision_efficiency'
-       indent_space = indent_space - 2
-       WRITE(FMT,*) indent_space
-       FMT = "(A" // TRIM(FMT) // ",A)"
-
-    END IF
-
-    RETURN
-
-  END FUNCTION collision_efficiency
-
 
   !******************************************************************************
   !> \brief Coalescence efficiency 
@@ -1022,8 +943,8 @@ CONTAINS
     mu_liq = 5.43D-4
     
     ! Eq. 6 Costa et al. JGR 2010 (CHECK DENSITY!)
-    Stokes = 8.d0 * 0.5D0 * ( rho_i + rho_j ) / ( 9.d0 * mu_liq )               &
-         * diam_i * diam_j / ( diam_i + diam_j )
+    Stokes = 8.d0 * ( 0.5D0 * ( rho_i + rho_j ) ) * DABS( Vs_i - Vs_j ) /       &
+         ( 9.d0 * mu_liq ) * diam_i * diam_j / ( diam_i + diam_j )
     
     Stokes_cr = 1.3D0
     
@@ -1093,8 +1014,6 @@ CONTAINS
     INTEGER :: i_mom
     INTEGER :: i_node , j_node
 
-    REAL*8 :: kernel_ij(n_nodes,n_nodes)
-        
     DO i_part=1,n_part
        
        DO i_sect=1,n_sections
@@ -1102,30 +1021,30 @@ CONTAINS
           DO i_node=1,n_nodes
 
              ! Settling velocities at the quadrature points
-             set_vel_quad(i_part,i_node,i_sect) =                               &
-                  particles_settling_velocity( diam_quad(i_part,i_node,i_sect), &
-                  rho_quad(i_part,i_node,i_sect) , shape_factor(i_part) )
+             set_vel_quad(i_node,i_sect,i_part) =                               &
+                  particles_settling_velocity( diam_quad(i_node,i_sect,i_part), &
+                  rho_quad(i_node,i_sect,i_part) , shape_factor(i_part) )
 
           END DO
           
           DO i_mom=0,n_mom-1
 
-             set_mom(i_part,i_sect,i_mom) = SUM( set_vel_quad(i_part,:,i_sect)  &
-                  * f_quad(i_part,:,i_sect) * w_quad(i_part,:,i_sect)           &
-                  * m_quad(i_part,:,i_sect)**i_mom ) / mom(i_part,i_sect,i_mom)
+             set_mom(i_mom,i_sect,i_part) = SUM( set_vel_quad(:,i_sect,i_part)  &
+                  * f_quad(:,i_sect,i_part) * w_quad(:,i_sect,i_part)           &
+                  * m_quad(:,i_sect,i_part)**i_mom ) / mom(i_mom,i_sect,i_part)
 
-             set_cp_mom(i_part,i_sect,i_mom) =                                  &
-                  SUM( set_vel_quad(i_part,:,i_sect )                           &
-                  * cp_quad(i_part,:,i_sect) * f_quad(i_part,:,i_sect)          &
-                  * w_quad(i_part,:,i_sect) * m_quad(i_part,:,i_sect)**i_mom )  &
-                  / mom(i_part,i_sect,i_mom) 
+             set_cp_mom(i_mom,i_sect,i_part) =                                  &
+                  SUM( set_vel_quad(:,i_sect,i_part )                           &
+                  * cp_quad(:,i_sect,i_part) * f_quad(:,i_sect,i_part)          &
+                  * w_quad(:,i_sect,i_part) * m_quad(:,i_sect,i_part)**i_mom )  &
+                  / mom(i_mom,i_sect,i_part) 
 
              IF ( verbose_level .GE. 2 ) THEN
                 
                 WRITE(*,*) 'i_part,i_mom',i_part,i_mom
-                WRITE(*,*) 'abscissas', m_quad(i_part,1:n_nodes,i_sect)
-                WRITE(*,*) 'set_mom(i_part,i_mom) = ' ,                         &
-                     set_mom(i_part,i_sect,i_mom)
+                WRITE(*,*) 'abscissas', m_quad(1:n_nodes,i_sect,i_part)
+                WRITE(*,*) 'set_mom(i_mom,i_sect,i_part) = ' ,                  &
+                     set_mom(i_mom,i_sect,i_part)
                 
              END IF
              
@@ -1177,15 +1096,15 @@ CONTAINS
        
        DO i_sect = 1,n_sections
 
-          Ml = M(i_part,i_sect)
-          Mr = M(i_part,i_sect+1)
+          Ml = M(i_sect,i_part)
+          Mr = M(i_sect+1,i_part)
           
-          CALL linear_reconstruction( Ml,Mr,mom(i_part,i_sect,:), Mai , Mbi ,   &
+          CALL linear_reconstruction( Ml,Mr,mom(:,i_sect,i_part), Mai , Mbi ,   &
                alfai , betai , gamma1 , gamma2 )
 
-          f_quad(i_part,:,i_sect) = alfai * ( ( Mr - m_quad(i_part,:,i_sect) )  &
+          f_quad(:,i_sect,i_part) = alfai * ( ( Mr - m_quad(:,i_sect,i_part) )  &
                / ( Mr - Ml ) )**gamma1 + ( betai - alfai )                      &
-               * ( ( m_quad(i_part,:,i_sect) - Ml ) / ( Mr - Ml ) )**gamma2
+               * ( ( m_quad(:,i_sect,i_part) - Ml ) / ( Mr - Ml ) )**gamma2
           
        END DO
        
@@ -1234,19 +1153,19 @@ CONTAINS
     
        DO i_sect=1,n_sections
 
-          Ml = M(i_part,i_sect)
-          Mr = M(i_part,i_sect+1)
+          Ml = M(i_sect,i_part)
+          Mr = M(i_sect+1,i_part)
 
           ! https://en.wikipedia.org/wiki/Gaussian_quadrature#Change_of_interval
-          m_quad(i_part,:,i_sect) = 0.5D0 * ( ( Mr - Ml ) * x + ( Mr + Ml ) )
-          w_quad(i_part,:,i_sect) = 0.5D0 * ( Mr - Ml ) * w
+          m_quad(:,i_sect,i_part) = 0.5D0 * ( ( Mr - Ml ) * x + ( Mr + Ml ) )
+          w_quad(:,i_sect,i_part) = 0.5D0 * ( Mr - Ml ) * w
 
           IF ( verbose_level .GE. 1 ) THEN
 
              WRITE(*,*) 'i_part,i_sect',i_part,i_sect
              WRITE(*,*) 'Ml,Mr',Ml,Mr
-             WRITE(*,"(100ES12.4)") m_quad(i_part,:,i_sect)
-             WRITE(*,"(100ES12.3)") w_quad(i_part,:,i_sect)
+             WRITE(*,"(100ES12.4)") m_quad(:,i_sect,i_part)
+             WRITE(*,"(100ES12.3)") w_quad(:,i_sect,i_part)
              READ(*,*)
              
           END IF
@@ -1310,15 +1229,15 @@ CONTAINS
        M2 = Vol2 * rho1(i_part)
 
        ! Initialize the functions for the bisection method
-       f1 = m_quad(i_part,1:n_nodes,1:n_sections) - M1
-       f2 = m_quad(i_part,1:n_nodes,1:n_sections) - M2
+       f1 = m_quad(1:n_nodes,1:n_sections,i_part) - M1
+       f2 = m_quad(1:n_nodes,1:n_sections,i_part) - M2
 
        IF ( verbose_level .GE. 2 ) THEN
        
           WRITE(*,*) 'm_quad'
           DO i_sect=1,n_sections
              
-             WRITE(*,*) m_quad(i_part,1:n_nodes,i_sect)
+             WRITE(*,*) m_quad(1:n_nodes,i_sect,i_part)
              
           END DO
           
@@ -1353,7 +1272,7 @@ CONTAINS
                phi1(i_part) ) * ( rho2(i_part) - rho1(i_part) )
     
           Mi = Vol * rho_p
-          f = m_quad(i_part,1:n_nodes,1:n_sections) - Mi
+          f = m_quad(1:n_nodes,1:n_sections,i_part) - Mi
           
           ! The phi-rho relationship is linear-piecewise, so we need some
           ! condition defining in which part we are
@@ -1376,25 +1295,25 @@ CONTAINS
        END DO
 
        ! the output of the bilinear iterations is the density
-       rho_quad(i_part,1:n_nodes,1:n_sections) = rho_p
+       rho_quad(1:n_nodes,1:n_sections,i_part) = rho_p
 
        ! we compute the volume from mass and density
-       vol_quad(i_part,1:n_nodes,1:n_sections) = m_quad(i_part,:,:) / rho_p
+       vol_quad(1:n_nodes,1:n_sections,i_part) = m_quad(:,:,i_part) / rho_p
 
        ! the diameter in m is computed from volume and shapefactor
-       diam_quad(i_part,1:n_nodes,1:n_sections) = ( vol_quad(i_part,:,:)        &
+       diam_quad(1:n_nodes,1:n_sections,i_part) = ( vol_quad(:,:,i_part)        &
             / shape_factor(i_part) )**( 1.D0/3.D0 )
 
        ! the diameter in m is converted to phi
-       phi_quad(i_part,1:n_nodes,1:n_sections) =                                &
-            - DLOG(1.D3 * diam_quad(i_part,1:n_nodes,1:n_sections)) / DLOG(2.D0)
+       phi_quad(1:n_nodes,1:n_sections,i_part) =                                &
+            - DLOG(1.D3 * diam_quad(1:n_nodes,1:n_sections,i_part)) / DLOG(2.D0)
 
        DO i_sect=1,n_sections
        
           DO j=1,n_nodes
              
-             cp_quad(i_part,j,i_sect) = particles_heat_capacity( i_part,        &
-                  diam_quad(i_part,j,i_sect))  
+             cp_quad(j,i_sect,i_part) = particles_heat_capacity( i_part,        &
+                  diam_quad(j,i_sect,i_part))  
              
           END DO
 
@@ -1404,13 +1323,13 @@ CONTAINS
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'phi'
-          WRITE(*,"(100ES8.1)") phi_quad(i_part,1:n_nodes,1:n_sections)
+          WRITE(*,"(100ES8.1)") phi_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'diam'
-          WRITE(*,"(100ES8.1)") diam_quad(i_part,1:n_nodes,1:n_sections)
+          WRITE(*,"(100ES8.1)") diam_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'vol'
-          WRITE(*,"(100ES8.1)") vol_quad(i_part,1:n_nodes,1:n_sections)
+          WRITE(*,"(100ES8.1)") vol_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'rho'
-          WRITE(*,"(100ES8.1)") rho_quad(i_part,1:n_nodes,1:n_sections)
+          WRITE(*,"(100ES8.1)") rho_quad(1:n_nodes,1:n_sections,i_part)
           READ(*,*)
 
           END IF
@@ -1433,23 +1352,28 @@ CONTAINS
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
   
-  SUBROUTINE update_aggregation
+  SUBROUTINE update_aggregation(temp,visc,lw_mf,ice_mf)
 
     IMPLICIT NONE
 
-    
+    REAL*8,INTENT(IN) :: temp
+    REAL*8,INTENT(IN) :: visc
+    REAL*8,INTENT(IN) :: lw_mf
+    REAL*8,INTENT(IN) :: ice_mf
+  
     INTEGER :: i_part , j_part
     INTEGER :: i_sect , j_sect , k_sect
     
     INTEGER :: i_node , j_node
     
-    REAL*8 :: kernel_ij(n_nodes,n_nodes)
+    REAL*8 :: kernel_ji(n_nodes,n_nodes)
 
     REAL*8 :: f1i(n_nodes)
+    REAL*8 :: f2j(n_nodes)
     REAL*8 :: integrand_ijkm
     REAL*8 :: f1i_f2j(n_nodes,n_nodes)
 
-    
+
     DO i_part=1,n_part 
 
        DO i_sect=1,n_sections
@@ -1465,16 +1389,20 @@ CONTAINS
                       ! If the kernel is a function of particle sizes only, then
                       ! it can be initialized before the integration of the
                       ! plume equation
-                      aggregation_model = 'brownian'
-                      kernel_ij(i_node,j_node) = particles_beta(                &
-                           diam_quad(i_part,i_node,i_sect) ,                    &
-                           diam_quad(j_part,j_node,j_sect) )
+                      kernel_ji(j_node,i_node) = particles_beta( temp , visc ,  &
+                           diam_quad(j_node,j_sect,j_part) ,                    &
+                           diam_quad(i_node,i_sect,i_part) ,                    &
+                           rho_quad(j_node,j_sect,j_part) , &
+                           rho_quad(i_node,i_sect,i_part) , &
+                           set_vel_quad(j_node,j_sect,j_part) , &
+                           set_vel_quad(i_node,i_sect,i_part) , &
+                           lw_mf , ice_mf )
 
                    END DO
 
                 END DO
                 
-                kernel_aggr(i_part,j_part,i_sect,j_sect,:,:) = kernel_ij
+                kernel_aggr(:,:,j_sect,j_part,i_sect,i_part) = kernel_ji
 
              END DO
 
@@ -1485,8 +1413,8 @@ CONTAINS
     END DO
 
     !--- Birth and death terms due to aggregation
-    birth_mom(1:n_part,1:n_sections,0:n_mom-1) = 0.D0
-    death_mom(1:n_part,1:n_sections,0:n_mom-1) = 0.D0
+    birth_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.D0
+    death_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.D0
 
     ! loop over all particles which aggregate i_part
     DO i_part=1,n_part 
@@ -1495,62 +1423,64 @@ CONTAINS
        DO i_sect=1,n_sections
           
           ! linear reconstruction at nodes of section i_sect of part(i_part)
-          f1i = f_quad(i_part,:,i_sect)
+          f1i = f_quad(:,i_sect,i_part)
           
           ! loop over all particles which aggregate part(jp)
           DO j_part=1,n_part 
 
              ! loop over sections of j_part-particles
              DO j_sect=1,n_sections 
-                                
+         
+                f2j = f_quad(:,j_sect,j_part)
+                       
                 ! interval of particles of family jp
                 DO k_sect=1,n_sections             
                    
-                   IF ( q_flag(i_part,j_part,i_sect,j_sect,k_sect) ) THEN
+                   ! check for combination of sections aggregation
+                   IF ( q_flag(k_sect,j_sect,i_sect,j_part,i_part) ) THEN
 
                       DO i_node=1,n_nodes
 
                          ! term accounting for the linear recontruction
                          ! values at the quadrature nodes
-                         f1i_f2j(i_node,1:n_nodes) = f1i(i_node) *              &
-                              f_quad(j_part,1:n_nodes,j_sect)
-                         
+                         f1i_f2j(i_node,1:n_nodes) = f1i(1:n_nodes) * f2j(i_node)
+
                       END DO
-                      
+
                       integrand_ijkm = SUM(                                     &
-                           A(i_part,j_part,i_sect,j_sect,k_sect,:,:)            &
-                           * Wij(i_part,j_part,i_sect,j_sect,0,:,:)             &
-                           * kernel_aggr(i_part,j_part,i_sect,j_sect,:,:)       &
+                           A(:,:,k_sect,j_sect,j_part,i_sect,i_part)            &
+                           * Wij(:,:,0,j_sect,j_part,i_sect,i_part)             &
+                           * kernel_aggr(:,:,j_sect,j_part,i_sect,i_part)       &
                            * f1i_f2j )
                       
                       ! 0-moment of loss rate of i_part-particles in section 
                       ! i_sect becauseof aggregation with j_part-particles in 
                       ! section j_sect to form n_part-particles in section k_sect
-                      death_mom(i_part,i_sect,0) = death_mom(i_part,i_sect,0)   &
+                      death_mom(0,i_sect,i_part) = death_mom(0,i_sect,i_part)   &
                            + integrand_ijkm
 
                       ! 0-moment of birth rate of n_part-particles in section
                       ! k_sect because of aggregation of i_part-particles in
                       ! section i_sect with j_part-particles in section j_sect
-                      birth_mom(n_part,k_sect,0) = birth_mom(n_part,k_sect,0)   &
-                           + 0.5 * integrand_ijkm
+                      birth_mom(0,k_sect,n_part) = birth_mom(0,k_sect,n_part)   &
+                           + 0.5D0 * integrand_ijkm
                       
                       integrand_ijkm = SUM(                                     &
-                           A(i_part,j_part,i_sect,j_sect,k_sect,:,:)            &
-                           * Wij(i_part,j_part,i_sect,j_sect,1,:,:)             &
-                           * kernel_aggr(i_part,j_part,i_sect,j_sect,:,:)       &
+                           A(:,:,k_sect,j_sect,j_part,i_sect,i_part)            &
+                           * Wij(:,:,1,j_sect,j_part,i_sect,i_part)             &
+                           * kernel_aggr(:,:,j_sect,j_part,i_sect,i_part)       &
                            * f1i_f2j )
                       
                       ! 1-moment of loss rate of i_part-particles in section 
                       ! i_sect becauseof aggregation with j_part-particles in 
                       ! section j_sect to form n_part-particles in section k_sect
-                      death_mom(i_part,i_sect,1) = death_mom(i_part,i_sect,1)   &
+                      death_mom(1,i_sect,i_part) = death_mom(1,i_sect,i_part)   &
                            + integrand_ijkm
 
                       ! 1-moment of birth rate of n_part-particles in section
                       ! k_sect because of aggregation of i_part-particles in
                       ! section i_sect with j_part-particles in section j_sect
-                      birth_mom(n_part,k_sect,1) = birth_mom(n_part,k_sect,1)   &
+                      birth_mom(1,k_sect,n_part) = birth_mom(1,k_sect,n_part)   &
                            + integrand_ijkm
 
                    END IF
@@ -1563,9 +1493,6 @@ CONTAINS
             
        END DO
 
-       !WRITE(*,*) 'birth_mom(1:n_part,1:n_sections,1)',birth_mom(1:n_part,1:n_sections,1)
-       !READ(*,*)
-       
     END DO
 
     RETURN
@@ -1588,15 +1515,15 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: mi1(n_nodes) , mi2(n_nodes)
-    REAL*8 :: wi1(n_nodes) , wi2(n_nodes)
+    REAL*8 :: mi1(n_nodes) , mj2(n_nodes)
+    REAL*8 :: wi1(n_nodes) , wj2(n_nodes)
 
-    REAL*8 :: mi12(n_nodes,n_nodes)
-    REAL*8 :: wi12(n_nodes,n_nodes)
+    REAL*8 :: mij12(n_nodes,n_nodes)
+    REAL*8 :: wij12(n_nodes,n_nodes)
     INTEGER :: Aijk(n_nodes,n_nodes)
     REAL*8 :: Wijm(n_nodes,n_nodes)
 
-    REAL*8 :: kernel_ij(n_nodes,n_nodes)
+    REAL*8 :: kernel_ji(n_nodes,n_nodes)
     
     INTEGER :: i_part , j_part
     INTEGER :: i_sect , j_sect , k_sect
@@ -1607,49 +1534,52 @@ CONTAINS
 
        DO i_sect=1,n_sections
 
-          mi1(1:n_nodes) = m_quad(i_part,:,i_sect)
-          wi1(1:n_nodes) = w_quad(i_part,:,i_sect)
+          mi1(1:n_nodes) = m_quad(:,i_sect,i_part)
+          wi1(1:n_nodes) = w_quad(:,i_sect,i_part)
 
           DO j_part=1,n_part 
 
              DO j_sect=1,n_sections
 
-                mi2(1:n_nodes) = m_quad(j_part,:,j_sect)
-                wi2(1:n_nodes) = w_quad(j_part,:,j_sect)
+                mj2(1:n_nodes) = m_quad(:,j_sect,j_part)
+                wj2(1:n_nodes) = w_quad(:,j_sect,j_part)
 
                 DO i_node=1,n_nodes
 
-                   mi12(i_node,1:n_nodes) = mi1(1:n_nodes)+mi2(i_node)
-                   wi12(i_node,1:n_nodes) = wi1(1:n_nodes)*wi2(i_node)
+                   mij12(i_node,1:n_nodes) = mi1(1:n_nodes)+mj2(i_node)
+                   wij12(i_node,1:n_nodes) = wi1(1:n_nodes)*wj2(i_node)
 
                 END DO
-                
+               
                 DO k_sect=1,n_sections
 
-                   ! the mask depends only on the sections i, j and k
-                   Aijk = MERGE(1 , 0 , ( mi12 .GE. M(n_part,k_sect) ) .AND.    &
-                        ( mi12 .LE. M(n_part,k_sect+1) ) )
+                   ! The array Aijk depends only on the sections i, j and k.
+                   ! The value is 1 when the sum of the mass of the particles
+                   ! i_part,i_sect,i_node and j_part,j_sect,j_node falls in
+                   ! the k_section of the class n_part
+                   Aijk = MERGE(1 , 0 , ( mij12 .GE. M(k_sect,n_part) ) .AND.   &
+                        ( mij12 .LE. M(k_sect+1,n_part) ) )
 
-                   ! this logical variable is true only when particles
-                   ! i_part/i_sect and particles j_part/j_sect aggregate
+                   ! this logical variable is true only when there are particles 
+                   ! i_part/i_sect and particles j_part/j_sect aggregating
                    ! to particles n_part/k_sect
-                   q_flag(i_part,j_part,i_sect,j_sect,k_sect) =                 &
-                        ( SUM(Aijk) .LT. 0 )
+                   q_flag(k_sect,j_sect,i_sect,j_part,i_part) =                 &
+                        ( SUM(Aijk) .GT. 0 )
  
-                   A(i_part,j_part,i_sect,j_sect,k_sect,:,:) = Aijk
-
+                   A(:,:,k_sect,j_sect,j_part,i_sect,i_part) = Aijk
+                   
                 END DO
 
                 DO i_mom=0,n_mom-1
 
                    DO i_node=1,n_nodes
 
-                      Wijm(i_node,1:n_nodes) = wi12(i_node,1:n_nodes)           &
+                      Wijm(i_node,1:n_nodes) = wij12(i_node,1:n_nodes)          &
                            * mi1(1:n_nodes)**i_mom
 
                    END DO
 
-                   Wij(i_part,j_part,i_sect,j_sect,i_mom,:,:) = Wijm
+                   Wij(:,:,i_mom,j_sect,j_part,i_sect,i_part) = Wijm
                       
                 END DO
 

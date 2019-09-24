@@ -217,15 +217,9 @@ CONTAINS
     ueps = alpha_p * ABS( mag_u - u_atm * cos_phi ) + beta_p * ABS( u_atm *     &
          SIN(phi))
 
-    solid_term = SUM( set_mom( 1:n_part , 1:n_sections , 1 )                    &
-         * mom( 1:i_part , 1:n_sections , 1 ) )
+    solid_term = SUM( set_mom( 1, 1:n_sections , 1:n_part )                    &
+         * mom( 1 , 1:n_sections , 1:n_part ) )
 
-    !WRITE(*,*) 'set_mom( 1:n_part , 1:n_sections , 1 )'
-    !WRITE(*,*) set_mom( 1:n_part , 1:n_sections , 1 )
-    !WRITE(*,*) 'solid_term',solid_term
-    !WRITE(*,*) 'rho_mix',rho_mix
-    !READ(*,*)
-    
     DO i_gas=1,n_gas
 
        volcgas_rate(i_gas) = 0.D0
@@ -251,8 +245,8 @@ CONTAINS
 
     !---- Mixture specific heat integration 
 
-    cp_solid_term =SUM( set_cp_mom( 1:n_part , 1:n_sections , 1 )               &
-         * mom( 1:i_part , 1:n_sections , 1 ) )
+    cp_solid_term =SUM( set_cp_mom( 1 , 1:n_sections , 1:n_part )               &
+         * mom( 1 , 1:n_sections , 1:n_part ) )
 
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
@@ -284,8 +278,8 @@ CONTAINS
              idx = 8+i+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
              !---- Momentum equation RHS term (Eq. 32 PlumeMoM - GMD)
-             rhs1(idx) = - 2.D0 * prob_factor * r * set_mom(i_part,i_sect,i)    &
-                  * mom(i_part,i_sect,i)
+             rhs1(idx) = - 2.D0 * prob_factor * r * set_mom(i,i_sect,i_part)    &
+                  * mom(i,i_sect,i_part)
              
           END DO
           
@@ -331,26 +325,27 @@ CONTAINS
     !
     IMPLICIT NONE
     
-    INTEGER :: i
+    INTEGER :: i_mom
     INTEGER :: i_part
     INTEGER :: i_sect
     INTEGER :: i_gas
     
     INTEGER :: idx
     
-    
+    rhs2 = 0.D0
+
     !---- Moments equations
     DO i_part=1,n_part
        
        DO i_sect=1,n_sections
           
-          DO i=0,n_mom-1
+          DO i_mom=0,n_mom-1
              
-             idx = 8+i+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+             idx = 8+i_mom+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
-             rhs2(idx) = 1.D-10 * r**2 *  ( birth_mom(i_part,i_sect,i) -        &
-                  death_mom(i_part,i_sect,i))
-                
+             rhs2(idx) = 1.D-10 * r**2 *  ( birth_mom(i_mom,i_sect,i_part) -    &
+                  death_mom(i_mom,i_sect,i_part))
+             
           END DO
           
        END DO
@@ -426,15 +421,12 @@ CONTAINS
 
              idx = 8+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom+i_mom
 
-             f_(idx) = mag_u * r**2 * mom(i_part,i_sect,i_mom) 
+             f_(idx) = mag_u * r**2 * mom(i_mom,i_sect,i_part) 
                 
           ENDDO
           
        END DO
 
-       idx1 = 8+0+(i_part-1)*n_sections*n_mom
-       idx2 = 8+0+i_part*n_sections*n_mom-1
-       
     END DO
 
     f_(n_part*n_sections*n_mom+8) = ( rho_mix * dry_air_mass_fraction ) * mag_u &
@@ -504,7 +496,7 @@ CONTAINS
   
   SUBROUTINE unlump(f_)
 
-    USE meteo_module, ONLY: u_atm , rair , pa , cpair , rwv , rho_atm
+    USE meteo_module, ONLY: u_atm , rair , pa , cpair , rwv , rho_atm , visc_atm
     
     USE mixture_module, ONLY: rho_gas , rgasmix , rho_mix , t_mix ,             &
          gas_volume_fraction , solid_tot_volume_fraction , gas_mass_fraction ,  &
@@ -585,8 +577,11 @@ CONTAINS
     REAL*8 :: ice_volume_fraction
 
 
+    z = f_(5)
+    x = f_(6)
+    y = f_(7)
+ 
     ! ---- evaluate the new atmospheric density ad u and temperature at z -------
-
     CALL zmet
 
     u = u_atm + f_(2)/f_(1)
@@ -597,10 +592,7 @@ CONTAINS
     
     phi = ATAN(w/u)
  
-    z = f_(5)
-    x = f_(6)
-    y = f_(7)
-    
+   
     ! Mass fractions of volcanic gases (H2O excluded ) in mixture of volc. gases
     volcgas_mass_fraction(1:n_gas) =                                            &
          f_(9+n_part*n_mom*n_sections+1:9+n_part*n_mom*n_sections+n_gas) / f_(1) 
@@ -640,6 +632,7 @@ CONTAINS
 
     END IF
 
+
     ! mass fraction of dry air in the mixture
     dry_air_mass_fraction = f_(8+n_part*n_mom*n_sections) / f_(1)
 
@@ -657,7 +650,9 @@ CONTAINS
           idx1 = 8+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
           idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
 
-          mom(i_part,i_sect,:) = f_(idx1:idx2)
+          mom(:,i_sect,i_part) = f_(idx1:idx2)
+          !WRITE(*,*) 'UNLUMP'
+          !WRITE(*,*)  f_(idx1:idx2)
 
        END DO
 
@@ -681,7 +676,7 @@ CONTAINS
 
              idx = 8+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom+i_mom
              
-             mom(i_part,i_sect,i_mom) = f_(idx)
+             mom(i_mom,i_sect,i_part) = f_(idx)
              
           END DO
 
@@ -695,18 +690,18 @@ CONTAINS
     ! compute the average densities of the particle phases with f_quad values
     DO i_part=1,n_part
        
-       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(i_part,:,:)*w_quad(i_part,:,:)&
-            * m_quad(i_part,:,:)/rho_quad(i_part,:,:) ) / SUM(f_quad(i_part,:,:)&
-            * w_quad(i_part,:,:) * m_quad(i_part,:,:) ) )
+       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
+            * m_quad(:,:,i_part)/rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)&
+            * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
        IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'rhoB_solid_U_r2',idx1,rhoB_solid_U_r2(i_part)
           WRITE(*,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
-          WRITE(*,*) 'mom(i_part,1,0)',mom(i_part,1,0)
-          WRITE(*,*) 'mom(i_part,1,1)',mom(i_part,1,1)
-          WRITE(*,*) 'f_quad(i_part,:,1)',f_quad(i_part,:,1)
+          WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
+          WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)
+          WRITE(*,*) 'f_quad(:,1,i_part)',f_quad(:,1,i_part)
           
           
        END IF
@@ -726,15 +721,20 @@ CONTAINS
     ! --- and t_mix from other variables ----------------------------------------
     CALL eval_temp(enth,pa,cpsolid)
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*)
+       WRITE(*,*) 't_mix',t_mix
+       WRITE(*,*) 'enth',enth
+       WRITE(*,*) 'mag_u',mag_u
+       WRITE(*,*) 'cpsolid',cpsolid
        WRITE(*,*) 'solid_tot_mass_fraction',solid_tot_mass_fraction
        WRITE(*,*) 'water_mass_fraction', water_mass_fraction
        WRITE(*,*) 'volcgas_mix_mass_fraction', volcgas_mix_mass_fraction
        WRITE(*,*) 'dry_air_mass_fraction', dry_air_mass_fraction
        WRITE(*,*) 'water_vapor_mass_fraction', water_vapor_mass_fraction
        WRITE(*,*) 'ice_mass_fraction',ice_mass_fraction
+       READ(*,*)
        
     END IF
 
@@ -811,12 +811,12 @@ CONTAINS
 
     ! -------- update the moments -----------------------------------------------
 
-    mom(1:n_part,1:n_sections,0:n_mom-1) = mom(1:n_part,1:n_sections,0:n_mom-1) &
+    mom(0:n_mom-1,1:n_sections,1:n_part) = mom(0:n_mom-1,1:n_sections,1:n_part) &
          / u_r2
        
     ! update the values of the linear reconstructions at the quadrature points
-    f_quad(1:n_part,1:n_nodes,1:n_sections) =                                   &
-         f_quad(1:n_part,1:n_nodes,1:n_sections) / u_r2
+    f_quad(1:n_nodes,1:n_sections,1:n_part) =                                   &
+         f_quad(1:n_nodes,1:n_sections,1:n_part) / u_r2
     
     ! With the new quadrature values the moments of other variables are updated
     CALL eval_particles_moments
@@ -882,7 +882,8 @@ CONTAINS
     volcgas_mix_volume_fraction = volcgas_mix_mass_fraction * ( rho_mix /       &
          rhovolcgas_mix )
 
-    IF ( aggregation_flag ) CALL update_aggregation
+    IF ( aggregation_flag ) CALL update_aggregation(t_mix,visc_atm,&
+        liquid_water_mass_fraction , ice_mass_fraction )
     
     IF ( verbose_level .GE. 1 ) THEN
        
@@ -947,8 +948,8 @@ CONTAINS
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
-          WRITE(*,"(30ES8.1)") mom(i_part,n_sections:1:-1,1) /                  &
-               SUM( mom(i_part,:,1) )
+          WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part) /                  &
+               SUM( mom(1,:,i_part) )
           WRITE(*,*)
           
        END DO

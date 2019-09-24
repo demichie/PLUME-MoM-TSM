@@ -33,7 +33,7 @@ MODULE inpout
          rair , cpair , read_atm_profile , u_r , z_r , exp_wind ,               &
          wind_mult_coeff ,rwv
 
-    USE solver_module, ONLY: ds0
+    USE solver_module, ONLY: ds0 
 
     USE mixture_module, ONLY: t_mix0 , water_mass_fraction0,                    &
          initial_neutral_density
@@ -187,6 +187,8 @@ MODULE inpout
        volcgas_mass_fraction0
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
+
+  ! NAMELIST / numeric_parameters / ds0 , dsmax , eps_RK 
   
   SAVE
 
@@ -758,13 +760,13 @@ CONTAINS
     ! Compute the mass instervals for the different particles (1,n_part)
     DO i_part = 1,n_part
 
-       M(i_part,1) = 0.D0
+       M(1,i_part) = 0.D0
 
        DO i_sect = 1,n_sections
 
           diam = 1.D-3 * 2.D0**( - phiR(i_sect) )
           rhop = particles_density( i_part,phiR(i_sect) )
-          M(i_part,i_sect+1) = rhop * (shape_factor(i_part) * diam**3)
+          M(i_sect+1,i_part) = rhop * (shape_factor(i_part) * diam**3)
 
        END DO
 
@@ -1721,16 +1723,6 @@ CONTAINS
     ! ----- AGGREGATION
     IF ( aggregation_flag ) THEN
 
-       IF ( .not.WATER_FLAG ) THEN
-
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: only wet aggregation is possible'
-          WRITE(*,*) 'WATER FLAG =',WATER_FLAG
-          
-          STOP
-
-       END IF
-
        READ(inp_unit, aggregation_parameters,IOSTAT=ios)
 
        IF ( ios .NE. 0 ) THEN
@@ -1746,6 +1738,17 @@ CONTAINS
 
           aggregation_model = lower(aggregation_model)
        
+          IF ( ( aggregation_model.EQ.'costa') .AND. ( .not.WATER_FLAG ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: only wet aggregation is possible'
+             WRITE(*,*) 'with ''Costa'' aggregation model'
+             WRITE(*,*) 'WATER FLAG =',WATER_FLAG
+             
+             STOP
+             
+          END IF
+        
           WRITE(bak_unit, aggregation_parameters)
           
        END IF
@@ -1987,27 +1990,27 @@ CONTAINS
              
              ! evaluate the moments of order 1 (mass) from the parameters of the 
              ! lognormal distribution
-             mom0(i_part,i_sect,1) = normpdf(phiR(i_sect), mu_lognormal(i_part),&
+             mom0(1,i_sect,i_part) = normpdf(phiR(i_sect), mu_lognormal(i_part),&
                   sigma_lognormal(i_part) )
              
           ELSEIF ( distribution .EQ. 'bin' ) THEN
              
              ! assign the moments of order 1 (mass) from the values read in
              ! input
-             mom0(i_part,i_sect,1) = bin_partial_mass_fraction(i_part,i_sect)
+             mom0(1,i_sect,i_part) = bin_partial_mass_fraction(i_part,i_sect)
              
           END IF
           
        END DO
 
-       mom0(i_part,:,1) = mom0(i_part,:,1) / SUM( mom0(i_part,:,1) )
+       mom0(1,:,i_part) = mom0(1,:,i_part) / SUM( mom0(1,:,i_part) )
 
        IF ( verbose_level .GE. 0 ) THEN
           
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
-          WRITE(*,"(30ES8.1)") mom0(i_part,n_sections:1:-1,1)
+          WRITE(*,"(30ES8.1)") mom0(1,n_sections:1:-1,i_part)
           WRITE(*,*)
           !READ(*,*)
 
@@ -2015,8 +2018,8 @@ CONTAINS
        
        ! compute the moments of order 0 (number of particles) from the
        ! moments of order 1 (mass of particles)
-       mom0(i_part,1:n_sections,0) = numberFromMass(M(i_part,1:n_sections),     &
-            M(i_part,2:n_sections+1) , mom0(i_part,1:n_sections,1) )
+       mom0(0,1:n_sections,i_part) = numberFromMass(M(1:n_sections,i_part),     &
+            M(2:n_sections+1,i_part) , mom0(1,1:n_sections,i_part) )
 
     END DO
 
@@ -2029,9 +2032,9 @@ CONTAINS
        ! the density of the particles phases are evaluated here. It is 
        ! independent from the mass fraction of the particles phases, so
        ! it is possible to evaluate them with the "uncorrected" moments
-       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(i_part,:,:)*w_quad(i_part,:,:)&
-            * m_quad(i_part,:,:)/rho_quad(i_part,:,:) ) / SUM(f_quad(i_part,:,:)&
-            * w_quad(i_part,:,:) * m_quad(i_part,:,:) ) )
+       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
+            * m_quad(:,:,i_part)/rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)&
+            * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
        IF ( verbose_level .GE. 1 ) THEN
 
@@ -2281,7 +2284,7 @@ CONTAINS
     USE meteo_module, ONLY: rho_atm , ta, pa
 
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
-         mom , set_mom , cum_particle_loss_rate
+         mom , cum_particle_loss_rate
 
     USE plume_module, ONLY: x , y , z , w , r , mag_u
 
@@ -2376,7 +2379,7 @@ CONTAINS
 
        DO i_sect=1,n_sections
 
-          WRITE(col_unit,102,advance="no") mom(i_part,i_sect,1)
+          WRITE(col_unit,102,advance="no") mom(1,i_sect,i_part)
           WRITE(sed_unit,102,advance="no") cum_particle_loss_rate(i_part,i_sect)
           
        END DO
@@ -2394,8 +2397,6 @@ CONTAINS
     
 103 FORMAT(20(1x,es15.8))
 
-    !WRITE(mom_unit,*) z , mom(1:n_part,0:n_mom-1),set_mom(1:n_part,0)
-
     WRITE(mom_unit,104,advance="no") z
 
 104 FORMAT(1(1x,es15.8))
@@ -2406,7 +2407,7 @@ CONTAINS
 
          DO i_part=1,n_part
   
-            WRITE(mom_unit,105,advance="no")  mom(i_part,i_sect,i_mom)
+            WRITE(mom_unit,105,advance="no")  mom(i_mom,i_sect,i_part)
 
          END DO
 
@@ -2581,7 +2582,7 @@ CONTAINS
     USE meteo_module, ONLY : cos_theta , sin_theta , u_atm , zmet 
 
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
-         mom , set_mom
+         mom
 
     USE plume_module, ONLY: x , y , z , w , r , mag_u
 
