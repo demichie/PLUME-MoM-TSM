@@ -7,7 +7,6 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-import math
 from matplotlib.pyplot import cm 
 from mpl_toolkits.mplot3d import Axes3D
 import easygui
@@ -46,6 +45,11 @@ with open(bakfile) as fp:
            delta_phi_str = delta_phi_str.replace(',','')
            delta_phi = np.float(delta_phi_str)
            print("delta_phi",delta_phi)
+
+       if "AGGREGATION_FLAG" in line:
+           aggregation_flag_str = line.replace('AGGREGATION_FLAG=','')
+           aggregation_flag = ('T' in aggregation_flag_str)
+           print("aggregation_flag",aggregation_flag,aggregation_flag_str)
 
 phi_max = phi_min + (n_sections-1)*delta_phi
 
@@ -296,23 +300,30 @@ fig.savefig(str(filename)+'_temp.pdf')   # save the figure to file
 fig = plt.figure()
 
 solid_mass_flux = np.zeros((results.shape[0],n_part_sect))
+
 solid_mass_loss_cum = np.zeros((results.shape[0],n_part_sect))
 
 for i in range(n_part_sect):
 
-    solid_mass_flux[:,i] = rhoBsolid[:,i] * math.pi * r_mt[:,0]**2 * mag_u[:,0] 
+    solid_mass_flux[:,i] = rhoBsolid[:,i] * np.pi * r_mt[:,0]**2 * mag_u[:,0] 
 
     solid_mass_loss_cum[:,i] =  1.0 - solid_mass_flux[:,i]/solid_mass_flux[0,i]
 
     plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i], label=labels[i])
+
 
 plt.legend(ncol=n_part,fontsize = 'x-small')
 plt.xlabel('Particles mass loss fraction')
 plt.ylabel('Height (km)')
 
 
+
 fig.savefig(str(filename)+'_particles_fraction.pdf')   # save the figure to file
 #plt.close()
+
+solid_mass_flux_tot = np.sum(solid_mass_flux,axis=-1)
+solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
+
 
 
 # VARIABLES
@@ -359,7 +370,7 @@ ax = fig.add_subplot(111, projection='3d')
 
 ax.scatter(x, y,z)
 
-angle = np.linspace(0, 2*math.pi, num=50)
+angle = np.linspace(0, 2*np.pi, num=50)
 angle = angle.reshape((-1,1))
 
 x_plume = np.cos(angle)
@@ -461,6 +472,7 @@ fig=plt.figure()
 ax1 = fig.add_subplot(131)
 ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
+ax4 = fig.add_subplot(133, frame_on=False)
 
 time = np.zeros((x.shape[0],1))
 time[0] = 0.0
@@ -491,7 +503,7 @@ for i in range(1,n_part):
     solid_pmf_bot[i*n_bin:(i+1)*n_bin] += solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], bottom=solid_pmf_bot)
+barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=solid_pmf_bot)
 
 solid_pmf = np.sum(solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_solid_pmf = np.max(solid_pmf)
@@ -499,8 +511,10 @@ plt.ylim(0.0, 1.1*max_solid_pmf)
 plt.xlim(phi_min-1,phi_max+1)
 plt.xlabel('phi')
 ax1.title.set_text('Plume GSD')
-plt.subplot(1, 3, 2)
 
+
+
+plt.subplot(1, 3, 2)
 
 sed1={}
 
@@ -528,6 +542,9 @@ sed_results = np.loadtxt("%s.sed" % filename, skiprows = 1)
 
 sed_results = sed_results.reshape((z_levels,-1))
 
+# the values read from file are cumulative. We want the diff
+sed_results[1:,:] = np.diff(sed_results,axis=0)
+
 sed_solid_partial_mass_fraction = np.zeros((sed_results.shape[0],n_part_sect))
 sed_solid = np.zeros((sed_results.shape[0],n_part_sect))
 
@@ -553,7 +570,7 @@ for i in range(1,n_part):
     sed_solid_pmf_bot[i*n_bin:(i+1)*n_bin] += sed_solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], bottom=sed_solid_pmf_bot)
+barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=sed_solid_pmf_bot)
 
 sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_sed_solid_pmf = np.max(sed_solid_pmf)
@@ -565,21 +582,56 @@ plt.xlabel('phi')
 
 ax = plt.subplot(1, 3, 3)
 
-plt.plot(np.sqrt(x**2+y**2),z)
+plt.plot(solid_mass_tot_loss_cum,z)
 
 
 ax.yaxis.set_label_position("right")
 ax.yaxis.tick_right()
 
-mark_pos, = plt.plot(np.sqrt(x[0]**2+y[0]**2),z[0],'o')
+mark_pos, = plt.plot(solid_mass_tot_loss_cum[0],z[0],'o')
 plt.ylabel('Height [km]')
-plt.xlabel('[km]')
-ax3.title.set_text('Position on plume axis')
+# plt.xlabel('Fraction of solid flux lost')
+ax3.title.set_text('Fraction of solid flux lost')
 
 title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
 
 
+
+""" 
+
+mark_pos, = ax3.plot(np.sqrt(x[0]**2+y[0]**2),z[0],'o')
+
+ax3.plot(np.sqrt(x**2+y**2),z)
+
+ax4.set_ylabel('Height [km]')
+ax4.set_xlabel('[km]')
+#ax3.title.set_text('Position on plume axis')
+ax4.set_xlim(0,np.amax(np.sqrt(x**2+y**2)))
+
+ax4.xaxis.tick_top()
+ax4.tick_params(axis='x', colors="r")
+ax4.xaxis.set_label_position('top') 
+
+
+
+ax3.plot(solid_mass_tot_loss_cum,z,color='k')
+mark_pos, = ax3.plot(solid_mass_tot_loss_cum[0],z[0],'o')
+ax3.set_xlim(-0.00001,np.amax(solid_mass_tot_loss_cum)+0.00001)
+ax3.set_xlabel('fraction of solid flux lost',color='k') 
+
+ax3.yaxis.set_label_position("right")
+ax3.yaxis.tick_right()
+ax3.xaxis.tick_bottom()
+
+ax3.set_ylabel('Height [km]')
+
+
+
+title = ax3.text(1.7,0.15,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+                transform=ax.transAxes, ha="center")
+
+"""
 
 def animate(i):
 
@@ -611,7 +663,7 @@ def animate(i):
         b.set_y(sed_solid_pmf_bot[j])
         b.set_color(bar_colors[j])
 
-    mark_pos.set_xdata(np.sqrt(x[idx_steps[i]]**2+y[idx_steps[i]]**2))  
+    mark_pos.set_xdata(solid_mass_tot_loss_cum[idx_steps[i]])  
     mark_pos.set_ydata(z[idx_steps[i]])  
 
     title.set_text("t="+"{:6.1f}".format(time_steps[i])+'s')
@@ -619,7 +671,11 @@ def animate(i):
 anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames,
                              interval=100)
 
+#anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=3,
+#                             interval=100)
+
 anim.save('mymovie.mp4',writer=animation.FFMpegWriter(fps=10))
+
 
 
 plt.show()
