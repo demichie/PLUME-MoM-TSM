@@ -260,10 +260,9 @@ plt.subplot(2, 2, 3)
 
 for i in range(n_part_sect):
 
-    plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i], label=labels[i])
+    plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i])
     
-
-plt.legend(ncol=n_part,fontsize = 'x-small')
+plt.legend(labels,ncol=n_part,fontsize = 'x-small')
 
 
 plt.xlabel('Particles mass fraction')
@@ -309,10 +308,10 @@ for i in range(n_part_sect):
 
     solid_mass_loss_cum[:,i] =  1.0 - solid_mass_flux[:,i]/solid_mass_flux[0,i]
 
-    plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i], label=labels[i])
+    plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i])
 
+plt.legend(labels,ncol=n_part,fontsize = 'x-small')
 
-plt.legend(ncol=n_part,fontsize = 'x-small')
 plt.xlabel('Particles mass loss fraction')
 plt.ylabel('Height (km)')
 
@@ -493,7 +492,7 @@ for value in time_steps:
 
 plt.subplot(1, 3, 1)
 
-x_bin = np.flip(phi_min + delta_phi*np.arange(n_bin))
+x_bin = np.flip(phi_min + delta_phi*np.arange(n_bin),axis=0)
 x_bin = np.tile(x_bin,n_part)
 
 solid_pmf_bot = np.zeros((n_part_sect))
