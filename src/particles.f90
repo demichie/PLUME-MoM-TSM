@@ -87,6 +87,9 @@ MODULE particles_module
   !> Average heat capacity of particles
   REAL*8 :: cpsolid
 
+  
+  REAL*8 :: particles_beta0 
+
   !> Settling model:\n
   !> - 'textor'    => Textor et al. 2006
   !> - 'pfeiffer'  => Pfeiffer et al. 2005
@@ -663,7 +666,7 @@ CONTAINS
 
     CASE ( 'constant' )
 
-       particles_beta = 2.D+4
+       particles_beta = particles_beta0
 
     CASE ( 'brownian' )
 

@@ -49,7 +49,7 @@ with open(bakfile) as fp:
        if "AGGREGATION_FLAG" in line:
            aggregation_flag_str = line.replace('AGGREGATION_FLAG=','')
            aggregation_flag = ('T' in aggregation_flag_str)
-           print("aggregation_flag",aggregation_flag,aggregation_flag_str)
+           print("aggregation_flag",aggregation_flag)
 
 phi_max = phi_min + (n_sections-1)*delta_phi
 
@@ -296,7 +296,6 @@ fig.savefig(str(filename)+'_temp.pdf')   # save the figure to file
 #plt.close()
 
 # PARTICLE LOSS FRACTION 
-fig = plt.figure()
 
 solid_mass_flux = np.zeros((results.shape[0],n_part_sect))
 
@@ -308,17 +307,21 @@ for i in range(n_part_sect):
 
     solid_mass_loss_cum[:,i] =  1.0 - solid_mass_flux[:,i]/solid_mass_flux[0,i]
 
-    plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i])
+if ( not aggregation_flag ):
 
-plt.legend(labels,ncol=n_part,fontsize = 'x-small')
+    fig = plt.figure()
 
-plt.xlabel('Particles mass loss fraction')
-plt.ylabel('Height (km)')
+    for i in range(n_part_sect):
 
+        plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i])
 
+    plt.legend(labels,ncol=n_part,fontsize = 'x-small')
+    plt.xlabel('Particles mass loss fraction')
+    plt.ylabel('Height (km)')
 
-fig.savefig(str(filename)+'_particles_fraction.pdf')   # save the figure to file
-#plt.close()
+    fig.savefig(str(filename)+'_particles_fraction.pdf')   # save the figure to file
+
+    #plt.close()
 
 solid_mass_flux_tot = np.sum(solid_mass_flux,axis=-1)
 solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
@@ -327,32 +330,40 @@ solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
 
 # VARIABLES
 
+change_sign = np.argwhere(rho_rel[:-1]*rho_rel[1:]<0)
+last_change = change_sign[-1][0]
+
+# two different colors are used below and above neutral buoyancy level
 fig = plt.figure()
 
 plt.subplot(2, 2, 1)
 
-plt.plot(r,z)
+plt.plot(r[:last_change],z[:last_change])
+plt.plot(r[last_change:],z[last_change:])
 
 plt.xlabel('Radius (km)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 2)
 
-plt.plot(w,z)
+plt.plot(w[:last_change],z[:last_change])
+plt.plot(w[last_change:],z[last_change:])
 
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 3)
 
-plt.plot(rho_mix,z)
+plt.plot(rho_mix[:last_change],z[:last_change])
+plt.plot(rho_mix[last_change:],z[last_change:])
 
 plt.xlabel('Mixture density (kg/m$^3$)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 4)
 
-plt.plot(rho_rel,z)
+plt.plot(rho_rel[:last_change],z[:last_change])
+plt.plot(rho_rel[last_change:],z[last_change:])
 #plt.plot(rho_atm,z,'.r')
 
 plt.xlabel('Relative density (kg/m$^3$)')

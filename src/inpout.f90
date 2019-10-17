@@ -27,7 +27,8 @@ MODULE inpout
          solid_mass_fraction0 , shape_factor , bin_partial_mass_fraction ,      &
          solid_partial_mass_fraction0 
 
-    USE particles_module, ONLY : aggregation_model , phiL , phiR , M
+    USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
+         phiL , phiR , M
     
     USE meteo_module, ONLY: gt , gs , p0 , t0 , h1 , h2 , rh , visc_atm0 ,      &
          rair , cpair , read_atm_profile , u_r , z_r , exp_wind ,               &
@@ -179,7 +180,7 @@ MODULE inpout
        initial_neutral_density , water_mass_fraction0 , vent_height , ds0 ,     &
        n_gas
   
-  NAMELIST / aggregation_parameters / aggregation_model
+  NAMELIST / aggregation_parameters / aggregation_model , particles_beta0
          
   NAMELIST / hysplit_parameters / hy_deltaz , nbl_stop , n_cloud
  
@@ -248,6 +249,9 @@ CONTAINS
     Log10_mfr = notSet
     mfr0 = notSet
     
+    !-------------- default values of the AGGEGATION_PARAMETERS namelist --------
+    particles_beta0 = notSet
+
     !------------ default values of the HYSPLIT_PARAMETERS namelist -------------
     hy_deltaz = notSet
     nbl_stop = .TRUE.
@@ -1749,6 +1753,19 @@ CONTAINS
              
           END IF
         
+          IF ( ( aggregation_model.EQ.'constant') .AND.                            &
+               ( .not.isSet(particles_beta0) ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: particles_beta0 requested'
+             WRITE(*,*) 'with ''constant'' aggregation model'
+             WRITE(*,*) 'PARTICLES_BETA0 =',particles_beta0
+             
+             STOP
+             
+          END IF
+        
+
           WRITE(bak_unit, aggregation_parameters)
           
        END IF
