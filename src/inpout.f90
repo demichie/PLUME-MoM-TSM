@@ -583,76 +583,6 @@ CONTAINS
              
           END IF
 
-          IF ( ( .NOT. isSet(r_min) ) .OR. ( r_min .LE. 0 ) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check R_MIN value (>0 [m])'
-             WRITE(*,*) 'R_MIN =',r_min
-             WRITE(*,*)
-             STOP
-             
-          END IF
-
-          IF ( ( .NOT. isSet(r_max) ) .OR. ( r_max .LE. r_min ) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check R_MAX value (>R_MIN [m])'
-             WRITE(*,*) 'R_MAX =',r_max
-             WRITE(*,*)
-             STOP
-             
-          END IF
-
-          IF ( n_values .LE. 0 ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check N_VALUES value (>0 [integer])'
-             WRITE(*,*) 'N_VALUES =',n_values
-             WRITE(*,*)
-             STOP
-             
-          END IF
-
-          IF ( ( .NOT. isSet(w_min) ) .OR. ( w_min .LE. 0 ) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check W_MIN value (>0 [m/s])'
-             WRITE(*,*) 'W_MIN =',w_min
-             WRITE(*,*)
-             STOP
-             
-          END IF
-
-          IF ( ( .NOT. isSet(w_max) ) .OR. ( w_max .LE. w_min ) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check W_MAX value (>W_MIN [m/s])'
-             WRITE(*,*) 'W_MAX =',w_max
-             WRITE(*,*)
-             STOP
-             
-          END IF
-          
           IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
           WRITE(bak_unit, inversion_parameters)
           write_flag = .FALSE.
@@ -1607,6 +1537,114 @@ CONTAINS
           WRITE(*,*) 'W0',w0
           STOP
        
+       END IF
+
+       IF ( isSet(w0) ) THEN
+          
+          IF ( isSet(w_min) .OR. isSet(w_max) ) THEN
+
+             WRITE(*,*) 'WARNING: you should not assign W0,W_MIN and W_MAX with inversion=true'
+             WRITE(*,*) 'W0',w0
+             WRITE(*,*) 'W_MIN',w_min
+             WRITE(*,*) 'W_MAX',w_max
+             STOP
+             
+          END IF
+
+       ELSE
+
+          IF ( ( .NOT. isSet(w_min) ) .OR. ( w_min .LE. 0 ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,inversion_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check W_MIN value (>0 [m/s])'
+             WRITE(*,*) 'W_MIN =',w_min
+             WRITE(*,*)
+             STOP
+             
+          END IF
+
+
+          IF ( ( .NOT. isSet(w_max) ) .OR. ( w_max .LE. w_min ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,inversion_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check W_MAX value (>W_MIN [m/s])'
+             WRITE(*,*) 'W_MAX =',w_max
+             WRITE(*,*)
+             STOP
+             
+          END IF
+          
+       END IF
+
+
+       IF ( isSet(r0) ) THEN
+
+          IF ( isSet(r_min) .OR. isSet(r_max) ) THEN
+
+             WRITE(*,*) 'WARNING: you should not assign R0,R_MIN and R_MAX with inversion=true'
+             WRITE(*,*) 'R0',r0
+             WRITE(*,*) 'R_MIN',r_min
+             WRITE(*,*) 'R_MAX',r_max
+             STOP
+      
+          END IF
+
+       ELSE
+
+          IF ( ( .NOT. isSet(r_min) ) .OR. ( r_min .LE. 0 ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,inversion_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check R_MIN value (>0 [m])'
+             WRITE(*,*) 'R_MIN =',r_min
+             WRITE(*,*)
+             STOP
+             
+          END IF
+
+          IF ( ( .NOT. isSet(r_max) ) .OR. ( r_max .LE. r_min ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,inversion_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check R_MAX value (>R_MIN [m])'
+             WRITE(*,*) 'R_MAX =',r_max
+             WRITE(*,*)
+             STOP
+             
+          END IF
+ 
+       END IF
+
+       IF ( isSet(r_min) .AND. isSet(w_min) ) THEN
+
+          IF ( n_values .LE. 0 ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,inversion_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check N_VALUES value (>0 [integer])'
+             WRITE(*,*) 'N_VALUES =',n_values
+             WRITE(*,*)
+             STOP
+             
+          END IF
+
        END IF
 
   

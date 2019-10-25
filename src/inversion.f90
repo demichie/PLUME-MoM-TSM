@@ -136,8 +136,8 @@ CONTAINS
     LOGICAL :: search_flag
         
     WRITE(*,97)
-97  FORMAT(1x,'      radius (m) ',1x,' velocity (m/s) ',1x,             &
-         'MER (kg/s)     ',  1x,'plume height (m)',1x,        &
+97  FORMAT(1x,'      radius (m) ',1x,' velocity (m/s) ',1x,                     &
+         'MER (kg/s)     ',  1x,'plume height (m)',1x,                          &
          ' inversion ',1x,'column regime')
 
     
@@ -146,10 +146,9 @@ CONTAINS
        r0 = r_min * (r_max/r_min)**( i / (n_values-1.D0) )
        ! WRITE(*,*) 'r0',r0
        CALL velocity_search(w_opt,search_flag)
-       WRITE(*,101) r0,w_opt,opt_mfr,opt_height,search_flag, &
-            opt_regime
+       WRITE(*,101) r0,w_opt,opt_mfr,opt_height,search_flag, opt_regime
 
-       CALL WRITE_INVERSION(r0,w_opt,opt_mfr,opt_height,search_flag, &
+       CALL WRITE_INVERSION(r0,w_opt,opt_mfr,opt_height,search_flag,            &
             opt_regime)
 
     END DO
@@ -189,10 +188,9 @@ CONTAINS
     
     write_flag = .FALSE.
     search_flag = .TRUE.
-    
-    w0_init = w_min*DSQRT(w_max/w_min)
 
-    w0_init = w0
+    ! Initial velocity value for the search of the best value
+    w0_init = DSQRT(w_max*w_min)
 
     CALL plumerise
     ! WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
@@ -218,6 +216,7 @@ CONTAINS
 
     init_sign = plume_height-height_obj
 
+    ! loop to search for a velocity interval over which the residual change sign
     search_interval:DO iter_interval=1,4
     
        w0 = (mult_fact**iter_interval)*w0_init
