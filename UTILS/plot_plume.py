@@ -592,7 +592,8 @@ plt.xlabel('phi')
 
 ax = plt.subplot(1, 3, 3)
 
-plt.plot(solid_mass_tot_loss_cum,z)
+plt.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change])
+plt.plot(solid_mass_tot_loss_cum[last_change:],z[last_change:])
 
 
 ax.yaxis.set_label_position("right")
