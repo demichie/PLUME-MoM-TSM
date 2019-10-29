@@ -102,7 +102,7 @@ print( 'number of volcanic gases ',n_gas)
 labels =[]
 for i in range(n_part):
     for j in range(n_bin):
-        labels.append(r'$\phi=$'+"{}".format(phi_min+j*delta_phi))
+        labels.append(r'$\phi=$'+"{}".format(phi_max-j*delta_phi))
         
 
 results = np.loadtxt("%s.col" % filename, skiprows = 1)
@@ -516,7 +516,7 @@ for i in range(1,n_part):
 barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=solid_pmf_bot)
 
 solid_pmf = np.sum(solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
-max_solid_pmf = np.max(solid_pmf)
+max_solid_pmf = np.nanmax(solid_pmf)
 plt.ylim(0.0, 1.1*max_solid_pmf)
 plt.xlim(phi_min-1,phi_max+1)
 plt.xlabel('phi')
@@ -583,7 +583,7 @@ for i in range(1,n_part):
 barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=sed_solid_pmf_bot)
 
 sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
-max_sed_solid_pmf = np.max(sed_solid_pmf)
+max_sed_solid_pmf = np.nanmax(sed_solid_pmf)
 plt.ylim(0.0, 1.1*max_sed_solid_pmf)
 plt.xlim(phi_min-1,phi_max+1)
 ax2.title.set_text('Sedimentation GSD')
@@ -604,7 +604,7 @@ plt.ylabel('Height [km]')
 # plt.xlabel('Fraction of solid flux lost')
 ax3.title.set_text('Fraction of solid flux lost')
 
-title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(float(time_steps[0]))+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
 
 
@@ -677,7 +677,7 @@ def animate(i):
     mark_pos.set_xdata(solid_mass_tot_loss_cum[idx_steps[i]])  
     mark_pos.set_ydata(z[idx_steps[i]])  
 
-    title.set_text("t="+"{:6.1f}".format(time_steps[i])+'s')
+    title.set_text("t="+"{:6.1f}".format(float(time_steps[i]))+'s')
 
 anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames,
                              interval=100)
