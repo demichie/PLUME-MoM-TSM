@@ -261,7 +261,7 @@ CONTAINS
 
     rhs1(4) = 2.D0 * r * ueps * rho_atm * ( cpair * ta * ( 1.D0 - sphu_atm )    &
          + sphu_atm * ( h_wv0 - c_wv * ta ) + gi * z                            &
-         + 0.5D0 * ueps**2 ) - prob_factor * 2.D0 * r * ( t_mix * cp_solid_term &
+         + 0.5D0 * u_atm**2 ) - prob_factor * 2.D0 * r * ( t_mix * cp_solid_term &
          + 0.5D0 * mag_u**2.D0 * solid_term)                                    &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
          
