@@ -51,7 +51,7 @@ CONTAINS
     USE variables, ONLY : dakota_flag , hysplit_flag , nbl_stop
     USE variables, ONLY : write_flag
     USE variables, ONLY : aggregation_flag
-    USE variables, ONLY : pi_g , height_nbl
+    USE variables, ONLY : pi_g , height_nbl , flag_nbl
 
     ! external procedures
     USE inpout, ONLY: write_column , write_dakota , write_zero_hysplit
@@ -316,6 +316,8 @@ CONTAINS
 
     eps_RK = 1.D-8
 
+    flag_nbl = .FALSE.
+
     main_loop: DO
 
        f_stepold = f
@@ -504,6 +506,7 @@ CONTAINS
           height_nbl = z - vent_height
           x_nbl = x
           y_nbl = y
+          flag_nbl = .TRUE.
           
        END IF
 

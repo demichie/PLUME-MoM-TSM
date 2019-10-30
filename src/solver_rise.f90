@@ -111,7 +111,7 @@ CONTAINS
     USE plume_module, ONLY: s , r , u , w , mag_u , phi , alpha_inp , beta_inp ,&
          rp , prob_factor , particles_loss , r0 , z
 
-    USE variables, ONLY: gi
+    USE variables, ONLY: gi , flag_nbl
 
     !
     IMPLICIT NONE
@@ -214,8 +214,16 @@ CONTAINS
     END IF
    
     !---- Entrainment velocity (Eq. 20 PlumeMoM - GMD) 
-    ueps = alpha_p * ABS( mag_u - u_atm * cos_phi ) + beta_p * ABS( u_atm *     &
-         SIN(phi))
+    IF ( flag_nbl ) THEN
+
+       ueps = 0.D0
+
+    ELSE
+
+       ueps = alpha_p * ABS( mag_u - u_atm * cos_phi ) + beta_p * ABS( u_atm * &
+            SIN(phi))
+
+    END IF
 
     solid_term = SUM( set_mom( 1, 1:n_sections , 1:n_part )                    &
          * mom( 1 , 1:n_sections , 1:n_part ) )

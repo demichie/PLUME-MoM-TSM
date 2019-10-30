@@ -38,6 +38,8 @@ MODULE variables
   !> .
   LOGICAL :: nbl_stop
 
+  LOGICAL :: flag_nbl
+
   INTEGER :: n_cloud
 
   REAL*8 :: height_nbl 
