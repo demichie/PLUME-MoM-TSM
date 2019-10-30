@@ -8,17 +8,17 @@ This folder contains the input file for a test case with addition of external li
 
 ADDED_WATER_MASS_FRACTION set the mass fraction of external liquid water with respect to the whole eruptive mixture. 
 
-Mass flow rate of 5.7E6 kgs-1 is computed from vent radius (R0 = 50 m) and initial mixture velocity (W0 = 178 ms-1).
+Mass flow rate of 5.7E6 kgs-1 (MFR0=5.7E6) and vent radius (R0 = 50 m) are fixed.
 
-Try to change ADDED_WATER_MASS_FRACTION adjusting W0 to mantain the reference mass flow rate of 5.7E6 kgs-1.
+In order to reproduce the results of Koyaguchi and Woods, these values of external water can be testet.
 
-ADDED_WATER_MASS_FRACTION   |   W0
-                            |
-0                           |   100
-0.03                        |   178
-0.10                        |   295
-0.20                        |   329
-0.30                        |   260
+ADDED_WATER_MASS_FRACTION
+                         
+0                         
+0.03                       
+0.10                      
+0.20                      
+0.30                     
 
 To run the test case, please copy first (or link) the executable from the bin folder, and then run the model:
 
