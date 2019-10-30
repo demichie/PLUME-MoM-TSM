@@ -506,7 +506,8 @@ CONTAINS
           height_nbl = z - vent_height
           x_nbl = x
           y_nbl = y
-          flag_nbl = .TRUE.
+
+          IF ( deltarho .GT. 0.D0 ) flag_nbl = .TRUE.
           
        END IF
 
