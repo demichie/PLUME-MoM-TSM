@@ -20,7 +20,7 @@ ADDED_WATER_MASS_FRACTION   |   W0
 0.20                        |   329
 0.30                        |   260
 
-To run the test case, please copy firt (or link) the executable from the bin folder, and then run the model:
+To run the test case, please copy first (or link) the executable from the bin folder, and then run the model:
 
 > ./PLUMEMoM
 
@@ -28,7 +28,7 @@ A Python script to plot the results is provided with the code in the folder UTIL
 
 > python plot_plume.py
 
-The script also create an animation showing how the particle size distribution of both original particles and aggregates (plotted with two different colors) changes with the rise.
+The script also create an animation showing how the particle size distribution changes with the rise.
 
 ****
 - Reference
