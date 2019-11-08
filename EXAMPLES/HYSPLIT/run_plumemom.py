@@ -5,7 +5,6 @@ import os,sys
 import re
 import shutil
 from extract_wind import write_atm
-from astropy.io import ascii
 
 from input_file import *
 
@@ -118,17 +117,40 @@ else:
 
 time_format = "%y %m %d %H %M"
 
-starttime_hhmm = datetime.datetime.strptime(starttime,time_format)
-starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
+#starttime_hhmm = datetime.datetime.strptime(starttime,time_format)
+#starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
 
-endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
-endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
+#endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
+#endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
 
-print 'starttime',starttime_hhmm,starttime_round
-print 'endemittime',endemittime_hhmm,endemittime_round
+#print 'starttime',starttime_hhmm,starttime_round
+#print 'endemittime',endemittime_hhmm,endemittime_round
+
+if deltat_plumemom >=3600:
+
+    starttime_hhmm = datetime.datetime.strptime(starttime,time_format) 
+    starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
+
+    endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
+    endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
+
+else:
+
+    starttime_hhmm = datetime.datetime.strptime(starttime,time_format) 
+    starttime_round = round_minutes(starttime_hhmm, 'down', 15)  # arrotonda per difettos endemittime
+
+    endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
+    endemittime_round = round_minutes(endemittime_hhmm, 'down', 15)  # arrotonda per difettos endemittime
 
 
-runtime=endemittime_round-starttime_round # numero ore arrotondate tra inizio e fine emissione 
+
+runtime=endemittime_round-starttime_round
+
+
+print endemittime_round, starttime_round
+print runtime,deltat_plumemom
+
+#runtime=endemittime_round-starttime_round # numero ore arrotondate tra inizio e fine emissione 
 #n_runs = np.int(np.floor( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 
@@ -149,7 +171,7 @@ if 'plume_height' in locals():
     else:
 
         filedata = filedata.replace("{inversion_flag}", 'T' )
-        filedata = filedata.replace("{log10_mfr}", '-1.0' )
+        filedata = filedata.replace("{log10_mfr}", 'NaN' )
         plume_height = np.ones(n_runs)*plume_height
 
     if 'log10_mfr' in locals():
@@ -205,6 +227,8 @@ for i in range(n_runs):
     filedata = f.read()
     f.close()
 
+    run_flag = 0
+
     # create a third template with the parameters changing with time
     f = open('plume_model.temp2','w')
 
@@ -213,11 +237,27 @@ for i in range(n_runs):
 
     if 'plume_height' in locals():
         
-        filedata = filedata.replace("{plume_height}", str(plume_height[i]) )
+        if plume_height[i] == 0:
+
+            print "NO EMISSION"
+            run_flag = 0
+
+        else:
+
+            filedata = filedata.replace("{plume_height}", str(plume_height[i]) )
+            run_flag = 1
 
     if 'log10_mfr' in locals():
 
-        filedata = filedata.replace("{log10_mfr}", str(log10_mfr[i]) )
+        if log10_mfr[i] == 0:
+    
+            print "NO EMISSION"
+            run_flag = 0
+    
+        else:
+
+            filedata = filedata.replace("{log10_mfr}", str(log10_mfr[i]) )
+            run_flag = 1
 
     if 'vent_velocity' in locals():
 
@@ -245,40 +285,16 @@ for i in range(n_runs):
                 for line in infile:
                     outfile.write(line)
 
-    subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
+    if run_flag == 0:
+
+        pass
+
+    else:
+    
+        subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
 
     #subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) Uncommented on 18/12/2018 federica
 
-    output = np.loadtxt(str(runnamenew)+'.col', skiprows = 1)
-    
-    output = np.asarray(output)
-
-    z_top = output[-1,0]
-
-    r_top = output[-1,1]
-   
-    w_top = output[-1,6]
-
-    mag_u_top = output[-1,7]
-
-    u_top = np.sqrt(mag_u_top**2 / w_top **2)
-
-    phi_top = np.arctan(w_top/u_top)
-
-    z_top_radius = z_top + r_top * np.cos(phi_top)
-
-    z_top_av = z_top - vent_height    
-
-    z_top_radius_av = z_top_radius - vent_height
-    
-    col.append([int(timei.year),int(timei.month),int(timei.day),int(timei.hour),int(timei.minute), z_top, z_top_av,z_top_radius,z_top_radius_av,r_top,phi_top*57.29,vent_height ])
-
-
-
-
-col=np.asarray(col)
-col=col.reshape((-1,12))
-ascii.write(col,'column_height.txt', format='fixed_width', delimiter=" ", names=['year', 'month', 'day', 'hour', 'minute', 'top_height[m]','top_height_above_vent[m]', 'top_height+radius[m]','top_height+radius_above_vent[m]', 'top_radius[m]', 'bending_angle[deg]','vent_height[m]'], overwrite=True)
 
 subprocess.call("rm plume_model.temp1", shell=True) 
 subprocess.call("rm plume_model.temp2", shell=True) 

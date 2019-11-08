@@ -4,6 +4,7 @@ import datetime
 import os,sys
 import re
 import shutil
+from collections import Counter
 from part_density import calc_density
 from input_file import *
 
@@ -39,25 +40,68 @@ print 'End run time:',endruntime
 print 'Total runtime',runtime_hh,'hrs'
 
 
-starttime_hhmm = datetime.datetime.strptime(starttime,time_format)
-starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
+if deltat_plumemom >=3600:
 
-endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
-endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
-endemittime_round_down = round_minutes(endemittime_hhmm, 'down', 60)  # arrotonda per difettos endemittime
+    starttime_hhmm = datetime.datetime.strptime(starttime,time_format) 
+    starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
+
+    endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
+    endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
+
+else:
+
+    starttime_hhmm = datetime.datetime.strptime(starttime,time_format) 
+    starttime_round = round_minutes(starttime_hhmm, 'down', 15)  # arrotonda per difettos endemittime
+
+    starttime_round_c = round_minutes(starttime_hhmm, 'down', 60)  # arrotonda per difettos endemittime
+
+    endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
+    endemittime_round = round_minutes(endemittime_hhmm, 'down', 15)  # arrotonda per difettos endemittime
+
+
 
 runtime=endemittime_round-starttime_round
 
 n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) )
+
+if deltat_plumemom >= 3600:
+    
+    deltat_hhhh = deltat_plumemom
+
+else:
+
+    deltat_hhhh = 3600
+
 
 d = datetime.datetime(2000,1,1) + datetime.timedelta(seconds=deltat_plumemom)
 duration_hhmm = str(d.strftime("%H%M"))
 
 duration_h=(int(d.strftime("%H%M")[0:2])+(int(d.strftime("%H%M")[2:4])/float(60)))
 
-d2 = datetime.datetime(2000,1,1) + datetime.timedelta(seconds=deltat_plumemom)
+d2 = datetime.datetime(2000,1,1) + datetime.timedelta(seconds=deltat_hhhh)
 
 duration_hhhh = '{0:04}'.format(int(str(d2.strftime("%H"))))
+
+print "nruns ",n_runs,runtime.total_seconds(),deltat_plumemom
+
+
+#number of lines of each emittimes block
+
+hours = []
+
+startime_count_0 = starttime_hhmm
+hours.append(startime_count_0.hour)
+
+for i in range(n_runs-1):
+
+    startime_count = startime_count_0 + datetime.timedelta(seconds=deltat_plumemom)
+     
+    hours.append(startime_count.hour)
+
+    startime_count_0 = startime_count
+dict_h = Counter(hours)
+maximum = max(dict_h, key=dict_h.get)  # Just use 'min' instead of 'max' for minimum.
+num_occurrence = int(dict_h[maximum])
 
 # particle diameters phi scale
 
@@ -183,9 +227,11 @@ max_lines = 0
 for i in range(n_runs):
 
     plume_hy = runname + '_{0:03}'.format(i+1)+'.hy'
+  
+    if os.path.isfile(str(plume_hy)):
 
-    with open(plume_hy) as f:
-        max_lines = max(max_lines,sum(1 for _ in f)-1)
+        with open(plume_hy) as f:
+            max_lines = max(max_lines,sum(1 for _ in f)-1)
 
 
 
@@ -198,9 +244,9 @@ First EMITTIMES.part Block
 # name of the .hy file
 plume_hy = runname + '_{0:03}'.format(1)+'.hy'
 
+
 # time of the block
 #timei =  datetime.datetime.strptime(starttime,time_format)
-
 #timei_end =  starttime_round+datetime.timedelta(seconds=deltat_plumemom)
 
 if n_runs == 1:
@@ -219,89 +265,110 @@ else:
     d = datetime.datetime(2000,1,1) + (timei_end-timei)
     duration_hhmm = str(d.strftime("%H%M"))
 
+timei_old = timei
+
 print 'Block 1',duration_hhmm
 
 timei_str = timei.strftime("%Y %m %d %H")
 timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
-data=np.loadtxt(plume_hy,skiprows=1)
-data=data.reshape((-1,int(3+(npart*n_sections))))    
+if os.path.isfile(str(plume_hy)):
 
-# data1: array containing data from .hy file, without x,z,h
-data1=np.delete(data, [0,1,2], 1)
+    data=np.loadtxt(plume_hy,skiprows=1)
+    data=data.reshape((-1,int(3+(npart*n_sections))))    
 
-# array containing lat,lon and height for time i
-b=[]
+    # data1: array containing data from .hy file, without x,z,h
+    data1=np.delete(data, [0,1,2], 1)
 
-for i0 in range(len(data)):
-    x=data[i0,0] #[m]
-    y=data[i0,1] #[m] 
-    # height=data[i0,2]-vent_height #[m] 	
-    height=data[i0,2]-z_ground #[m]	
+    # array containing lat,lon and height for time i
+    b=[]
 
-    # convert from m to lat lon	  
-    lon_col = vent_lon + ((x*10**-3)/float(100))
-    lat_col = vent_lat - ((y*10**-3)/float(100))
+    for i0 in range(len(data)):
+        x=data[i0,0] #[m]
+        y=data[i0,1] #[m] 
+        # height=data[i0,2]-vent_height #[m] 	
+        height=data[i0,2]-z_ground #[m]	
 
-    b.append([lat_col, lon_col, height])
+        # convert from m to lat lon	  
+        lon_col = vent_lon + ((x*10**-3)/float(100))
+        lat_col = vent_lat - ((y*10**-3)/float(100))
 
-b = np.asarray(b)
-b = b.reshape((-1,3))	
+        b.append([lat_col, lon_col, height])
 
-# add lines in order to have all the blocks with the same lenght
+    b = np.asarray(b)
+    b = b.reshape((-1,3))	
 
-for i in range(max_lines-len(b)):
+    # add lines in order to have all the blocks with the same lenght
 
-    b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100] ))
+    for i in range(max_lines-len(b)):
 
-    data1 = np.vstack((data1,np.zeros((npart*n_sections))))
+        b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100] ))
 
-# b1 is an array containing lat,lon and height for time i repeated npart*n_sections times
-b1=[]
+        data1 = np.vstack((data1,np.zeros((npart*n_sections))))
 
-for i0 in range(len(b)):    
-    for i1 in range(npart):
-        for i2 in range(n_sections):
-            b1.append([b[i0,0],b[i0,1],b[i0,2]])
+    # b1 is an array containing lat,lon and height for time i repeated npart*n_sections times
+    b1=[]
 
-b1=np.asarray(b1)
-b1=b1.reshape((-1,3))	
+    for i0 in range(len(b)):    
+        for i1 in range(npart):
+            for i2 in range(n_sections):
+                b1.append([b[i0,0],b[i0,1],b[i0,2]])
 
-# data3 is the array to be written in EMITTIMES for every time interval
-data3 = np.zeros((max_lines*npart*n_sections,4))
-
-for i0 in range(max_lines):
-
-    i01 = i0*npart*n_sections
-
-    for i1 in range(npart):
-
-        for i2 in range(n_sections):
-
-           data3[i01+(i1*n_sections)+i2,0:3] = b1[i01+(i1*n_sections)+i2,0:3]
-
-           data3[i01+(i1*n_sections)+i2,3] = data1[i0,(i1*n_sections)+i2]
+    b1=np.asarray(b1)
+    b1=b1.reshape((-1,3))	
 
 
-# mass released in one hour [kg]
-emission_rate = data3[:,3]*3600
+    # data3 is the array to be written in EMITTIMES for every time interval
+    data3 = np.zeros((max_lines*npart*n_sections,4))
 
-# released_mass_i: mass [kg] released during the simulation at i run time
-released_mass_i=np.sum(emission_rate*duration_h)
+    for i0 in range(max_lines):
 
-released_mass=released_mass+released_mass_i
+        i01 = i0*npart*n_sections
 
+        for i1 in range(npart):
 
+            for i2 in range(n_sections):
 
-with open('EMITTIMES.part','a') as emittimes:	
+               data3[i01+(i1*n_sections)+i2,0:3] = b1[i01+(i1*n_sections)+i2,0:3]
 
-    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
+               data3[i01+(i1*n_sections)+i2,3] = data1[i0,(i1*n_sections)+i2]
 
-    for h in range(len(data3)):
-        emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
+    # mass released in one hour [kg]
+    emission_rate = data3[:,3]*3600
+
+    # released_mass_i: mass [kg] released during the simulation at i run time
+    released_mass_i=np.sum(emission_rate*duration_h)
+
+    released_mass=released_mass+released_mass_i
+
+    with open('EMITTIMES.part','a') as emittimes:	
+
+        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+
+        for h in range(len(data3)):
+            emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
                    str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
                    str(data3[h,2]) + ' ' + str(emission_rate[h]) +
                    ' 0.0 0.0\n')
+
+
+else:
+
+    pass
+    #data3 = np.zeros((max_lines*npart*n_sections,4))
+
+    #with open('EMITTIMES.part','a') as emittimes:
+
+    #    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')
+
+    #    for h in range(len(data3)):
+    #        emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
+    #               str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
+    #               str(data3[h,2]) + ' ' + str("0") +
+    #               ' 0.0 0.0\n')
+
+
+
 
 """
 
@@ -318,13 +385,10 @@ for i in range(2,n_runs,1):
     plume_hy = runname + '_{0:03}'.format(i)+'.hy'
 
     # time of the block
-    timei =  starttime_round+datetime.timedelta(seconds=(i-1)*deltat_plumemom)
-
-    
-	
+    timei =  starttime_round+datetime.timedelta(seconds=(i-1)*deltat_plumemom)    	
     timei_end =  starttime_round+datetime.timedelta(seconds=(i)*deltat_plumemom)
 
-   
+
 
     d = datetime.datetime(2000,1,1) + ( min(endemittime_hhmm,timei_end) - timei )
 
@@ -332,9 +396,10 @@ for i in range(2,n_runs,1):
 
     print 'Block',i,duration_hhmm
 
-
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
+
+    timei_end_str = timei_end.strftime("%Y %m %d %H")
 
     # read the whole plumemom .hy file
     with open(plume_hy, 'r') as fin:
@@ -412,7 +477,7 @@ for i in range(2,n_runs,1):
                 data3[i01+(i1*n_sections)+i2,3] = data1[i0,(i1*n_sections)+i2]
 
 	
-	# mass released in one hour [kg]
+    # mass released in one hour [kg]
     emission_rate = data3[:,3]*3600
     
     # released_mass_i: mass [kg] released during the simulation at i run time
@@ -422,15 +487,51 @@ for i in range(2,n_runs,1):
    
    
 
-    with open('EMITTIMES.part','a') as emittimes:	
+    with open('EMITTIMES.part','a') as emittimes:
 
-	    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
 
-	    for h in range(len(data3)):
-	        emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
+        if deltat_plumemom >= 3600:
+
+            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')
+
+
+        else:
+
+
+            if timei.hour != timei_old.hour:
+
+
+                for hs in dict_h: 
+                    if hs == timei_old.hour:
+                        num_occurrence_done = int(dict_h[hs])
+                        num_occurrence_to_append = num_occurrence - num_occurrence_done
+                        data3_to_append = np.zeros((max_lines*npart*n_sections*num_occurrence_to_append,4))
+
+                        timei_str_old = timei_old.strftime("%Y %m %d %H %M")
+                        
+
+                        for h1 in range(len(data3_to_append)):
+
+                            emittimes.write(timei_str_old+' '+duration_hhmm+' '+
+                                           str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
+                                           str(vent_height)+' 0.0 0.0 0.0\n')
+
+
+  	        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+
+
+            else:
+  
+                pass
+
+        for h in range(len(data3)):
+    
+            emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
                            str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
                            str(data3[h,2]) + ' ' + str(emission_rate[h]) +
                            ' 0.0 0.0\n')
+
+    timei_old = timei
 
 """
 
@@ -457,9 +558,6 @@ if ( n_runs > 1):
 
     d = datetime.datetime(2000,1,1) + (endemittime_hhmm-timei)
     duration_hhmm = str(d.strftime("%H%M"))
-
-    print 'Block',n_runs,duration_hhmm
-
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -531,28 +629,86 @@ if ( n_runs > 1):
 
     released_mass=released_mass+released_mass_i
 
+    with open('EMITTIMES.part','a') as emittimes:
 
 
-    with open('EMITTIMES.part','a') as emittimes:	
+        if deltat_plumemom >= 3600:
 
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
+            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')
+
+
+        else:
+
+
+            if timei.hour != timei_old.hour:
+
+                for hs in dict_h: 
+                    if hs == timei_old.hour:
+
+                        num_occurrence_done = int(dict_h[hs])
+                        num_occurrence_to_append = num_occurrence - num_occurrence_done
+
+                        data3_to_append = np.zeros((max_lines*npart*n_sections*num_occurrence_to_append,4))
+                        timei_str_old = timei_old.strftime("%Y %m %d %H %M")
+
+                        for h1 in range(len(data3_to_append)):
+    
+                            emittimes.write(timei_str_old+' '+duration_hhmm+' '+
+                                           str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
+                                           str(vent_height)+' 0.0 0.0 0.0\n')
+
+  	        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+
+
+            else:
+  
+                pass
 
         for h in range(len(data3)):
+
             emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                       str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
-                       str(data3[h,2]) + ' ' + str(emission_rate[h]) +
-                       ' 0.0 0.0\n')
+                str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
+                str(data3[h,2]) + ' ' + str(emission_rate[h]) +
+                ' 0.0 0.0\n')
+
+    timei_old = timei
+
+
+for hs in dict_h: 
+    if hs == timei_old.hour:
+
+        num_occurrence_done = int(dict_h[hs])
+        num_occurrence_to_append = num_occurrence - num_occurrence_done
+
+        data3_to_append = np.zeros((max_lines*npart*n_sections*num_occurrence_to_append,4))
+
+        with open('EMITTIMES.part','a') as emittimes:
+
+            for h1 in range(len(data3_to_append)):
+
+                emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
+                          str(vent_lat) + ' ' + str(vent_lon) + ' ' +
+                          str(vent_height)+' 0.0 0.0 0.0\n')
+
+
 
 emittimes.close()
 
 # write CONTROL file
 
-starttime_round_control = starttime_round.strftime("%Y %m %d %H %M")
+if deltat_plumemom >= 3600:
+
+    starttime_round_control = starttime_round.strftime("%Y %m %d %H %M")
+
+else:
+
+    starttime_round_control = starttime_round_c.strftime("%Y %m %d %H %M")
+
 file_control=open('CONTROL.part','w')
 
 file_control.writelines(starttime_round_control+'\n')
-file_control.writelines('%d\n'%max_lines)
-for i in range(max_lines):
+file_control.writelines('%d\n'%(max_lines*num_occurrence))
+for i in range(max_lines*num_occurrence):
     file_control.writelines("%f %f %f\n"%(vent_lat,vent_lon,vent_height))
 file_control.writelines(str(runtime_hh)+'\n')
 file_control.writelines('0\n')
@@ -603,408 +759,5 @@ for i in range(npart):
         file_control.writelines('0.0\n')#0.0
 file_control.close()
 
-#***************CREATE EMITTIMES and CONTROL FOR GAS DISPERSION************************
 
-with open('EMITTIMES.gas','w') as emittimes:    
-	emittimes.write('YYYY MM DD HH    DURATION(hhhh) #RECORDS \nYYYY MM DD HH MM DURATION(hhmm) LAT LON HGT(m) RATE(/h) AREA(m2) HEAT(w) \n')
-emittimes.close()
-
-# search for the maximum number of lines in the .hy files
-max_lines = 0
-
-for i in range(n_runs):
-
-    plume_hy = runname + '_{0:03}'.format(i+1)+'_volcgas.hy'
-
-    with open(plume_hy) as f:
-        max_lines = max(max_lines,sum(1 for _ in f)-1)
-
-
-
-"""
-
-First EMITTIMES.part Block
-
-"""
-
-# name of the .hy file
-plume_hy = runname + '_{0:03}'.format(1)+'_volcgas.hy'
-
-# time of the block
-#timei =  datetime.datetime.strptime(starttime,time_format)
-
-#timei_end =  starttime_round+datetime.timedelta(seconds=deltat_plumemom)
-
-if n_runs == 1:
-
-    timei =  datetime.datetime.strptime(starttime,time_format)
-    timei_end =  datetime.datetime.strptime(endemittime,time_format)
-
-    d = datetime.datetime(2000,1,1) + (timei_end-timei)
-    duration_hhmm = str(d.strftime("%H%M"))
-
-else:
-
-    timei =  datetime.datetime.strptime(starttime,time_format)
-    timei_end =  starttime_round+datetime.timedelta(seconds=deltat_plumemom)
-
-    d = datetime.datetime(2000,1,1) + (timei_end-timei)
-    duration_hhmm = str(d.strftime("%H%M"))
-
-print 'Block 1',duration_hhmm
-
-timei_str = timei.strftime("%Y %m %d %H")
-timei_str_mm = timei.strftime("%Y %m %d %H %M")
-
-data=np.loadtxt(plume_hy,skiprows=1)
-data=data.reshape((-1,int(3+ngas)))
-
-# data1: array containing data from .hy file, without x,z,h
-data1=np.delete(data, [0,1,2], 1)
-
-# array containing lat,lon and height for time i
-b=[]
-
-for i0 in range(len(data)):
-    x=data[i0,0] #[m]
-    y=data[i0,1] #[m] 
-    # height=data[i0,2]-vent_height #[m] 	
-    height=data[i0,2]-z_ground #[m] 	
-
-    # convert from m to lat lon	  
-    lon_col = vent_lon + ((x*10**-3)/float(100))
-    lat_col = vent_lat - ((y*10**-3)/float(100))
-
-    b.append([lat_col, lon_col, height])
-
-b = np.asarray(b)
-b = b.reshape((-1,3))	
-
-# add lines in order to have all the blocks with the same lenght
-
-for i in range(max_lines-len(b)):
-
-    b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100] ))
-
-    data1 = np.vstack((data1,np.zeros(ngas)))
-
-# b1 is an array containing lat,lon and height for time i repeated ngas times
-b1=[]
-
-for i0 in range(len(b)):    
-    for i1 in range(ngas):
-        b1.append([b[i0,0],b[i0,1],b[i0,2]])
-
-b1=np.asarray(b1)
-b1=b1.reshape((-1,3))	
-
-# data3 is the array to be written in EMITTIMES for every time interval
-data3 = np.zeros((max_lines*ngas,4))
-
-for i0 in range(max_lines):
-
-    for i1 in range(ngas):
-
-        data3[i1+i0*ngas,0:3] = b1[i1+i0*ngas,0:3]
-
-        data3[i1+i0*ngas,3] = data1[i0,i1]
-
-# mass released in one hour [kg]
-emission_rate = data3[:,3]*3600
-
-# released_mass_i: mass [kg] released during the simulation at i run time
-released_mass_i=np.sum(emission_rate*duration_h)
-
-released_mass=released_mass+released_mass_i
-
-
-
-with open('EMITTIMES.gas','a') as emittimes:	
-
-    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
-
-    for h in range(len(data3)):
-        emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                   str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
-                   str(data3[h,2]) + ' ' + str(emission_rate[h]) +
-                   ' 0.0 0.0\n')
-
-"""
-
-Central EMITTIMES.gas Blocks
-
-"""
-
-# loop over the .hy files to write the blocks in EMITTIMES
-for i in range(2,n_runs,1):
-
-    
-
-    # name of the .hy file
-    plume_hy = runname + '_{0:03}'.format(i)+'_volcgas.hy'
-
-    # time of the block
-    timei =  starttime_round+datetime.timedelta(seconds=(i-1)*deltat_plumemom)
-
-    
-	
-    timei_end =  starttime_round+datetime.timedelta(seconds=(i)*deltat_plumemom)
-
-   
-
-    d = datetime.datetime(2000,1,1) + ( min(endemittime_hhmm,timei_end) - timei )
-
-    duration_hhmm = str(d.strftime("%H%M"))
-
-    print 'Block',i,duration_hhmm
-
-
-    timei_str = timei.strftime("%Y %m %d %H")
-    timei_str_mm = timei.strftime("%Y %m %d %H %M")
-
-    # read the whole plumemom .hy file
-    with open(plume_hy, 'r') as fin:
-	    data = fin.read().splitlines(True)
-    fin.close()
-
-    # delete the header line and save to temp.hy
-    with open('temp.hy', 'w') as fout:
-	    fout.writelines(data[1:])
-    fout.close()
-
-    # load the data from temp.hy
-    with open('temp.hy', 'r') as fin:
-        data = np.loadtxt(fin)
-    fin.close()
-    subprocess.call('rm temp.hy', shell=True)
-    # put the data in a numpy array
-    data=np.asarray(data)
-    data=data.reshape((-1,int(3+ngas)))
-
-    # data1: array containing data from .hy file, without x,z,h
-    data1=np.delete(data, [0,1,2], 1)
-
-    # array containing lat,lon and height for time i
-    b=[]
-
-    for i0 in range(len(data)):
-        x=data[i0,0] #[m]
-        y=data[i0,1] #[m] 
-        # height=data[i0,2]-vent_height #[m] 	
-        height=data[i0,2] - z_ground #[m] 	
-
-        # convert from m to lat lon	  
-        lon_col = vent_lon + ((x*10**-3)/float(100))
-        lat_col = vent_lat - ((y*10**-3)/float(100))
-
-        b.append([lat_col, lon_col, height])
-
-    b = np.asarray(b)
-    b = b.reshape((-1,3))	
-   
-    # add lines in order to have all the blocks with the same lenght
-
-
-    for i in range(max_lines-len(b)):
-
-        b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100] ))
-	
-        data1 = np.vstack((data1,np.zeros(ngas)))
-    
-    # b1 is an array containing lat,lon and height for time i repeated ngas times
-    b1=[]
-
-    for i0 in range(len(b)):    
-        for i1 in range(ngas):
-	        b1.append([b[i0,0],b[i0,1],b[i0,2]])
-
-    b1=np.asarray(b1)
-    b1=b1.reshape((-1,3))	
-
-    # data3 is the array to be written in EMITTIMES for every time interval
-    data3 = np.zeros((max_lines*ngas,4))
-
-    for i0 in range(max_lines):
-
-        for i1 in range(ngas):
-
-            data3[i1+i0*ngas,0:3] = b1[i1+i0*ngas,0:3]
-
-            data3[i1+i0*ngas,3] = data1[i0,i1]
-	
-	# mass released in one hour [kg]
-    emission_rate = data3[:,3]*3600
-    
-    # released_mass_i: mass [kg] released during the simulation at i run time
-    released_mass_i=np.sum(emission_rate*duration_h)
-    
-    released_mass=released_mass+released_mass_i
-   
-   
-
-    with open('EMITTIMES.gas','a') as emittimes:	
-
-	    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
-
-	    for h in range(len(data3)):
-	        emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                           str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
-                           str(data3[h,2]) + ' ' + str(emission_rate[h]) +
-                           ' 0.0 0.0\n')
-
-"""
-
-Final EMITTIMES.gas Block
-
-"""
-
-if ( n_runs > 1):
-
-
-    # name of the .hy file
-    plume_hy = runname + '_{0:03}'.format(n_runs)+'_volcgas.hy'
-
-    # time of the block
-    timei =  starttime_round+datetime.timedelta(seconds=(n_runs-1)*deltat_plumemom)
-
-    #timei =  endemittime_round_down
-
-  
-    endemittime_round = round_minutes(endemittime_hhmm, 'up', 60)
-    endemittime_round_down = round_minutes(endemittime_hhmm, 'down', 60)
-
-    timei_end = endemittime_round
-
-    d = datetime.datetime(2000,1,1) + (endemittime_hhmm-timei)
-    duration_hhmm = str(d.strftime("%H%M"))
-
-    print 'Block',n_runs,duration_hhmm
-
-
-    timei_str = timei.strftime("%Y %m %d %H")
-    timei_str_mm = timei.strftime("%Y %m %d %H %M")
-
-    data=np.loadtxt(plume_hy,skiprows=1)
-    data=data.reshape((-1,int(3+ngas)))
-
-    # data1: array containing data from .hy file, without x,z,h
-    data1=np.delete(data, [0,1,2], 1)
-
-    # array containing lat,lon and height for time i
-    b=[]
-
-    for i0 in range(len(data)):
-        x=data[i0,0] #[m]
-        y=data[i0,1] #[m] 
-        # height=data[i0,2]-vent_height #[m] 	
-        height=data[i0,2] - z_ground #[m] 	
-
-        # convert from m to lat lon	  
-        lon_col = vent_lon + ((x*10**-3)/float(100))
-        lat_col = vent_lat - ((y*10**-3)/float(100))
-
-        b.append([lat_col, lon_col, height])
-
-    b = np.asarray(b)
-    b = b.reshape((-1,3))	
-
-    # add lines in order to have all the blocks with the same lenght
-
-    for i in range(max_lines-len(b)):
-  
-        b = np.vstack(( b , b[len(b)-1,:] + [0.001,0.001,100] ))
-        data1 = np.vstack((data1,np.zeros(ngas)))
-
-    # b1 is an array containing lat,lon and height for time i repeated ngas times
-    b1=[]
-
-    for i0 in range(len(b)):    
-        for i1 in range(ngas):
-            b1.append([b[i0,0],b[i0,1],b[i0,2]])
-
-    b1=np.asarray(b1)
-    b1=b1.reshape((-1,3))	
-
-    # data3 is the array to be written in EMITTIMES for every time interval
-    data3 = np.zeros((max_lines*ngas,4))
-
-
-    for i0 in range(max_lines):
-
-        for i1 in range(ngas):
-
-            data3[i1+i0*ngas,0:3] = b1[i1+i0*ngas,0:3]
-            data3[i1+i0*ngas,3] = data1[i0,i1]
-
-
-    # mass released in one hour [kg]
-    emission_rate = data3[:,3]*3600
-
-    # released_mass_i: mass [kg] released during the simulation at i run time
-    released_mass_i=np.sum(emission_rate*duration_h)
-
-    released_mass=released_mass+released_mass_i
-
-
-
-    with open('EMITTIMES.gas','a') as emittimes:	
-
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')	
-
-        for h in range(len(data3)):
-            emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                       str(data3[h,0]) + ' ' + str(data3[h,1]) + ' ' +
-                       str(data3[h,2]) + ' ' + str(emission_rate[h]) +
-                       ' 0.0 0.0\n')
-
-emittimes.close()
-
-# write CONTROL file
-
-starttime_round_control = starttime_round.strftime("%Y %m %d %H %M")
-file_control=open('CONTROL.gas','w')
-
-file_control.writelines(starttime_round_control+'\n')
-file_control.writelines('%d\n'%max_lines)
-for i in range(max_lines):
-    file_control.writelines("%f %f %f\n"%(vent_lat,vent_lon,vent_height))
-file_control.writelines(str(runtime_hh)+'\n')
-file_control.writelines('0\n')
-file_control.writelines(str(model_top)+'\n')
-file_control.writelines('1\n')
-file_control.writelines('./\n')
-file_control.writelines(meteo_file+'\n')
-file_control.writelines('%d\n'%ngas)
-for i in range(ngas):
-    file_control.writelines('CL%02d\n'%i)
-    file_control.writelines('0.0\n')
-    file_control.writelines('0\n')
-    file_control.writelines('00 00 00 00 00\n')
-file_control.writelines('1\n')
-#file_control.writelines('0.0 0.0\n')
-file_control.writelines(str(lat)+' '+str(lon)+'\n')
-file_control.writelines(str(spacing_lat)+' '+str(spacing_lon)+'\n')
-file_control.writelines(str(span_lat)+' '+str(span_lon)+'\n')
-file_control.writelines('./\n')
-file_control.writelines('cdump_gas_'+runname+'\n')
-
-
-n_levels = len(H_LEVELS.split())
-file_control.writelines(str(n_levels)+'\n')
-file_control.writelines(H_LEVELS+'\n')
-
-file_control.writelines(starttime+'\n')
-file_control.writelines('00 00 00 00 00\n')
-file_control.writelines(str(SI_TYPE)+' '+str(SI_HOUR)+' '+str(SI_MINUTE)+' '+'\n')
-file_control.writelines('%d\n'%ngas)
-for i in range(ngas):
-    file_control.writelines('0.0 0.0 0.0\n')# 0.0 0.0 0.0 
-    # Deposition velocity (m/s), Pollutant molecular weight (Gram/Mole), Surface Reactivity Ratio, Diffusivity  Ratio, Effective Henry's Constant
-    file_control.writelines('0.0 0.0 0.0 0.0 0.0 \n')#0 0.0 0.0 0.0 0.0
-    # file_control.writelines('1.0 0.0 0.0 0.0 0.0 \n')#0 0.0 0.0 0.0 0.0
-    # file_control.writelines(str(particles_settling_velocity[i])+' 0.0 0.0 0.0 0.0 \n')#0 0.0 0.0 0.0 0.0
-    file_control.writelines('0.0 0.0 0.0 \n')#0.0 1.0E+06 1.0E-06
-    file_control.writelines('0.0\n')#0
-    file_control.writelines('0.0\n')#0.0
-file_control.close()
 

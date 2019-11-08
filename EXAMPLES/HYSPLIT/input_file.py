@@ -1,8 +1,8 @@
-hysplit_dir = "/home/utente/hysplit"
-plumemom_dir = "/home/utente/Scrivania/Codes/PLUME-MoM-TSM"
+hysplit_dir = "/home/federica/hysplit/trunk"
+plumemom_dir = "/home/federica/Scrivania/Codes/PLUME-MoM-TSM"
 runname = 'Etna_default'
 starttime="18 12 24 11 00" # Year,month,day,hour,minute
-endemittime = "18 12 24 13 00"
+endemittime = "18 12 24 12 00"
 endruntime = "18 12 24 17 00"
 deltat_plumemom = 3600  # seconds
 
@@ -21,7 +21,8 @@ vent_lat = 37.73  	# vent latitude
 vent_lon = 15.00       # vent longitude
 vent_height = 3300    # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
 vent_velocity = 200.0
-log10_mfr = 6.30
+log10_mfr = 6.30 # options: log10_mfr or plume_height (plume height above the vent)
+
 
 # volcanic gas parameters
 ngas = 0   # in addition to H2O
@@ -55,7 +56,7 @@ ncycl = 1 	# pardump output cycle time
 numpar = 50000	# number of puffs or particles to released per cycle
 maxpar = 1000000 # maximum number of particles carried in simulation
 initd = 3 	# initial distribution, particle, puff, or combination.  0 = 3D particle (DEFAULT); 1 = Gh-THv; 2 = THh-THv; 3 = Gh-Pv; 4 = THh-Pv *** NOTE: please use initd=0 or initd=3 *** 
-delt = 10	# hysplit integration step (minutes) 
+delt = 5	# hysplit integration step (minutes) 
 pinpf = ''
 kmixd = 0       # flag for boundary layer depth. Default value, see HYSPLIT user guide
 kmix0 = 250     # minimum mixing depth. Default value, see HYSPLIT user guide
@@ -70,7 +71,7 @@ cmass = 0       # Compute grid concentrations (cmass=0) or grid mass (cmass=1) *
 #SAMPLING INTERVAL
 SI_TYPE = 0 # Avg:0 Now:1 Max:2 
 SI_HOUR = 0 # hrs 
-SI_MINUTE = 10 # min 
+SI_MINUTE = 5 # min 
 
 #HEIGHT OF EACH CONCENTRATION LEVEL (m-msl)
 H_LEVELS = '0 30000'  
