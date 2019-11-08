@@ -19,8 +19,17 @@ import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
 
 import easygui
+# import utm
 
 
+def fmt(x, pos):
+    a, b = '{:.2e}'.format(x).split('e')
+    b = int(b)
+    return r'${} \times 10^{{{}}}$'.format(a, b)
+
+
+# Read the list of ground concentration files created by Hysplit
+# utility con2asc
 fname = 'CON2ASC.GROUND'
 with open(fname) as f:
     lines = f.read().splitlines()
@@ -29,17 +38,18 @@ for filename in lines:
     exists = os.path.isfile(filename.strip())
     if exists:
         
+        # Add .gnd extension to distinguish the files from other types 
         os.rename(filename.strip(),filename.strip()+'.gnd')
 
-filename = easygui.fileopenbox( filetypes=['*.gnd'])
+# choose the file to plot with a GUI
 
-# filename = 'cdumpcum_part_sunset_may_1e8_131_1000'
+#option 1
+#filename = easygui.fileopenbox( filetypes=['*.gnd'])
 
+#option 2 (in case option 1 doesn't work)
+from tkFileDialog import askopenfilename
+filename = askopenfilename(filetypes=[("gnd files", "*.gnd")])
 
-def fmt(x, pos):
-    a, b = '{:.2e}'.format(x).split('e')
-    b = int(b)
-    return r'${} \times 10^{{{}}}$'.format(a, b)
 
 GROUND=[]
 AIR=[]
@@ -53,32 +63,23 @@ print filename
 
 f = open(filename)
 
+# find day and time from filename
 und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
 dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 
 time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
-
-# time = filename.strip()[-8:-4]
-# day = filename.strip()[-12:-9]
            
 print ' ---> day and time ',day,' ',time,' '
 
-count = 0
-header = []
-with open(filename) as f:
-    lines = f.readlines()
+data = f.read()
+first_line = data.split('\n', 1)[0]
+        
+line_split = first_line.split()
 
-    for line in lines:
-        if line[0].isdigit() == False:
-            header = header + line.split()
-            count = count + 1
-        else:
-            break
-
-f.close()    
-         
 m = []        
+
+total_mass = 0.0
 
 for j in range(99):
 
@@ -88,13 +89,13 @@ for j in range(99):
 
     occurrence = 0
              
-    for i in range(len(header)):
+    for i in range(len(line_split)):
 
-        if to_find in header[i]:
+        if to_find in  line_split[i]:
 
             occurrence = occurrence + 1
 
-            h_new.append(int(header[i][4:]))
+            h_new.append(int(line_split[i][4:]))
 
 
     if occurrence > 0 :
@@ -113,7 +114,6 @@ for j in range(99):
                                  
         break                 
 
-
 m = np.asarray(m)
 m=m.reshape((-1,2))
         
@@ -121,12 +121,10 @@ npart = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-total_mass = 0
-
 #print 'Number of particle classes :'npart
 #print 'Heights :',H_LEVELS
 
-a = np.loadtxt(filename, skiprows = int(count))
+a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
@@ -138,39 +136,44 @@ else:
 
     a = a.reshape((-1,(npart * n_levels + 4)))
 
+    # extract and reshape grid latitude values (at pixel centers)
     lat = a[:,2]
-
     lat = lat.reshape((-1,1))
-
-    lon = a[:,3]
-
-    lon = lon.reshape((-1,1))
-
-    lon_unique = np.unique(lon)
-
     lat_unique = np.unique(lat)
-    
-    Lon,Lat = np.meshgrid(lon_unique,lat_unique) 
-
-    lon_unique = lon_unique.reshape((-1,1))
     lat_unique = lat_unique.reshape((-1,1))
 
+    # extract and reshape grid longitude values (at pixel centers) 
+    lon = a[:,3]
+    lon = lon.reshape((-1,1))
+    lon_unique = np.unique(lon)
+    lon_unique = lon_unique.reshape((-1,1))
+
+    # create two meshgrid 2D arrays 
     Lon,Lat = np.meshgrid(lon_unique,lat_unique) 
 
+    # compute the grid spacing
     spacing_lat = np.absolute(lat_unique[0,0] - lat_unique[1,0])
-
     spacing_lon = np.absolute(lon_unique[0,0] - lon_unique[1,0])
 
+    # create staggered (at pixel edges) longitude values
     lon_stag = lon_unique-0.5*spacing_lon
     lon_stag = np.append(lon_stag,lon_unique[-1]+0.5*spacing_lon)
     
+    # create staggered (at pixel edges) latitude values
     lat_stag = lat_unique-0.5*spacing_lat
     lat_stag = np.append(lat_stag,lat_unique[-1]+0.5*spacing_lat)
+
+    # create two meshgrid staggered 2D arrays 
     Lon_stag,Lat_stag = np.meshgrid(lon_stag,lat_stag) 
+
+    # ll_utm = utm.from_latlon(lat_stag[0],lon_stag[0])
 
     dist = []
 
+    # allocate leading array for all the classes
     loading2D = np.zeros((lat_unique.shape[0],lon_unique.shape[0],npart * n_levels))
+
+    # allocate leading array for total deposit
     loading2D_sum = np.zeros((lat_unique.shape[0],lon_unique.shape[0]))
     
     for i in range(a.shape[0]):
@@ -207,38 +210,59 @@ else:
 
     g = GoogleVisibleMap(x=[min_x, max_x], y=[min_y, max_y],
                          scale=2,  # scale is for more details
-                         maptype='terrain')  # try out also: 'terrain'
+                         maptype='hybrid')  # try out also: 'terrain,hybrid'
 
     ggl_img = g.get_vardata()
 
     column = 0
 
+    header = "ncols     %s\n" % loading2D.shape[1]
+    header += "nrows    %s\n" % loading2D.shape[0]
+    header += "xllcorner " + str(lon_stag[0]) +"\n"
+    header += "yllcorner " + str(lat_stag[1]) +"\n"
+    header += "cellsize " + str(spacing_lat) +"\n"
+    header += "NODATA_value 0"
     
     for i in range(npart):
 
             conc = a[:, column]
 
             conc = conc.reshape((-1,1))
+
+            # compute the range of values to plot
             min_conc = np.amin(conc)
             max_conc = np.amax(conc)
 
+            # The values between half conc and max conc are plotted
+            # with a linear scale. The values smaller than half conc
+            # are plotted with a logscale, with larger steps for 
+            # smaller values.
             half_conc = 0.5 * ( min_conc + max_conc )
 
             half_int = np.floor(np.log10(half_conc))
-            
-            log_scale = np.logspace(half_int-6,half_int, num=7)
+            base_scale = np.logspace(half_int-10,half_int-6, num=2)
+            log_scale = np.logspace(half_int-4,half_int, num=5)
             lin_scale = np.linspace(half_conc, max_conc, num=8)
 
+            # Assembre discrete levels to plot
             levels = np.append(log_scale,lin_scale)
+            levels = np.append(base_scale,levels)
             
             mass_on_the_ground = np.sum(conc[:,0] * dist[:,0] * dist[:,1])
             total_mass = total_mass +  mass_on_the_ground 
 
-            loading_i = np.maximum(loading2D[:,:,column],1.e-20)
+            loading_i = loading2D[:,:,column]
             loading2D_sum += loading_i
 
             print 'Deposit class CL',str(i+1).zfill(2),' mass ','%.1e'%mass_on_the_ground,' kg'
-            
+
+            # Save the deposit for the single classes on a ESRI rater ascii file
+            output_file = runname+'_'+'CL'+str(i+1)+'_'+day+'_'+time+'.asc'
+
+            np.savetxt(output_file, np.flipud(loading_i), \
+                       header=header, fmt='%.3E',comments='')
+
+            # Create a new figure
             f = plt.figure(i)
             plt.rcParams["font.size"] = 8.0
             cmap = plt.get_cmap('Spectral')
@@ -248,14 +272,13 @@ else:
             sm.set_rgb(ggl_img)  # add the background rgb image
             sm.visualize()
 
-            loading_i[np.log10(loading_i)<half_int-6] = np.nan
-            x, y = sm.grid.transform(Lon_stag, Lat_stag)
-    
-            plt.pcolormesh(x,y,loading_i, cmap=cmap, norm=norm,alpha=0.50,zorder=1)
-            plt.pcolormesh(Lon_stag, Lat_stag,loading_i, cmap=cmap, norm=norm,alpha=1.0)
+            # Zero-loading pixels should not be plotted
+            loading_i[loading_i==0.0] = np.nan
+            Zm = np.ma.masked_where(np.isnan(loading_i),loading_i)
 
-            xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
-            plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
+            x, y = sm.grid.transform(Lon_stag, Lat_stag)
+            plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.50)
+            plt.pcolormesh(Lon_stag, Lat_stag,loading_i, cmap=cmap, norm=norm,alpha=1.0)
 
             plt.xlim(left=np.amin(x))
             plt.xlim(right=np.amax(x))
@@ -266,8 +289,10 @@ else:
             clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
             clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
 
-            f.savefig('CL'+str(i+1)+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
+            f.savefig(runname+'_'+'CL'+str(i+1)+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
             column = column + n_levels
+
+
 
 f = plt.figure(i+1)
 plt.rcParams["font.size"] = 8.0
@@ -278,11 +303,14 @@ max_conc = np.amax(loading2D_sum)
 half_conc = 0.5 * ( min_conc + max_conc )
 
 half_int = np.floor(np.log10(half_conc))
-            
-log_scale = np.logspace(half_int-6,half_int, num=7)
+  
+base_scale = np.logspace(half_int-10,half_int-6, num=2)
+log_scale = np.logspace(half_int-4,half_int, num=5)
 lin_scale = np.linspace(half_conc, max_conc, num=8)
 
 levels = np.append(log_scale,lin_scale)
+levels = np.append(base_scale,levels)
+
 cmap = plt.get_cmap('Spectral')
 norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
                      
@@ -290,14 +318,20 @@ sm = Map(g.grid, factor=1, countries=False)
 sm.set_rgb(ggl_img)  # add the background rgb image
 sm.visualize()
 
-loading2D_sum[np.log10(loading2D_sum)<half_int-6] = np.nan
+output_file = runname+'_'+'CL_sum'+'_'+day+'_'+time+'.asc'
+
+np.savetxt(output_file, np.flipud(loading2D_sum), \
+                       header=header, fmt='%.3E',comments='')
+
+
+loading2D_sum[loading2D_sum<10**(-10)] = np.nan
 
 x, y = sm.grid.transform(Lon_stag, Lat_stag)
-plt.pcolormesh(x,y,loading2D_sum, cmap=cmap, norm=norm,alpha=0.50,zorder=1)
-plt.pcolormesh(Lon_stag, Lat_stag,loading2D_sum, cmap=cmap, norm=norm,alpha=1.0)
 
-xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
-plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
+Zm = np.ma.masked_where(np.isnan(loading2D_sum),loading2D_sum)
+    
+plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.50)
+plt.pcolormesh(Lon_stag, Lat_stag,loading2D_sum, cmap=cmap, norm=norm,alpha=1.0)
 
 plt.grid()
 plt.xlim(left=np.amin(x))
@@ -307,7 +341,7 @@ plt.ylim(top=np.amin(y))
 plt.title('Total deposit')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
 clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
-f.savefig('CL_sum'+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
+f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
 
 # plt.show()        
 

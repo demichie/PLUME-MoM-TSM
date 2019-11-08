@@ -37,7 +37,13 @@ for filename in lines:
         os.rename(filename.strip(),filename.strip()+'.air')
 
 # choose the file to plot with a GUI
-filename = easygui.fileopenbox( filetypes=['*.air'])
+
+#option 1
+#filename = easygui.fileopenbox( filetypes=['*.air'])
+
+#option 2 (in case option 1 doesn't work)
+from tkFileDialog import askopenfilename
+filename = askopenfilename(filetypes=[("air files", "*.air")])
 
 
 AIR=[]
@@ -60,21 +66,14 @@ day = filename[und_where[-2]+1:und_where[-1]]
            
 print ' ---> day and time ',day,' ',time,' '
 
-count = 0
-header = []
-with open(filename) as f:
-    lines = f.readlines()
+data = f.read()
+first_line = data.split('\n', 1)[0]
+        
+line_split = first_line.split()
 
-    for line in lines:
-        if line[0].isdigit() == False:
-            header = header + line.split()
-            count = count + 1
-        else:
-            break
-
-f.close()    
-         
 m = []        
+
+total_mass = 0.0
 
 for j in range(99):
 
@@ -84,13 +83,13 @@ for j in range(99):
 
     occurrence = 0
              
-    for i in range(len(header)):
+    for i in range(len(line_split)):
 
-        if to_find in header[i]:
+        if to_find in  line_split[i]:
 
             occurrence = occurrence + 1
 
-            h_new.append(int(header[i][4:]))
+            h_new.append(int(line_split[i][4:]))
 
 
     if occurrence > 0 :
@@ -119,10 +118,8 @@ H_LEVELS = h
 print 'Number of particle classes :',npart
 print 'Heights :',H_LEVELS
 
-a = np.loadtxt(filename, skiprows = int(count))
-        
-total_mass = 0
- 
+a = np.loadtxt(filename, skiprows = 1)
+         
 if a.shape[0] == 0 :
          
     print 'No mass into the air at ',time
@@ -241,7 +238,8 @@ else:
                 pass
 
             else:       
-
+              
+                
                 # compute the range of values to plot
                 min_conc = np.amin(conc)
                 max_conc = np.amax(conc)
@@ -300,12 +298,13 @@ else:
                 plt.ylim(bottom=np.amax(y))
                 plt.ylim(top=np.amin(y))
                 plt.grid()
-                plt.title('Class CL'+str(i+1).zfill(2)+' - H from '+str(H_LEVELS[j,0])+'  to '+str(H_LEVELS[j+1,0])+', mass '+'%.1e'%mass_in_the_air+' kg' )
+                plt.title('Class CL'+str(i+1).zfill(2)+' - H from '+str(H_LEVELS[j,0])+'  to '+str(H_LEVELS[j+1,0])+'\n Mass '+'%.1e'%mass_in_the_air+' kg')
                 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
                 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 
-                f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
-
+                #f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+                
+                
             
 
         column = column + n_levels
@@ -313,12 +312,15 @@ else:
 
 
 f = plt.figure(i+1)
-plt.rcParams["font.size"] = 8.0
+plt.rcParams["font.size"] = 6.0
 
 loading3D_sum = loading3D_sum_kg / (pixel_area * (int(H_LEVELS[j+1,0])-int(H_LEVELS[j,0])))
 
 min_conc = np.amin(loading3D_sum)
-max_conc = np.amax(loading3D_sum)
+#max_conc = np.amax(loading3D_sum)
+
+#min_conc = 10**(-14)
+max_conc = 5*10**(-4)
 
 half_conc = 0.5 * ( min_conc + max_conc )
 
@@ -354,17 +356,17 @@ plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.70,zorder=1)
 plt.pcolormesh(Lon_stag, Lat_stag,loading3D_sum, cmap=cmap, norm=norm,alpha=1.0)
 
 xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
-plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
+plt.plot(xvent, yvent,"^k",markersize=3,zorder=2)
 
 plt.grid()
 plt.xlim(left=np.amin(x))
 plt.xlim(right=np.amax(x))
 plt.ylim(bottom=np.amax(y))
 plt.ylim(top=np.amin(y))
-plt.title('Total loading')
-clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
-f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
+#plt.title('Total atmospheric loading')
+clb = plt.colorbar(format=ticker.FuncFormatter(fmt),fraction=0.025)
+#clb.set_label('Loading (kg/m$^3$)', labelpad=-40, y=1.05, rotation=270)
+f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
 
 # plt.show()        
 
