@@ -238,8 +238,7 @@ else:
                 pass
 
             else:       
-              
-                
+
                 # compute the range of values to plot
                 min_conc = np.amin(conc)
                 max_conc = np.amax(conc)
@@ -302,9 +301,8 @@ else:
                 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
                 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 
-                #f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
-                
-                
+                f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+
             
 
         column = column + n_levels
@@ -312,15 +310,12 @@ else:
 
 
 f = plt.figure(i+1)
-plt.rcParams["font.size"] = 6.0
+plt.rcParams["font.size"] = 8.0
 
 loading3D_sum = loading3D_sum_kg / (pixel_area * (int(H_LEVELS[j+1,0])-int(H_LEVELS[j,0])))
 
 min_conc = np.amin(loading3D_sum)
-#max_conc = np.amax(loading3D_sum)
-
-#min_conc = 10**(-14)
-max_conc = 5*10**(-4)
+max_conc = np.amax(loading3D_sum)
 
 half_conc = 0.5 * ( min_conc + max_conc )
 
@@ -356,19 +351,16 @@ plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.70,zorder=1)
 plt.pcolormesh(Lon_stag, Lat_stag,loading3D_sum, cmap=cmap, norm=norm,alpha=1.0)
 
 xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
-plt.plot(xvent, yvent,"^k",markersize=3,zorder=2)
+plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
 
 plt.grid()
 plt.xlim(left=np.amin(x))
 plt.xlim(right=np.amax(x))
 plt.ylim(bottom=np.amax(y))
 plt.ylim(top=np.amin(y))
-#plt.title('Total atmospheric loading')
-clb = plt.colorbar(format=ticker.FuncFormatter(fmt),fraction=0.025)
-#clb.set_label('Loading (kg/m$^3$)', labelpad=-40, y=1.05, rotation=270)
+plt.title('Total atmospheric loading')
+clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
+clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
 
 # plt.show()        
-
-            
-
