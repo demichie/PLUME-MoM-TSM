@@ -2435,7 +2435,7 @@ CONTAINS
        DO i_sect=1,n_sections
 
           WRITE(col_unit,102,advance="no") mom(1,i_sect,i_part)
-          WRITE(sed_unit,102,advance="no") cum_particle_loss_rate(i_part,i_sect)
+          WRITE(sed_unit,102,advance="no") ABS(cum_particle_loss_rate(i_part,i_sect))
           
        END DO
 
@@ -2812,8 +2812,8 @@ CONTAINS
           CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_bot, solid_loss_bot)
           CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_top, solid_loss_top)
 
-          delta_solid(j) = solid_loss_top - solid_loss_bot
-
+          delta_solid(j) = ABS(solid_loss_top - solid_loss_bot)
+          
        END DO
 
        IF ( n_cloud .EQ. 1 ) THEN
