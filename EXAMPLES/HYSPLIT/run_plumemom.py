@@ -239,7 +239,8 @@ for i in range(n_runs):
         
         if plume_height[i] == 0:
 
-            print "NO EMISSION"
+            print "*** EMISSION STOP ***"
+
             run_flag = 0
 
         else:
@@ -251,7 +252,8 @@ for i in range(n_runs):
 
         if log10_mfr[i] == 0:
     
-            print "NO EMISSION"
+            print "*** EMISSION STOP ***"
+
             run_flag = 0
     
         else:
@@ -268,28 +270,28 @@ for i in range(n_runs):
     f.write(filedata)
     f.close()
 
-    timei =  datetime.datetime.strptime(starttime,time_format)+datetime.timedelta(seconds=i*deltat_plumemom)
-	
-    timei_str = timei.strftime("%y %m %d %H %M")
-
-    print 'Time',timei_str
-
-    write_atm(timei_str)
-
-
-    # append the atmospheric data to the input file
-    filenames = ['plume_model.temp2', 'atm.txt']
-    with open('plume_model.inp', 'w') as outfile:
-        for fname in filenames:
-            with open(fname) as infile:
-                for line in infile:
-                    outfile.write(line)
-
     if run_flag == 0:
 
         pass
 
     else:
+
+        timei =  datetime.datetime.strptime(starttime,time_format)+datetime.timedelta(seconds=i*deltat_plumemom)
+	
+        timei_str = timei.strftime("%y %m %d %H %M")
+
+        print 'Time',timei_str
+
+        write_atm(timei_str)
+
+
+        # append the atmospheric data to the input file
+        filenames = ['plume_model.temp2', 'atm.txt']
+        with open('plume_model.inp', 'w') as outfile:
+            for fname in filenames:
+                with open(fname) as infile:
+                    for line in infile:
+                        outfile.write(line)
     
         subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
 
@@ -298,6 +300,8 @@ for i in range(n_runs):
 
 subprocess.call("rm plume_model.temp1", shell=True) 
 subprocess.call("rm plume_model.temp2", shell=True) 
+
+
 
 
 

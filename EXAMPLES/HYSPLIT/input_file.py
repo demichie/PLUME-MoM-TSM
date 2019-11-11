@@ -21,7 +21,7 @@ vent_lat = 37.73  	# vent latitude
 vent_lon = 15.00       # vent longitude
 vent_height = 3300    # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
 vent_velocity = 200.0
-log10_mfr = 6.30 # options: log10_mfr or plume_height (plume height above the vent)
+log10_mfr = 6.3 # options: log10_mfr or plume_height (plume height above the vent)
 
 
 # volcanic gas parameters
