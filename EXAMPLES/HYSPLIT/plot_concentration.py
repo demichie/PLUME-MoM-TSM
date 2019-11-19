@@ -302,7 +302,7 @@ else:
                 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 
                 f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
-
+                plt.close()
             
 
         column = column + n_levels
@@ -362,5 +362,5 @@ plt.title('Total atmospheric loading')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
-
+plt.close()
 # plt.show()        

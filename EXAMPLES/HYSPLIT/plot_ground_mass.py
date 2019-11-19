@@ -290,6 +290,7 @@ else:
             clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
 
             f.savefig(runname+'_'+'CL'+str(i+1)+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
+            plt.close()
             column = column + n_levels
 
 
@@ -342,7 +343,7 @@ plt.title('Total deposit')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
 clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
 f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
-
+plt.close()
 # plt.show()        
 
             
