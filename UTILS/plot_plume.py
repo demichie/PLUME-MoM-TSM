@@ -1,7 +1,6 @@
 import matplotlib
 matplotlib.use("TkAgg")
 
-#import Tkinter, tkFileDialog
 import sys
 import os
 import re
@@ -9,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm 
 from mpl_toolkits.mplot3d import Axes3D
-import easygui
 
 # increase the default widht of figures
 fig_size = plt.rcParams["figure.figsize"]
@@ -18,11 +16,17 @@ plt.rcParams["figure.figsize"] = fig_size
 
 
 #option 1
+# import easygui
 #filename = easygui.fileopenbox( filetypes=['*.col'])
 
 #option 2 (in case option 1 doesn't work)
-from tkFileDialog import askopenfilename
-filename = askopenfilename(filetypes=[("col files", "*.col")])
+
+from  tkinter import *
+root = Tk()
+root.filename =  filedialog.askopenfilename(title = "choose your file",filetypes=[("col files", "*.col")])
+filename = root.filename
+
+root.destroy()
 
 bakfile = filename.replace('col','bak')
 print(filename)
@@ -256,17 +260,6 @@ names = ['wv','lq','ice']
 
 plt.legend(lines, [names[j] for j in range(len(names))])
 
-plt.subplot(2, 2, 3)
-
-for i in range(n_part_sect):
-
-    plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i])
-    
-plt.legend(labels,ncol=n_part,fontsize = 'x-small')
-
-
-plt.xlabel('Particles mass fraction')
-plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 4)
 
@@ -275,8 +268,32 @@ lines = plt.plot(solid_tot_mass_fraction ,z, gas_mass_fraction,z,liquid_water_ma
 plt.xlabel('Phases mass fraction')
 plt.ylabel('Height (km)')
 names = ['part','gas','lq','ice']
-plt.legend(lines, [names[j] for j in range(len(names))])
 fig.tight_layout()
+plt.legend(lines, [names[j] for j in range(len(names))])
+
+
+plt.subplot(2, 2, 3)
+
+
+n_bin_sample = np.linspace(0, n_bin-1, num=7, endpoint=True, dtype=int)
+
+
+print(n_part_sect)
+
+for i in range(n_part_sect):
+
+    if ( np.remainder(i,n_bin) in n_bin_sample):
+        plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i],label=labels[i])
+    else:
+        plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i],label='_nolegend_')
+
+plt.legend(ncol=n_part,fontsize = 'x-small')
+
+
+plt.xlabel('Particles mass fraction')
+plt.ylabel('Height (km)')
+
+
 fig.savefig(str(filename)+'_mass_fraction.pdf')   # save the figure to file
 #plt.close()
 
@@ -331,7 +348,13 @@ solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
 # VARIABLES
 
 change_sign = np.argwhere(rho_rel[:-1]*rho_rel[1:]<0)
-last_change = change_sign[-1][0]
+print(len(change_sign))
+if ( len(change_sign ) > 0 ):
+    last_change = change_sign[-1][0]
+    change = True
+else:
+    last_change = -1
+    change = False
 
 # two different colors are used below and above neutral buoyancy level
 fig = plt.figure()
@@ -339,7 +362,8 @@ fig = plt.figure()
 plt.subplot(2, 2, 1)
 
 plt.plot(r[:last_change],z[:last_change])
-plt.plot(r[last_change:],z[last_change:])
+if change:
+    plt.plot(r[last_change:],z[last_change:])
 
 plt.xlabel('Radius (km)')
 plt.ylabel('Height (km)')
@@ -347,7 +371,8 @@ plt.ylabel('Height (km)')
 plt.subplot(2, 2, 2)
 
 plt.plot(w[:last_change],z[:last_change])
-plt.plot(w[last_change:],z[last_change:])
+if change:
+    plt.plot(w[last_change:],z[last_change:])
 
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (km)')
@@ -355,7 +380,8 @@ plt.ylabel('Height (km)')
 plt.subplot(2, 2, 3)
 
 plt.plot(rho_mix[:last_change],z[:last_change])
-plt.plot(rho_mix[last_change:],z[last_change:])
+if change:
+    plt.plot(rho_mix[last_change:],z[last_change:])
 
 plt.xlabel('Mixture density (kg/m$^3$)')
 plt.ylabel('Height (km)')
@@ -363,7 +389,9 @@ plt.ylabel('Height (km)')
 plt.subplot(2, 2, 4)
 
 plt.plot(rho_rel[:last_change],z[:last_change])
-plt.plot(rho_rel[last_change:],z[last_change:])
+if change:
+    plt.plot(rho_rel[last_change:],z[last_change:])
+
 #plt.plot(rho_atm,z,'.r')
 
 plt.xlabel('Relative density (kg/m$^3$)')
@@ -479,10 +507,11 @@ fig_size[0] *= 2.5
 plt.rcParams["figure.figsize"] = fig_size
 
 fig=plt.figure()
+
 ax1 = fig.add_subplot(131)
 ax2 = fig.add_subplot(132)
 ax3 = fig.add_subplot(133)
-ax4 = fig.add_subplot(133, frame_on=False)
+#ax4 = fig.add_subplot(133, frame_on=False)
 
 time = np.zeros((x.shape[0],1))
 time[0] = 0.0
@@ -501,7 +530,7 @@ idx_steps = []
 for value in time_steps:
     idx_steps.append((np.abs(time - value)).argmin())
 
-plt.subplot(1, 3, 1)
+# plt.subplot(1, 3, 1)
 
 x_bin = np.flip(phi_min + delta_phi*np.arange(n_bin),axis=0)
 x_bin = np.tile(x_bin,n_part)
@@ -513,18 +542,16 @@ for i in range(1,n_part):
     solid_pmf_bot[i*n_bin:(i+1)*n_bin] += solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection1 = plt.bar(x_bin, solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=solid_pmf_bot)
+barcollection1 = ax1.bar(x_bin, solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=solid_pmf_bot)
 
 solid_pmf = np.sum(solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_solid_pmf = np.nanmax(solid_pmf)
-plt.ylim(0.0, 1.1*max_solid_pmf)
-plt.xlim(phi_min-1,phi_max+1)
-plt.xlabel('phi')
+ax1.set_ylim(0.0, 1.1*max_solid_pmf)
+ax1.set_xlim(phi_min-1,phi_max+1)
+ax1.set_xlabel('phi')
 ax1.title.set_text('Plume GSD')
 
 
-
-plt.subplot(1, 3, 2)
 
 sed1={}
 
@@ -580,69 +607,35 @@ for i in range(1,n_part):
     sed_solid_pmf_bot[i*n_bin:(i+1)*n_bin] += sed_solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection2 = plt.bar(x_bin, sed_solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=sed_solid_pmf_bot)
+barcollection2 = ax2.bar(x_bin, sed_solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=sed_solid_pmf_bot)
 
 sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
 max_sed_solid_pmf = np.nanmax(sed_solid_pmf)
-plt.ylim(0.0, 1.1*max_sed_solid_pmf)
-plt.xlim(phi_min-1,phi_max+1)
+ax2.set_ylim(0.0, 1.1*max_sed_solid_pmf)
+ax2.set_xlim(phi_min-1,phi_max+1)
 ax2.title.set_text('Sedimentation GSD')
-plt.xlabel('phi')
+ax2.set_xlabel('phi')
 
 
-ax = plt.subplot(1, 3, 3)
+# ax = plt.subplot(1, 3, 3)
 
-plt.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change])
-plt.plot(solid_mass_tot_loss_cum[last_change:],z[last_change:])
+ax3.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change])
+if change:
+    ax3.plot(solid_mass_tot_loss_cum[last_change:],z[last_change:])
 
-
-ax.yaxis.set_label_position("right")
-ax.yaxis.tick_right()
-
-mark_pos, = plt.plot(solid_mass_tot_loss_cum[0],z[0],'o')
-plt.ylabel('Height [km]')
-# plt.xlabel('Fraction of solid flux lost')
-ax3.title.set_text('Fraction of solid flux lost')
-
-title = ax.text(0.70,0.05,"t="+"{:6.1f}".format(float(time_steps[0]))+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
-                transform=ax.transAxes, ha="center")
-
-
-
-""" 
-
-mark_pos, = ax3.plot(np.sqrt(x[0]**2+y[0]**2),z[0],'o')
-
-ax3.plot(np.sqrt(x**2+y**2),z)
-
-ax4.set_ylabel('Height [km]')
-ax4.set_xlabel('[km]')
-#ax3.title.set_text('Position on plume axis')
-ax4.set_xlim(0,np.amax(np.sqrt(x**2+y**2)))
-
-ax4.xaxis.tick_top()
-ax4.tick_params(axis='x', colors="r")
-ax4.xaxis.set_label_position('top') 
-
-
-
-ax3.plot(solid_mass_tot_loss_cum,z,color='k')
-mark_pos, = ax3.plot(solid_mass_tot_loss_cum[0],z[0],'o')
-ax3.set_xlim(-0.00001,np.amax(solid_mass_tot_loss_cum)+0.00001)
-ax3.set_xlabel('fraction of solid flux lost',color='k') 
 
 ax3.yaxis.set_label_position("right")
 ax3.yaxis.tick_right()
-ax3.xaxis.tick_bottom()
 
+mark_pos, = ax3.plot(solid_mass_tot_loss_cum[0],z[0],'o')
 ax3.set_ylabel('Height [km]')
+# plt.xlabel('Fraction of solid flux lost')
+ax3.title.set_text('Fraction of solid flux lost')
+
+title = ax3.text(0.70,0.05,"t="+"{:6.1f}".format(float(time_steps[0]))+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+                transform=ax3.transAxes, ha="center")
 
 
-
-title = ax3.text(1.7,0.15,"t="+"{:6.1f}".format(time_steps[0])+'s', bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
-                transform=ax.transAxes, ha="center")
-
-"""
 
 def animate(i):
 
@@ -685,7 +678,9 @@ anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames
 #anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=3,
 #                             interval=100)
 
-anim.save('mymovie.mp4',writer=animation.FFMpegWriter(fps=10))
+
+
+anim.save(str(filename)+'_anim.mp4',writer=animation.FFMpegWriter(fps=10))
 
 
 
