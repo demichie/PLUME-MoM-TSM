@@ -29,8 +29,7 @@ filename = root.filename
 root.destroy()
 
 bakfile = filename.replace('col','bak')
-print(filename)
-print(bakfile)
+
 
 with open(bakfile) as fp:  
    for cnt, line in enumerate(fp):
@@ -274,11 +273,7 @@ plt.legend(lines, [names[j] for j in range(len(names))])
 
 plt.subplot(2, 2, 3)
 
-
 n_bin_sample = np.linspace(0, n_bin-1, num=7, endpoint=True, dtype=int)
-
-
-print(n_part_sect)
 
 for i in range(n_part_sect):
 
@@ -348,7 +343,7 @@ solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
 # VARIABLES
 
 change_sign = np.argwhere(rho_rel[:-1]*rho_rel[1:]<0)
-print(len(change_sign))
+
 if ( len(change_sign ) > 0 ):
     last_change = change_sign[-1][0]
     change = True
