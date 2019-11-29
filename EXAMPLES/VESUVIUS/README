@@ -1,6 +1,7 @@
-**** VOLCITA 2019 EXERCISE ****
+**** VESUVIUS EXAMPLE ****
 
-New scripts: plot_concentration_FL.sh and plot_concentration_FL.py to plot the results of HYSPLIT according to ICAO requirements for ash contamination levels.
+New scripts: plot_concentration_FL.sh and plot_concentration_FL.py to plot the results of HYSPLIT according to ICAO requirements 
+for ash contamination levels.
 
 Low contamination <= 2g m-3
 Medium contamination >2 <4 gm-3
