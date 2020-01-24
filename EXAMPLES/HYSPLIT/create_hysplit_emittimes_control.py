@@ -107,6 +107,7 @@ num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within
 # particle diameters phi scale
 
 diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True)
+print " diam_phi ",diam_phi
 
 # diameter in millimeters [mm]
 diam = 2.0**(-np.asarray(diam_phi))
@@ -280,6 +281,7 @@ if os.path.isfile(str(plume_hy)):
 
     # data1: array containing data from .hy file, without x,z,h
     data1=np.delete(data, [0,1,2], 1)
+    data1 = np.flip(data1, axis=1)
 
     # array containing lat,lon and height for time i
     b=[]
@@ -425,6 +427,7 @@ for i in range(2,n_runs,1):
 
         # data1: array containing data from .hy file, without x,z,h
         data1=np.delete(data, [0,1,2], 1)
+        data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
         b=[]
@@ -613,6 +616,7 @@ if ( n_runs > 1):
 
         # data1: array containing data from .hy file, without x,z,h
         data1=np.delete(data, [0,1,2], 1)
+        data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
         b=[]
