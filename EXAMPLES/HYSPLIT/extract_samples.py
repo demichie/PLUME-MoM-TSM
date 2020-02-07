@@ -46,7 +46,7 @@ else:
     LAT = np.array([LAT])
     LON = np.array([LON])
 
-block_length = nsampl * npart
+block_length = nsampl * n_sections
 
 print 'nsampl',nsampl,'block_length',block_length
 
@@ -69,11 +69,11 @@ con2std_len = len(JDAY)
 
 nblocks = con2std_len/block_length
 
-loading = np.zeros((nblocks,nsampl,npart))
+loading = np.zeros((nblocks,nsampl,n_sections))
 
 for i in range(nblocks):
     for j in range(nsampl):
-        loading[i,j,:] = Value[i*block_length+(j+1)+nsampl*np.arange(npart)-1]
+        loading[i,j,:] = Value[i*block_length+(j+1)+nsampl*np.arange(n_sections)-1]
 
 
 fig = plt.figure()
@@ -96,6 +96,8 @@ ftot = open(deposit_file_total,'wb')
 
 chi_squared = 0.0
 chi_squared_j = 0.0
+
+diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True)
 
 for j in range(nsampl):
 
