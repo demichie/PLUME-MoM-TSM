@@ -43,10 +43,10 @@ MODULE solver_module
   INTEGER :: itotal
 
   !> Integration step
-  REAL*8 :: ds                 
+  REAL*8 :: dz                 
 
   !> Initial integration step
-  REAL*8 :: ds0                
+  REAL*8 :: dz0                
   !
   SAVE
 
@@ -100,7 +100,7 @@ CONTAINS
   SUBROUTINE rate
 
     USE meteo_module, ONLY: u_atm , rho_atm , ta , duatm_dz , cpair , rair ,    &
-         cos_theta , sin_theta , sphu_atm , c_wv , h_wv0
+         cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , u_wind , v_wind
 
     USE mixture_module, ONLY: rho_mix , t_mix , rgasmix , rho_gas ,             &
          gas_mass_fraction , cpvolcgas , rvolcgas
@@ -108,8 +108,8 @@ CONTAINS
     USE particles_module, ONLY: mom , set_mom , set_cp_mom ,                    &
          solid_volume_fraction , solid_mass_fraction 
 
-    USE plume_module, ONLY: s , r , u , w , mag_u , phi , alpha_inp , beta_inp ,&
-         rp , prob_factor , particles_loss , r0 , z
+    USE plume_module, ONLY: s , r , u , w , v , mag_u , phi , alpha_inp ,       &
+         beta_inp , rp , prob_factor , particles_loss , r0 , z
 
     USE variables, ONLY: gi , flag_nbl
 
@@ -125,7 +125,7 @@ CONTAINS
     
     REAL*8 :: ueps
 
-    REAL*8 :: cos_phi
+    REAL*8 :: cos_phi , sin_phi
     REAL*8 :: factor0
 
     REAL*8 :: solid_term , cp_solid_term
@@ -143,8 +143,9 @@ CONTAINS
 
     !WRITE(*,*) 'mag_u',mag_u
 
-    cos_phi = u / mag_u
-
+    cos_phi = SQRT( u**2+v**2 ) / mag_u
+    sin_phi = w / mag_u
+    
     IF ( alpha_inp .LE. 0.d0 ) THEN 
 
        s_star = s / r0
@@ -221,7 +222,9 @@ CONTAINS
     ELSE
 
        ueps = alpha_p * ABS( mag_u - u_atm * cos_phi ) + beta_p * ABS( u_atm * &
-            SIN(phi))
+            sin_phi )
+       !ueps = alpha_p * ABS( w ) + beta_p * ABS( u_atm )
+       !ueps = alpha_p * ABS( w ) + beta_p * SQRT( (u - u_wind)**2 + ( v-v_wind)**2 )
 
     END IF
 
@@ -235,46 +238,38 @@ CONTAINS
     END DO
 
     !---- Mass conservation of the plume  (Eq. 20 PlumeMoM - GMD)
-
     rhs1(1) = 2.D0 * r * rho_atm * ueps - prob_factor * 2.D0 * r *              &
          solid_term + SUM( volcgas_rate(1:n_gas) )
 
-    !WRITE(*,*) 'SUM( volcgas_rate(1:n_gas) )',  SUM( volcgas_rate(1:n_gas) )
-    !READ(*,*)
-
-
-    !---- Horizontal momentum conservation   (Eq. 21 PlumeMoM - GMD)
-    rhs1(2) = - r**2 * rho_mix * w * duatm_dz - u * prob_factor * 2.D0 * r *    &
+    !---- Horizontal x-momentum conservation   (Eq. 21 PlumeMoM - GMD)
+    rhs1(2) = 2.D0 * r * rho_atm * ueps * u_wind - u * prob_factor * 2.D0 * r * &
          solid_term + u * SUM( volcgas_rate(1:n_gas) )
 
+    !---- Horizontal y-momentum conservation   (Eq. 21 PlumeMoM - GMD)
+    rhs1(3) = 2.D0 * r * rho_atm * ueps * v_wind - v * prob_factor * 2.D0 * r * &
+         solid_term + v * SUM( volcgas_rate(1:n_gas) )
+
     !---- Vertical momentum conservation   (Eq. 22 PlumeMoM - GMD)  
-    rhs1(3) = gi * r**2 * ( rho_atm - rho_mix ) - w * prob_factor * 2.D0 * r *  &
+    rhs1(4) = gi * r**2 * ( rho_atm - rho_mix ) - w * prob_factor * 2.D0 * r *  &
          solid_term + w * SUM( volcgas_rate(1:n_gas) ) 
 
     !---- Mixture specific heat integration 
-
     cp_solid_term =SUM( set_cp_mom( 1 , 1:n_sections , 1:n_part )               &
          * mom( 1 , 1:n_sections , 1:n_part ) )
 
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
-
-    rhs1(4) = 2.D0 * r * ueps * rho_atm * ( cpair * ta * ( 1.D0 - sphu_atm )    &
+    rhs1(5) = 2.D0 * r * ueps * rho_atm * ( cpair * ta * ( 1.D0 - sphu_atm )    &
          + sphu_atm * ( h_wv0 - c_wv * ta ) + gi * z                            &
-         + 0.5D0 * u_atm**2 ) - prob_factor * 2.D0 * r * ( t_mix * cp_solid_term &
+         + 0.5D0 * u_atm**2 ) - prob_factor * 2.D0* r * ( t_mix * cp_solid_term &
          + 0.5D0 * mag_u**2.D0 * solid_term)                                    &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
          
+    !---- X integration dx/dz = (dx/dt)*(dt/dz) = u/w
+    rhs1(6) = u / w
 
-
-    !---- Z integration   (Eq. 30 PlumeMoM - GMD)
-    rhs1(5) = w / mag_u
-
-    !---- X integration   (Eq. 30 PlumeMoM - GMD)
-    rhs1(6) = cos_phi * cos_theta
-
-    !---- Y integration   (Eq. 30 PlumeMoM - GMD)
-    rhs1(7) = cos_phi * sin_theta
+    !---- Y integration dy/dz = (dy/dt)*(dt/dz) = v/w
+    rhs1(7) = v / w
 
     !---- Moments equations
     DO i_part=1,n_part
@@ -391,7 +386,7 @@ CONTAINS
 
     USE particles_module, ONLY: mom , cpsolid
 
-    USE plume_module, ONLY: x , z , y , r , u , w , mag_u
+    USE plume_module, ONLY: x , z , y , r , u , v , w , mag_u
 
     USE variables, ONLY: gi
     !
@@ -403,9 +398,12 @@ CONTAINS
     INTEGER :: idx , idx1 , idx2
     INTEGER :: i_gas
 
-    f_(1) = rho_mix * mag_u * r**2
-    f_(2) = f_(1) * ( u - u_atm )
-    f_(3) = f_(1) * w
+    f_(1) = rho_mix * w * r**2
+    f_(2) = f_(1) * u
+    f_(3) = f_(1) * v
+    f_(4) = f_(1) * w
+
+    !WRITE(*,*) 'dry_air_mass_fraction',dry_air_mass_fraction
 
     mixture_enthalpy = dry_air_mass_fraction * cpair * t_mix                    &
          + solid_tot_mass_fraction * cpsolid * t_mix                            & 
@@ -415,9 +413,8 @@ CONTAINS
          + volcgas_mix_mass_fraction * cpvolcgas_mix * t_mix 
 
     ! ---- Total energy flow rate
-    f_(4) = f_(1) * ( mixture_enthalpy + gi * z + 0.5D0 * mag_u**2 ) 
+    f_(5) = f_(1) * ( mixture_enthalpy + gi * z + 0.5D0 * mag_u**2 ) 
    
-    f_(5) = z
     f_(6) = x
     f_(7) = y
 
@@ -429,7 +426,7 @@ CONTAINS
 
              idx = 8+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom+i_mom
 
-             f_(idx) = mag_u * r**2 * mom(i_mom,i_sect,i_part) 
+             f_(idx) = w * r**2 * mom(i_mom,i_sect,i_part) 
                 
           ENDDO
           
@@ -437,16 +434,16 @@ CONTAINS
 
     END DO
 
-    f_(n_part*n_sections*n_mom+8) = ( rho_mix * dry_air_mass_fraction ) * mag_u &
+    f_(n_part*n_sections*n_mom+8) = ( rho_mix * dry_air_mass_fraction ) * w &
          * r**2 
 
-    f_(n_part*n_sections*n_mom+9) = ( rho_mix * water_mass_fraction ) * mag_u   &
+    f_(n_part*n_sections*n_mom+9) = ( rho_mix * water_mass_fraction ) * w   &
          * r**2
 
     DO i_gas=1,n_gas
 
        f_(9+n_part*n_sections*n_mom+i_gas) = ( volcgas_mass_fraction(i_gas)     &
-            * rho_mix ) * mag_u * r**2 
+            * rho_mix ) * w * r**2 
 
     END DO
 
@@ -457,8 +454,8 @@ CONTAINS
   !******************************************************************************
   !> \brief Marching s one step
   !
-  !> This subroutine update the solution of the model from s to s+ds as 
-  !> fnew=fold+ds*rate.
+  !> This subroutine update the solution of the model from s to z+dz as 
+  !> fnew=fold+dz*rate.
   !> \param[in]    fold    old lumped variables
   !> \param[in]    rate     rate of change of the lumped variables
   !> \param[out]   fnew    new lumped variables
@@ -477,9 +474,9 @@ CONTAINS
 
     DO i=1,itotal
 
-       fnew(i) = fold(i) + rate(i) * ds
+       fnew(i) = fold(i) + rate(i) * dz
 
-       ! WRITE(*,*) 'marching: i,fold(i),rate(i),ds',i,fold(i),rate(i),ds 
+       ! WRITE(*,*) 'marching: i,fold(i),rate(i),dz',i,fold(i),rate(i),dz 
 
     END DO
 
@@ -520,7 +517,7 @@ CONTAINS
          solid_mass_fraction , cp_part , cpsolid , f_quad , m_quad , w_quad ,   &
          rho_quad , phiL , phiR
 
-    USE plume_module, ONLY: x , z , y , r , u , w , mag_u , phi
+    USE plume_module, ONLY: x , z , y , r , u , v , w , mag_u , phi
 
     USE moments_module, ONLY: n_nodes , n_sections
 
@@ -543,20 +540,20 @@ CONTAINS
     !
     REAL*8, DIMENSION(n_part,n_nodes) :: xi , wi , wi_temp
 
-    REAL*8 :: rhoB_volcgas_U_r2(n_gas)
+    REAL*8 :: rhoB_volcgas_w_r2(n_gas)
 
-    REAL*8 :: rhoB_solid_U_r2(n_part)
-    REAL*8 :: rhoB_solid_tot_U_r2
+    REAL*8 :: rhoB_solid_w_r2(n_part)
+    REAL*8 :: rhoB_solid_tot_w_r2
 
-    REAL*8 :: alfa_s_u_r2(1:n_part)
-    REAL*8 :: alfa_g_u_r2
-    REAL*8 :: alfa_lw_u_r2
-    REAL*8 :: alfa_ice_u_r2
+    REAL*8 :: alfa_s_w_r2(1:n_part)
+    REAL*8 :: alfa_g_w_r2
+    REAL*8 :: alfa_lw_w_r2
+    REAL*8 :: alfa_ice_w_r2
 
     REAL*8 :: atm_volume_fraction
     REAL*8 :: volcgas_mix_volume_fraction
 
-    REAL*8 :: u_r2
+    REAL*8 :: w_r2
 
     REAL*8 :: rho_solid_avg(n_part)
     REAL*8 :: rho_solid_tot_avg
@@ -585,20 +582,19 @@ CONTAINS
     REAL*8 :: ice_volume_fraction
 
 
-    z = f_(5)
     x = f_(6)
     y = f_(7)
  
     ! ---- evaluate the new atmospheric density ad u and temperature at z -------
     CALL zmet
 
-    u = u_atm + f_(2)/f_(1)
+    u = f_(2)/f_(1)
+    v = f_(3)/f_(1)
+    w = f_(4)/f_(1)
 
-    w = f_(3)/f_(1)
-
-    mag_u = SQRT( u*u + w*w ) 
+    mag_u = SQRT( u*u + v*v + w*w ) 
     
-    phi = ATAN(w/u)
+    phi = ATAN( w / SQRT(u**2+v**2) )
  
    
     ! Mass fractions of volcanic gases (H2O excluded ) in mixture of volc. gases
@@ -655,8 +651,8 @@ CONTAINS
 
        DO i_sect=1,n_sections
 
-          idx1 = 8+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
-          idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          idx1 = 9+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          idx2 = 9+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
 
           mom(:,i_sect,i_part) = f_(idx1:idx2)
           !WRITE(*,*) 'UNLUMP'
@@ -666,7 +662,7 @@ CONTAINS
 
        idx1 = 8+0+(i_part-1)*n_sections*n_mom
        idx2 = 8+0+i_part*n_sections*n_mom-1
-       rhoB_solid_U_r2(i_part) = SUM(f_(idx1+1:idx2:2))
+       rhoB_solid_w_r2(i_part) = SUM(f_(idx1+1:idx2:2))
        
     END DO
 
@@ -705,7 +701,7 @@ CONTAINS
        IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'i_part',i_part
-          WRITE(*,*) 'rhoB_solid_U_r2',idx1,rhoB_solid_U_r2(i_part)
+          WRITE(*,*) 'rhoB_solid_w__r2',idx1,rhoB_solid_w_r2(i_part)
           WRITE(*,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
           WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
           WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)
@@ -717,13 +713,13 @@ CONTAINS
     END DO
 
     ! solid-average specific heat capacity
-    cpsolid = SUM( rhoB_solid_U_r2(1:n_part) * cp_part(1:n_part) )              &
-         / ( SUM(rhoB_solid_U_r2(1:n_part) ) ) 
+    cpsolid = SUM( rhoB_solid_w_r2(1:n_part) * cp_part(1:n_part) )              &
+         / ( SUM(rhoB_solid_w_r2(1:n_part) ) ) 
 
     ! solid total mass flow rate 
-    rhoB_solid_tot_u_r2 = SUM( rhoB_solid_U_r2(1:n_part) )
+    rhoB_solid_tot_w_r2 = SUM( rhoB_solid_w_r2(1:n_part) )
         
-    enth =  f_(4) / f_(1) - gi * z - 0.5D0 * mag_u**2 
+    enth =  f_(5) / f_(1) - gi * z - 0.5D0 * mag_u**2 
 
     ! --- Compute  water_vapor_mass_fraction, ice_mass_fraction -----------------
     ! --- and t_mix from other variables ----------------------------------------
@@ -787,44 +783,43 @@ CONTAINS
 
     END IF
 
-    !-- u*r^2 is computed summing the contributions from the different phases
+    !-- w*r^2 is computed summing the contributions from the different phases
     
     ! contribution from solid 
-    alfa_s_u_r2(1:n_part) = rhoB_solid_U_r2(1:n_part) / rho_solid_avg(1:n_part)
+    alfa_s_w_r2(1:n_part) = rhoB_solid_w_r2(1:n_part) / rho_solid_avg(1:n_part)
     
     ! contribution from all gas (water vapour, other volcanic gas, dry air)
-    alfa_g_u_r2 = ( f_(1) * ( 1.D0 - liquid_water_mass_fraction                 &
-         - ice_mass_fraction ) - rhoB_solid_tot_U_r2 ) / rho_gas 
+    alfa_g_w_r2 = ( f_(1) * ( 1.D0 - liquid_water_mass_fraction                 &
+         - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / rho_gas 
     
     ! contribution from liquid water
-    alfa_lw_u_r2 = f_(1) * liquid_water_mass_fraction / rho_lw
+    alfa_lw_w_r2 = f_(1) * liquid_water_mass_fraction / rho_lw
 
     ! contribution from ice
-    alfa_ice_u_r2 = f_(1) * ice_mass_fraction / rho_ice
+    alfa_ice_w_r2 = f_(1) * ice_mass_fraction / rho_ice
     
-    u_r2 = SUM( alfa_s_u_r2(1:n_part) ) + alfa_g_u_r2 + alfa_lw_u_r2            &
-         + alfa_ice_u_r2
+    w_r2 = SUM( alfa_s_w_r2(1:n_part) ) + alfa_g_w_r2 + alfa_lw_w_r2            &
+         + alfa_ice_w_r2
 
-    r = DSQRT( u_r2 / mag_u )
-    
+    r = DSQRT( w_r2 / w )    
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*)
-       WRITE(*,*) 'u_r2,r,mag_u',u_r2,r,mag_u
+       WRITE(*,*) 'w_r2,r,w',w_r2,r,w
        WRITE(*,*)
        
     END IF
            
-    rho_mix = f_(1) / u_r2
+    rho_mix = f_(1) / w_r2
 
     ! -------- update the moments -----------------------------------------------
 
     mom(0:n_mom-1,1:n_sections,1:n_part) = mom(0:n_mom-1,1:n_sections,1:n_part) &
-         / u_r2
+         / w_r2
        
     ! update the values of the linear reconstructions at the quadrature points
     f_quad(1:n_nodes,1:n_sections,1:n_part) =                                   &
-         f_quad(1:n_nodes,1:n_sections,1:n_part) / u_r2
+         f_quad(1:n_nodes,1:n_sections,1:n_part) / w_r2
     
     ! With the new quadrature values the moments of other variables are updated
     CALL eval_particles_moments
@@ -833,20 +828,20 @@ CONTAINS
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) '*********** SUM(alfa_s(1:n_part))' ,                         &
-            SUM(alfa_s_u_r2(1:n_part))/u_r2
-       WRITE(*,*) ' alfa_g', alfa_g_u_r2/ u_r2
-       WRITE(*,*) ' alfa_lw', alfa_lw_u_r2/ u_r2
-       WRITE(*,*) ( alfa_lw_u_r2 + alfa_ice_u_r2 + alfa_g_u_r2                  &
-            + SUM(alfa_s_u_r2(1:n_part)) ) / u_r2
+            SUM(alfa_s_w_r2(1:n_part))/w_r2
+       WRITE(*,*) ' alfa_g', alfa_g_w_r2/ w_r2
+       WRITE(*,*) ' alfa_lw', alfa_lw_w_r2/ w_r2
+       WRITE(*,*) ( alfa_lw_w_r2 + alfa_ice_w_r2 + alfa_g_w_r2                  &
+            + SUM(alfa_s_w_r2(1:n_part)) ) / w_r2
        
        WRITE(*,*) 'rho_gas',rho_gas
-       WRITE(*,*) '*********** SUM(alfa_s_u_r2(1:n_part))' ,                    &
-            SUM(alfa_s_u_r2(1:n_part))
-       WRITE(*,*) 'u_r2,r,mag_u',u_r2,r,mag_u
+       WRITE(*,*) '*********** SUM(alfa_s_w_r2(1:n_part))' ,                    &
+            SUM(alfa_s_w_r2(1:n_part))
+       WRITE(*,*) 'w_r2,r,w',w_r2,r,w
        WRITE(*,*) 'f_(1),rho_gas',f_(1),rho_gas
-       WRITE(*,*) 'rhoB_solid_tot_U_r2',rhoB_solid_tot_U_r2
+       WRITE(*,*) 'rhoB_solid_tot_w_r2',rhoB_solid_tot_w_r2
        WRITE(*,*) 'rho_mix',rho_mix
-       WRITE(*,*) 'alfa_g', alfa_g_u_r2 / u_r2
+       WRITE(*,*) 'alfa_g', alfa_g_w_r2 / w_r2
        READ(*,*)
 
     END IF
@@ -863,7 +858,7 @@ CONTAINS
 
     ! -------- solid fractions --------------------------------------------------
 
-    solid_volume_fraction(1:n_part) = alfa_s_u_r2(1:n_part) / u_r2
+    solid_volume_fraction(1:n_part) = alfa_s_w_r2(1:n_part) / w_r2
 
     solid_tot_volume_fraction = SUM( solid_volume_fraction(1:n_part) )
 
@@ -882,7 +877,7 @@ CONTAINS
     ! --------- mixture of dry air + water vapor + other volcanic gases ---------
     
     gas_mass_fraction = ( f_(1)  * ( 1.D0 - liquid_water_mass_fraction          &
-         - ice_mass_fraction ) - rhoB_solid_tot_u_r2 ) / f_(1)
+         - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / f_(1)
 
     gas_volume_fraction = 1.D0 - solid_tot_volume_fraction -                    &
          liquid_water_volume_fraction - ice_volume_fraction
@@ -900,10 +895,10 @@ CONTAINS
        WRITE(*,*) 'pres',pa
        WRITE(*,*) 'rgasmix',rgasmix
        WRITE(*,*) 't_mix',t_mix
-       WRITE(*,*) 'u,w',u,w
+       WRITE(*,*) 'u,v,w',u,v,w
        WRITE(*,*) 'r',r
        WRITE(*,*) 'z',z
-       WRITE(*,*) 'mass_flow_rate', pi_g * rho_mix * mag_u * (r**2)
+       WRITE(*,*) 'mass_flow_rate', pi_g * rho_mix * w * (r**2)
        
        WRITE(*,*) ''
        WRITE(*,*) '************** DENSITIES **************'

@@ -13,7 +13,7 @@ assigns intervals for both velocity and radius, and the code will search for N_V
  /
 
 
-To run the test case, please copy firt (or link) the executable from the bin folder, and then run the model:
+To run the test case, please copy first (or link) the executable from the bin folder, and then run the model:
 
 > ./PLUMEMoM
 

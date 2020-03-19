@@ -34,7 +34,7 @@ MODULE inpout
          rair , cpair , read_atm_profile , u_r , z_r , exp_wind ,               &
          wind_mult_coeff ,rwv
 
-    USE solver_module, ONLY: ds0 
+    USE solver_module, ONLY: dz0 
 
     USE mixture_module, ONLY: t_mix0 , water_mass_fraction0,                    &
          initial_neutral_density
@@ -177,7 +177,7 @@ MODULE inpout
   NAMELIST / table_atm_parameters / month , lat , u_r , z_r , exp_wind
 
   NAMELIST / initial_values / r0 , w0 , log10_mfr , mfr0 , t_mix0 ,             &
-       initial_neutral_density , water_mass_fraction0 , vent_height , ds0 ,     &
+       initial_neutral_density , water_mass_fraction0 , vent_height , dz0 ,     &
        n_gas
   
   NAMELIST / aggregation_parameters / aggregation_model , particles_beta0
@@ -189,7 +189,7 @@ MODULE inpout
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
 
-  ! NAMELIST / numeric_parameters / ds0 , dsmax , eps_RK 
+  ! NAMELIST / numeric_parameters / dz0 , dsmax , eps_RK 
   
   SAVE
 
@@ -356,7 +356,7 @@ CONTAINS
        INITIAL_NEUTRAL_DENSITY = .false.
        WATER_MASS_FRACTION0=  3.0E-002
        VENT_HEIGHT=  1500.0000000000000     
-       DS0=  5.0000000000000000     
+       DZ0=  5.0000000000000000     
        N_GAS=          2
 
        ALLOCATE ( rvolcgas(n_gas) , cpvolcgas(n_gas) , volcgas_mol_wt(n_gas) ,  &
@@ -2361,7 +2361,7 @@ CONTAINS
     CHARACTER(15) :: mom_str
     CHARACTER(LEN=2) :: i_part_string , i_sect_string
     
-    mfr = 3.14 * r**2 * rho_mix * mag_u
+    mfr = 3.14 * r**2 * rho_mix * w
 
     ! WRITE(*,*) 'INPOUT: atm_mass_fraction',atm_mass_fraction
     ! READ(*,*)
@@ -2713,10 +2713,10 @@ CONTAINS
             rho_atm , mfr_col(i) , ta, pa
 
        solid_mass_flux(1:n_tot,i) = mom_col(1:n_tot,i) * pi_g * r_col(i)**2     &
-            * mag_u
+            * w
 
        volcgas_mass_flux(1:n_gas,i) = volcgas_mf(1:n_gas,i)                     &
-            * rho_mix * pi_g * r_col(i)**2 * mag_u 
+            * rho_mix * pi_g * r_col(i)**2 * w 
 
        !WRITE(*,*) 'Solid mass flux (kg/s): ',solid_mass_flux(1:n_tot,i)
        !WRITE(*,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
@@ -2833,7 +2833,7 @@ CONTAINS
        ELSE
 
           CALL zmet
-          
+
           IF ( u_atm .LT. 1.0D+3 ) THEN
    
              delta_angle = 2.D0*pi_g/n_cloud
@@ -2843,37 +2843,7 @@ CONTAINS
              delta_angle = pi_g / ( n_cloud - 1.D0 )
 
           END IF
-
-          vect(1) = x_top - x_bot
-          vect(2) = y_top - y_bot
-          vect(3) = z_top - z_bot
-
-          vect = vect / NORM2( vect )
-
-          vect0(1) = 0
-          vect0(2) = 0
-          vect0(3) = 1
-
-          v = cross(vect0,vect)
-
-          s = NORM2(v)
-   
-          c = DOT_PRODUCT(vect0,vect)
-
-          mat_v = 0.D0
-          mat_v(2,1) = v(3)
-          mat_v(1,2) = -v(3)
           
-          mat_v(3,1) = -v(2)
-          mat_v(1,3) = v(2)
-          
-          mat_v(2,3) = -v(1)
-          mat_v(3,2) = v(1);
-
-          mat_R = 0.D0
-
-          FORALL(j = 1:3) mat_R(j,j) = 1.D0           
-          mat_R = mat_R + mat_v + mat_v**2 * ( 1.D0-c ) / s**2
           
           DO j=1,n_cloud
              
@@ -2883,14 +2853,14 @@ CONTAINS
              dx = 0.5D0* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
              dy = 0.5D0* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
              dz = 0.D0
-             dv(1) = dx
-             dv(2) = dy
-             dv(3) = dz
 
-             dx = DOT_PRODUCT(mat_R(1,1:3),dv) 
-             dy = DOT_PRODUCT(mat_R(2,1:3),dv) 
-             dz = DOT_PRODUCT(mat_R(3,1:3),dv) 
-             
+             !WRITE(*,*) "dx,dy ",dx,dy
+             !WRITE(*,*) "start_angle ",start_angle
+             !WRITE(*,*) "angle_release ",angle_release
+             !WRITE(*,*) "delta_angle ",delta_angle
+             !READ(*,*)
+
+
              IF ( verbose_level .GE. 1 ) THEN
                 
                 WRITE(*,110)  0.5D0 * ( x_top + x_bot ) + dx ,                  &
@@ -2970,37 +2940,6 @@ CONTAINS
           
        END IF
        
-       vect(1) = x_top - x_bot
-       vect(2) = y_top - y_bot
-       vect(3) = z_top - z_bot
-       
-       vect = vect / NORM2( vect )
-       
-       vect0(1) = 0
-       vect0(2) = 0
-       vect0(3) = 1
-       
-       v = cross(vect0,vect)
-       
-       s = NORM2(v)
-       
-       c = DOT_PRODUCT(vect0,vect)
-       
-       mat_v = 0.D0
-       mat_v(2,1) = v(3)
-       mat_v(1,2) = -v(3)
-       
-       mat_v(3,1) = -v(2)
-       mat_v(1,3) = v(2)
-       
-       mat_v(2,3) = -v(1)
-       mat_v(3,2) = v(1);
-       
-       mat_R = 0.D0
-       
-       FORALL(j = 1:3) mat_R(j,j) = 1.D0           
-       mat_R = mat_R + mat_v + mat_v**2 * ( 1.D0-c ) / s**2
-       
        
        DO i=1,n_cloud
           
@@ -3011,13 +2950,6 @@ CONTAINS
           dy = 0.5* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
 
           dz = 0.D0
-          dv(1) = dx
-          dv(2) = dy
-          dv(3) = dz
-          
-          dx = DOT_PRODUCT(mat_R(1,1:3),dv) 
-          dy = DOT_PRODUCT(mat_R(2,1:3),dv) 
-          dz = DOT_PRODUCT(mat_R(3,1:3),dv) 
           
           IF ( verbose_level .GE. 1 ) THEN
              
@@ -3048,7 +2980,11 @@ CONTAINS
        END IF
        
        WRITE(hy_unit,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
-       
+       ! Write data for umbrella cloud initialization
+       !OPEN(112, file = 'NBL.hy', status = 'replace')  
+       !WRITE(112,*) x_top , y_top , z_top , cloud_solid(1:n_tot)       
+       !CLOSE(112)
+
     ELSE
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
@@ -3069,14 +3005,6 @@ CONTAINS
           dx = 0.5* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
           dy = 0.5* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
           dz = 0.D0
-          dv(1) = dx
-          dv(2) = dy
-          dv(3) = dz
-          
-          dx = DOT_PRODUCT(mat_R(1,1:3),dv) 
-          dy = DOT_PRODUCT(mat_R(2,1:3),dv) 
-          dz = DOT_PRODUCT(mat_R(3,1:3),dv) 
-   
           
           IF ( verbose_level .GE. 1 ) THEN
 

@@ -44,6 +44,8 @@ MODULE variables
 
   REAL*8 :: height_nbl 
 
+  REAL*8 :: radius_nbl
+  
   !> Maximum number of particle phases
   INTEGER, PARAMETER :: max_n_part = 50
 

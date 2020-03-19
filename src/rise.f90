@@ -34,7 +34,7 @@ CONTAINS
   SUBROUTINE plumerise
 
     ! external variables
-    USE meteo_module, ONLY : rho_atm , rair
+    USE meteo_module, ONLY : rho_atm , rair , u_wind , v_wind
     USE mixture_module, ONLY : gas_mass_fraction , rho_mix, mass_flow_rate ,    &
          rgasmix , rvolcgas_mix ,water_vapor_mass_fraction ,                    &
          volcgas_mix_mass_fraction , water_mass_fraction ,                      &
@@ -43,15 +43,14 @@ CONTAINS
     USE particles_module, ONLY : solid_partial_mass_fraction ,                  &
          particle_loss_rate , cum_particle_loss_rate
 
-    USE plume_module, ONLY: s , w , x , y , z , vent_height , r , mag_u ,       &
-         log10_mfr
-    USE solver_module, ONLY: ds, ds0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
+    USE plume_module, ONLY: s , w , x , y , z , vent_height , r , log10_mfr
+    USE solver_module, ONLY: dz, dz0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
     USE solver_module, ONLY: f_stepold , itotal
     USE variables, ONLY : verbose_level , inversion_flag , height_obj
     USE variables, ONLY : dakota_flag , hysplit_flag , nbl_stop
     USE variables, ONLY : write_flag
     USE variables, ONLY : aggregation_flag
-    USE variables, ONLY : pi_g , height_nbl , flag_nbl
+    USE variables, ONLY : pi_g , height_nbl , flag_nbl , radius_nbl
 
     ! external procedures
     USE inpout, ONLY: write_column , write_dakota , write_zero_hysplit
@@ -98,7 +97,7 @@ CONTAINS
     
     REAL*8 :: delta_rho
 
-    REAL*8 :: x_nbl , y_nbl       
+    REAL*8 :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl   
     REAL*8 :: deltarho_min
     REAL*8 :: rho_nbl
 
@@ -133,6 +132,8 @@ CONTAINS
     REAL*8, PARAMETER :: PGROW = -0.2D0
     REAL*8, PARAMETER :: PSHRNK = -0.25D0
     REAL*8, PARAMETER :: ERRCON = 1.89D-4
+
+    REAL*8 :: rho_atm_old , drhoatm_dz
 
     !
     ! ... Set initial conditions at the release height
@@ -184,7 +185,7 @@ CONTAINS
             gas_mass_fraction)
 
        solid_mass_flux0 = solid_partial_mass_fraction(i_part) * ( 1.D0 -        &
-            gas_mass_fraction) * rho_mix * pi_g * r**2 * mag_u
+            gas_mass_fraction) * rho_mix * pi_g * r**2 * w
 
        
        IF ( write_flag ) THEN
@@ -223,7 +224,7 @@ CONTAINS
     ! ... start plume rise marching loop
     ! ----------------------------------------------------
     !
-    ds = ds0
+    dz = dz0
 
     particle_loss_rate(1:n_part,1:n_sections) = 0.D0
     cum_particle_loss_rate(1:n_part,1:n_sections) = 0.D0
@@ -336,7 +337,7 @@ CONTAINS
           
        END IF
        
-       fscal = ABS( f_stepold)+ABS(ds*rhs1+rhs2)+1.E-10
+       fscal = ABS( f_stepold)+ABS(dz*rhs1+rhs2)+1.E-10
        
        w_oldold = w_old
        w_old = w
@@ -347,7 +348,7 @@ CONTAINS
 
           DO i=1,itotal
              
-             ftemp(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK)               &
+             ftemp(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK)               &
                   * A_RK(i_RK,1:n_RK) )
              
           END DO
@@ -358,7 +359,7 @@ CONTAINS
           
           IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
              
-             ds = 0.5D0 * ds
+             dz = 0.5D0 * dz
              f = f_stepold
              
              IF ( verbose_level .GT. 0 ) THEN
@@ -375,7 +376,7 @@ CONTAINS
                    
                 END IF
                 
-                WRITE(*,*) 'reducing step-size ds= ',ds
+                WRITE(*,*) 'reducing step-size dz= ',dz
                 READ(*,*) 
                 
              END IF
@@ -409,8 +410,8 @@ CONTAINS
        ! Compute the new solution
        DO i=1,itotal
 
-          f5th(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK) * B_RK(1:n_RK) )
-          f4th(i) = f_stepold(i) + ds * SUM( rhs_RK(i,1:n_RK) * C_RK(1:n_RK) )
+          f5th(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK) * B_RK(1:n_RK) )
+          f4th(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK) * C_RK(1:n_RK) )
 
        END DO
  
@@ -419,7 +420,7 @@ CONTAINS
        IF ( errmax .GT. 1.D0 ) THEN
 
           delta = SAFETY*errmax**PSHRNK
-          ds = SIGN( MAX(DABS(ds*delta),0.1D0*DABS(ds)) , ds )
+          dz = SIGN( MAX(DABS(dz*delta),0.1D0*DABS(dz)) , dz )
           f = f_stepold
 
           ! go to the next iteration
@@ -435,7 +436,7 @@ CONTAINS
  
        IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
-          ds = 0.5D0 * ds
+          dz = 0.5D0 * dz
           f = f_stepold
           
           IF ( verbose_level .GT. 0 ) THEN
@@ -450,7 +451,7 @@ CONTAINS
                 
              END IF
              
-             WRITE(*,*) 'reducing step-size ds= ',ds
+             WRITE(*,*) 'reducing step-size dz= ',dz
              READ(*,*) 
              
           END IF
@@ -469,7 +470,7 @@ CONTAINS
 
              idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
-             particle_loss_rate(i_part,i_sect) = ds * pi_g *                    &
+             particle_loss_rate(i_part,i_sect) = dz * pi_g *                    &
                   SUM( rhs1_RK(idx,1:n_RK) * B_RK(1:n_RK) )
                           
           END DO
@@ -504,30 +505,41 @@ CONTAINS
           
           rho_nbl = rho_mix
           height_nbl = z - vent_height
+          radius_nbl = r
           x_nbl = x
           y_nbl = y
+
+          w_nbl = w
+          
+          wind_nbl = SQRT( u_wind**2 + v_wind**2 )
+
+          u_nbl = u_wind
+          v_nbl = v_wind
+
+          drhoatm_dz =  (rho_atm - rho_atm_old) / dz            
 
           IF ( deltarho .GT. 0.D0 ) flag_nbl = .TRUE.
           
        END IF
 
-       s = s + ds
+       z = z + dz
        
        deltarho_old = deltarho
+       rho_atm_old = rho_atm
        
        IF ( write_flag ) CALL write_column
 
        IF ( errmax .GT. ERRCON ) THEN
 
-          ds = ds * SAFETY * ( errmax**PGROW )
+          dz = dz * SAFETY * ( errmax**PGROW )
 
        ELSE
 
-          ds = 5.D0 * ds
+          dz = 5.D0 * dz
 
        END IF
        
-       ds = MIN( ds, 50.D0 )
+       dz = MIN( dz, 50.D0 )
 
        ! ----- Exit condition ---------------------------------------------------
        
@@ -630,7 +642,7 @@ CONTAINS
             gas_mass_fraction)
 
        solid_mass_flux = solid_partial_mass_fraction(i_part) * ( 1.D0 -         &
-            gas_mass_fraction) * rho_mix * pi_g * r**2 * mag_u
+            gas_mass_fraction) * rho_mix * pi_g * r**2 * w
 
        solid_mass_flux_change = 1.D0 - solid_mass_flux / solid_mass_flux0
 
@@ -687,8 +699,14 @@ CONTAINS
        WRITE(*,*) 'Plume height above the vent [m] =', plume_height
        WRITE(*,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
        WRITE(*,*) 'Plume height above sea level [m] =',z
-       WRITE(*,*) 'Neutral buoyance level height above sea vent [m] =',         &
+       WRITE(*,*) 'Neutral buoyance level height above sea level [m] =',         &
             height_nbl + ( z - plume_height )
+       WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
+       WRITE(*,*) 'Mass flow rate at neutral buoyancy level [kg/s] =',          &
+            rho_nbl * pi_g * radius_nbl**2 * w_nbl
+       WRITE(*,*) 'Volume flow rate at neutral buoyancy level [m3/s] =',        &
+            pi_g * radius_nbl**2 * w_nbl
+       WRITE(*,*) 'Wind speed at neutral buoyancy level [m/s] =', wind_nbl
        WRITE(*,*) 
        WRITE(*,*) 'Dry air mass fraction  =',dry_air_mass_fraction
        WRITE(*,*) 'Water vapor mass fraction =',water_vapor_mass_fraction
@@ -720,7 +738,46 @@ CONTAINS
 
        
     END IF
-    RETURN
+
+
+   ! Write data for umbrella cloud initialization
+   !OPEN(101, file = 'UMBRELLA_CLOUD_inp.py', status = 'replace')  
+     
+   !WRITE(101,'(A20)',advance="no")"H_SOURCE      =     "
+   !WRITE(101,"(30F8.2)")plume_height - height_nbl
+
+   !WRITE(101,'(A20)',advance="no")"R_SOURCE      =     "
+   !WRITE(101,"(30F8.2)")radius_nbl
+
+   !WRITE(101,'(A20)',advance="no")"VEL_SOURCE    =     "
+   !WRITE(101,"(30F8.2)")(radius_nbl * w_nbl ) / (2* ( plume_height - height_nbl))
+
+   !WRITE(101,'(A20)',advance="no")"X_NBL         =     "
+   !WRITE(101,"(30F8.2)")x_nbl
+
+   !WRITE(101,'(A20)',advance="no")"Y_NBL         =     "
+   !WRITE(101,"(30F8.2)")y_nbl
+
+   !WRITE(101,'(A20)',advance="no")"U_NBL         =     "
+   !WRITE(101,"(30F8.2)")u_nbl
+
+   !WRITE(101,'(A20)',advance="no")"V_NBL         =     "
+   !WRITE(101,"(30F8.2)")v_nbl
+
+   !WRITE(101,'(A20)',advance="no")"U_ATM         =     "
+   !WRITE(101,"(30F8.2)")wind_nbl
+
+   !WRITE(101,'(A20)',advance="no")"RHO_ATM       =     "
+   !WRITE(101,"(30ES8.1)")rho_nbl
+
+   !WRITE(101,'(A20)',advance="no")"DRHO_DZ       =     "
+   !WRITE(101,"(30ES8.1)")drhoatm_dz
+   !CLOSE(101)
+
+   RETURN
+
+
+
 
   END SUBROUTINE plumerise
 

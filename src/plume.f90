@@ -17,7 +17,8 @@ MODULE plume_module
   REAL*8 :: y       !< plume location (crosswind)
   REAL*8 :: z       !< plume vertical coordinate
   REAL*8 :: r       !< plume radius
-  REAL*8 :: u       !< plume horizontal velocity
+  REAL*8 :: u       !< plume x-horizontal velocity
+  REAL*8 :: v       !< plume y-horizontal velocity
   REAL*8 :: w       !< plume vertical velocity
   REAL*8 :: mag_u   !< velocity magnitude along the centerline
   REAL*8 :: phi     !< angle between the plume trajectory and ground
@@ -58,9 +59,10 @@ CONTAINS
     s = 0.D0
     r = r0
     u = 1.D-5
+    v = 1.D-5
     w = w0
 
-    mag_u = DSQRT(u*u+w*w)
+    mag_u = DSQRT(u*u+v*v+w*w)
     phi = ATAN(w/u)
 
     RETURN

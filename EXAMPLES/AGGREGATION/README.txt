@@ -11,7 +11,7 @@ SOLID_PARTIAL_MASS_FRACTION= 0.999 0.001,
 The properties (shape factors, densities) of the aggregates can be different from those of the original particles.
 
 
-To run the test case, please copy firt (or link) the executable from the bin folder, and then run the model:
+To run the test case, please copy first (or link) the executable from the bin folder, and then run the model:
 
 > ./PLUMEMoM
 
