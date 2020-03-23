@@ -39,11 +39,17 @@ CONTAINS
          rgasmix , rvolcgas_mix ,water_vapor_mass_fraction ,                    &
          volcgas_mix_mass_fraction , water_mass_fraction ,                      &
          liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction
+
+    USE parameters_2d, ONLY : x_source, y_source, r_source, vol_flux_source ,   &
+         u_source, v_source, dr_dz
+
+    USE constitutive_2d, ONLY : u_atm_nbl , v_atm_nbl , rho_nbl , drho_dz
+    
     USE particles_module, ONLY : n_part , n_sections , mom , phiL , phiR , n_mom
     USE particles_module, ONLY : solid_partial_mass_fraction ,                  &
          particle_loss_rate , cum_particle_loss_rate
 
-    USE plume_module, ONLY: s , w , x , y , z , vent_height , r , log10_mfr
+    USE plume_module, ONLY: s , u , v , w , x , y , z , vent_height , r , log10_mfr
     USE solver_module, ONLY: dz, dz0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
     USE solver_module, ONLY: f_stepold , itotal
     USE variables, ONLY : verbose_level , inversion_flag , height_obj
@@ -94,13 +100,17 @@ CONTAINS
     INTEGER :: idx
 
     REAL*8 :: rho_mix_init , rho_mix_final
-    
+
     REAL*8 :: delta_rho
 
-    REAL*8 :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl   
+    REAL*8 :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl
+    REAL*8 :: u_wind_nbl , v_wind_nbl
     REAL*8 :: deltarho_min
-    REAL*8 :: rho_nbl
 
+    
+    REAL*8 :: rho_atm_old
+    REAL*8 :: z_old
+    REAL*8 :: r_old
     REAL*8 :: deltarho , deltarho_old
 
     REAL*8 :: partial_mf(n_sections)
@@ -133,7 +143,7 @@ CONTAINS
     REAL*8, PARAMETER :: PSHRNK = -0.25D0
     REAL*8, PARAMETER :: ERRCON = 1.89D-4
 
-    REAL*8 :: rho_atm_old , drhoatm_dz
+    REAL*8 :: drho_atm_dz
 
     !
     ! ... Set initial conditions at the release height
@@ -148,9 +158,9 @@ CONTAINS
     CALL initialize_mixture
 
     IF ( aggregation_flag ) CALL init_aggregation
-    
+
     description = 'Initial MFR'
-    
+
     CALL WRITE_DAKOTA(description,mass_flow_rate)
 
     w_old = w
@@ -165,7 +175,7 @@ CONTAINS
     delta_rho = rho_mix - rho_atm
 
     rho_mix_init = rho_mix
-    
+
     DO i_part=1,n_part
 
        WRITE(x1,'(I2.2)') i_part ! converting integer to string using a 'internal file'
@@ -175,7 +185,7 @@ CONTAINS
        description = 'Sau. Mean Diam. '//trim(x1)
 
     END DO
-       
+
     DO i_part=1,n_part
 
        ! converting integer to string using a 'internal file'
@@ -187,31 +197,31 @@ CONTAINS
        solid_mass_flux0 = solid_partial_mass_fraction(i_part) * ( 1.D0 -        &
             gas_mass_fraction) * rho_mix * pi_g * r**2 * w
 
-       
+
        IF ( write_flag ) THEN
-       
+
           mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
           sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
                SUM( mom(1,:,i_part) ) )
 
           description = 'Init Avg Diam '//trim(x1)
-          
+
           CALL write_dakota(description,mu_phi)
-          
+
           description = 'Init Var Diam '//trim(x1)
-          
+
           CALL write_dakota(description,sigma_phi)
-          
+
           description = 'Init Mass Fract '//trim(x1)
-          
+
           CALL write_dakota(description,SUM(mass_fract))
-          
+
           description = 'Init Solid Flux '//trim(x1)
-          
+
           CALL write_dakota(description,solid_mass_flux0)
 
        END IF
-          
+
     END DO
 
     !
@@ -228,7 +238,7 @@ CONTAINS
 
     particle_loss_rate(1:n_part,1:n_sections) = 0.D0
     cum_particle_loss_rate(1:n_part,1:n_sections) = 0.D0
-    
+
     IF ( write_flag ) CALL write_column
 
     IF ( ( height_obj .EQ. 0.D0 ) .OR. ( log10_mfr .EQ. 0.D0 ) ) THEN
@@ -237,61 +247,61 @@ CONTAINS
        CALL write_zero_hysplit
        CALL write_column
        STOP
-       
+
     END IF
 
     deltarho_min = 1000.D0
 
     deltarho_old = 0.D0
-    
-    
+
+
     A_RK(1,1) = 0.D0
     A_RK(1,2) = 0.D0
-    
+
     A_RK(2,1) = 1.D0
     A_RK(2,2) = 0.D0
-    
+
     B_RK(1) = 0.5D0
     B_RK(2) = 0.5D0
-    
+
     C_RK(1) = 1.D0
     C_RK(2) = 0.D0
-    
+
     A_RK(1,1) = 0.D0
     A_RK(1,2) = 0.D0
     A_RK(1,3) = 0.D0
     A_RK(1,4) = 0.D0
     A_RK(1,5) = 0.D0
     A_RK(1,6) = 0.D0
-        
+
     A_RK(2,1) = 0.25D0
     A_RK(2,2) = 0.D0
     A_RK(2,3) = 0.D0
     A_RK(2,4) = 0.D0
     A_RK(2,5) = 0.D0
     A_RK(2,6) = 0.D0
-    
+
     A_RK(3,1) = 3.D0 / 32.D0
     A_RK(3,2) = 9.D0 / 32.D0
     A_RK(3,3) = 0.D0
     A_RK(3,4) = 0.D0
     A_RK(3,5) = 0.D0
     A_RK(3,6) = 0.D0
-    
+
     A_RK(4,1) = 1932.D0 / 2197.D0
     A_RK(4,2) = -7200.D0 / 2197.D0
     A_RK(4,3) = 7296.D0 / 2197.D0
     A_RK(4,4) = 0.D0
     A_RK(4,5) = 0.D0
     A_RK(4,6) = 0.D0
-    
+
     A_RK(5,1) = 439.D0 / 216.D0
     A_RK(5,2) = -8.D0
     A_RK(5,3) = 3680.D0 / 513.D0
     A_RK(5,4) = -845.D0 / 4104.D0
     A_RK(5,5) = 0.D0
     A_RK(5,6) = 0.D0
-    
+
     A_RK(6,1) = -8.D0 / 27.D0
     A_RK(6,2) = 2.D0
     A_RK(6,3) = -3544.D0 / 2565.D0
@@ -322,87 +332,88 @@ CONTAINS
     main_loop: DO
 
        f_stepold = f
-       
+
        CALL unlump(f)
 
        CALL rate
 
        IF ( aggregation_flag ) THEN
-          
+
           CALL aggr_rate
-          
+
        ELSE
-          
+
           rhs2(1:itotal) = 0.D0
-          
+
        END IF
-       
+
        fscal = ABS( f_stepold)+ABS(dz*rhs1+rhs2)+1.E-10
-       
+
        w_oldold = w_old
        w_old = w
+       r_old = r
 
        rhs_RK(1:itotal,1:n_RK) = 0.D0
 
        RungeKutta:DO i_RK = 1,n_RK
 
           DO i=1,itotal
-             
+
              ftemp(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK)               &
                   * A_RK(i_RK,1:n_RK) )
-             
+
           END DO
-          
+
           CALL unlump( ftemp )
-          
+
           ! ----- Check on the solution to reduce step-size condition -------------
-          
+
           IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
-             
+
              dz = 0.5D0 * dz
              f = f_stepold
-             
+
              IF ( verbose_level .GT. 0 ) THEN
-                
+
                 IF ( w .LE. 0.D0) THEN
-                   
+
                    WRITE(*,*) 'WARNING: negative velocity w= ',w
-                   
+
                 ELSE
-                   
+
                    WRITE(*,*) 'WARNING: rgasmix =',rgasmix
-                   
+
                    WRITE(*,*) 'rair =',rair,' rvolcgas_mix =',rvolcgas_mix
-                   
+
                 END IF
-                
+
                 WRITE(*,*) 'reducing step-size dz= ',dz
                 READ(*,*) 
-                
+
              END IF
-             
+
              ! Repeat the iteration with reduced step-size
              CYCLE main_loop
-             
+
           END IF
-          
+
 
           ! RATE uses the values computed from the last call of UNLUMP
           CALL rate
-       
+
           rhs1_RK(1:itotal,i_RK) = rhs1(1:itotal)
-          
+
           IF ( aggregation_flag ) THEN
-             
+
              CALL aggr_rate
              rhs2_RK(1:itotal,i_RK) = rhs2(1:itotal) 
-             
+
           ELSE
-             
+
              rhs2_RK(1:itotal,i_RK) = 0.D0
-             
+
           END IF
-          
+
           rhs_RK(1:itotal,i_RK) = rhs1_RK(1:itotal,i_RK) + rhs2_RK(1:itotal,i_RK)
 
        END DO RungeKutta
@@ -414,7 +425,7 @@ CONTAINS
           f4th(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK) * C_RK(1:n_RK) )
 
        END DO
- 
+
        errmax = MAXVAL( DABS( (f5th-f4th)/fscal ) ) / eps_RK
 
        IF ( errmax .GT. 1.D0 ) THEN
@@ -433,27 +444,27 @@ CONTAINS
        CALL unlump(f)
 
        ! ----- Reduce step-size condition and repeat iteration ------------------
- 
+
        IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
           dz = 0.5D0 * dz
           f = f_stepold
-          
+
           IF ( verbose_level .GT. 0 ) THEN
-             
+
              IF ( w .LE. 0.D0) THEN
-                
+
                 WRITE(*,*) 'WARNING: negative velocit w= ',w
-                
+
              ELSE
-                
+
                 WRITE(*,*) 'WARNING: rgasmix = ',rgasmix
-                
+
              END IF
-             
+
              WRITE(*,*) 'reducing step-size dz= ',dz
              READ(*,*) 
-             
+
           END IF
 
           ! go to the next iteration
@@ -465,67 +476,74 @@ CONTAINS
 
        ! Compute the rate of particle loss due to settling from plume margin
        DO i_part=1,n_part
-          
+
           DO i_sect=1,n_sections
 
              idx = 9+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
-             
+
              particle_loss_rate(i_part,i_sect) = dz * pi_g *                    &
                   SUM( rhs1_RK(idx,1:n_RK) * B_RK(1:n_RK) )
-                          
+
           END DO
-          
+
        END DO
-    
+
        cum_particle_loss_rate(1:n_part,1:n_sections) =                          &
             cum_particle_loss_rate(1:n_part,1:n_sections) +                     &
             particle_loss_rate(1:n_part,1:n_sections)
 
 
        IF ( ( w_old .LT. w ) .AND. ( w_old .LT. w_oldold ) )  THEN
-          
+
           w_minrel = w_old
-          
+
        END IF
-       
+
        IF ( w .GT. w_maxabs ) w_maxabs = w
-       
+
        IF ( ( w_old .GT. w ) .AND. ( w_old .GT. w_oldold ) )  THEN
-          
+
           w_maxrel = w_old
-          
+
        END IF
-       
+
        delta_rho = MIN( delta_rho , rho_mix - rho_atm )
-       
+
        ! used to define the neutral buoyancy level 
        deltarho =  rho_mix - rho_atm
-       
+
        IF ( deltarho * deltarho_old .LT. 0.D0 ) THEN
-          
+
           rho_nbl = rho_mix
           height_nbl = z - vent_height
           radius_nbl = r
+          
           x_nbl = x
           y_nbl = y
 
+          u_nbl = u
+          v_nbl = v
           w_nbl = w
-          
+
+          u_wind_nbl = u_wind
+          v_wind_nbl = v_wind
+
           wind_nbl = SQRT( u_wind**2 + v_wind**2 )
 
-          u_nbl = u_wind
-          v_nbl = v_wind
-
-          drhoatm_dz =  (rho_atm - rho_atm_old) / dz            
-
+          drho_atm_dz =  (rho_atm - rho_atm_old) / dz
+          drho_dz = drho_atm_dz
+          dr_dz = ( r - r_old ) / dz
+       
           IF ( deltarho .GT. 0.D0 ) flag_nbl = .TRUE.
-          
+
        END IF
 
-       z = z + dz
-       
        deltarho_old = deltarho
        rho_atm_old = rho_atm
+       r_old = r
+       z_old = z
+
+       z = z + dz
        
        IF ( write_flag ) CALL write_column
 
@@ -538,82 +556,82 @@ CONTAINS
           dz = 5.D0 * dz
 
        END IF
-       
+
        dz = MIN( dz, 50.D0 )
 
        ! ----- Exit condition ---------------------------------------------------
-       
+
        IF ( w .LE. 1.D-5 ) THEN
-          
+
           EXIT main_loop
-          
+
        END IF
-       
+
     END DO main_loop
 
 
     IF ( write_flag) THEN
 
-        WRITE(*,*)
-        WRITE(*,*) '---------- MODEL RESULTS ----------'
-        WRITE(*,*)
+       WRITE(*,*)
+       WRITE(*,*) '---------- MODEL RESULTS ----------'
+       WRITE(*,*)
 
     END IF
-    
+
     ! ---- check plume regime 
     check_sb = ( w_maxrel - w_minrel ) / w_maxabs
-    
+
     eps_sb = 0.05D0
 
 
     IF ( delta_rho .GT. 0.d0 ) THEN
-              
+
        column_regime = 3
 
        rho_mix_final = rho_mix
 
        IF ( write_flag ) WRITE(*,*) 'Plume Regime: Collapsing'
 
-       
+
        IF ( hysplit_flag ) THEN
 
           WRITE(*,*) 'WARNING: problem in hysplit file'
           ! CALL write_hysplit(x,y,z,.TRUE.)
 
        END IF
-       
+
     ELSE
 
        IF ( hysplit_flag ) THEN
-          
+
           IF ( nbl_stop ) THEN
-             
+
              ! CALL write_hysplit(x_nbl,y_nbl,vent_height+height_nbl,.TRUE.)
-             
+
           ELSE
-                         
+
              ! CALL write_hysplit(x,y,z,.TRUE.)
-             
+
           END IF
-          
+
        END IF
-       
+
        IF ( check_sb .GT. eps_sb ) THEN
-          
+
           !WRITE(*,*) 'w_minrel,w_maxrel,w_maxabs',w_minrel,w_maxrel,w_maxabs
-          
+
           IF ( write_flag) WRITE(*,*) 'Plume Regime: Superbuoyant'
-          
+
           column_regime = 2
-          
+
        ELSE
-          
+
           IF ( write_flag) WRITE(*,*) 'Plume Regime: Buoyant'
-          
+
           column_regime = 1
-          
+
        END IF
-          
+
     END IF
 
     plume_height = z - vent_height
@@ -621,19 +639,19 @@ CONTAINS
     IF ( write_flag ) THEN
 
        description = 'Column regime'
-       
+
        CALL WRITE_DAKOTA(description,column_regime)
-       
+
        description = 'NBL height (atv)'
-       
+
        CALL WRITE_DAKOTA(description,height_nbl)
-       
+
        description = 'Plume height (atv)'
-       
+
        CALL WRITE_DAKOTA(description,plume_height)
 
     END IF
-       
+
     DO i_part=1,n_part
 
        WRITE(x1,'(I2.2)') i_part ! convert int to string using an 'internal file'
@@ -646,67 +664,91 @@ CONTAINS
 
        solid_mass_flux_change = 1.D0 - solid_mass_flux / solid_mass_flux0
 
-       
+
        IF ( write_flag ) THEN
 
           mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
           sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
                SUM( mom(1,:,i_part) ) )
-          
+
           description = 'Final Avg Diam '//trim(x1)
-          
+
           CALL write_dakota(description,mu_phi)
-          
+
           description = 'Final Var Diam '//trim(x1)
-          
+
           CALL write_dakota(description,sigma_phi)
-          
+
           description = 'Final Mass Fract '//trim(x1)
-          
+
           CALL write_dakota(description,SUM(mass_fract))
-          
+
           description = 'Final Mass Flux '//trim(x1)
-          
+
           CALL write_dakota(description,solid_mass_flux)
 
           description = 'Solid Flux Lost '//trim(x1)
-          
+
           CALL write_dakota(description,solid_mass_flux_change)
-          
+
           description = 'VG Mass Fraction '
-          
+
           CALL write_dakota(description,volcgas_mix_mass_fraction)
-          
+
           description = 'WV Mass Fraction '
-          
+
           CALL write_dakota(description,water_vapor_mass_fraction)
-          
+
           description = 'LW Mass Fraction '
-          
+
           CALL write_dakota(description,liquid_water_mass_fraction)
-          
+
           description = 'DA Mass Fraction '
-          
+
           CALL write_dakota(description,dry_air_mass_fraction)
 
        END IF
-            
+
     END DO
 
-
+    x_source = x_nbl
+    y_source = y_nbl
+    r_source = radius_nbl
+    vol_flux_source = pi_g * radius_nbl**2 * w_nbl
+    u_source = u_nbl
+    v_source = v_nbl
+    u_atm_nbl = u_wind_nbl
+    v_atm_nbl = v_wind_nbl
+        
     IF ( write_flag) THEN
 
        WRITE(*,*) 'Plume height above the vent [m] =', plume_height
-       WRITE(*,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
        WRITE(*,*) 'Plume height above sea level [m] =',z
-       WRITE(*,*) 'Neutral buoyance level height above sea level [m] =',         &
-            height_nbl + ( z - plume_height )
-       WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
-       WRITE(*,*) 'Mass flow rate at neutral buoyancy level [kg/s] =',          &
-            rho_nbl * pi_g * radius_nbl**2 * w_nbl
-       WRITE(*,*) 'Volume flow rate at neutral buoyancy level [m3/s] =',        &
-            pi_g * radius_nbl**2 * w_nbl
-       WRITE(*,*) 'Wind speed at neutral buoyancy level [m/s] =', wind_nbl
+
+       IF ( column_regime .LT. 3 ) THEN
+
+          WRITE(*,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
+          WRITE(*,*) 'Neutral buoyance level height above sea level [m] =',        &
+               height_nbl + ( z - plume_height )
+          WRITE(*,*) 'Plume density at neutral buoyancy level [kg/m3]',rho_nbl
+          WRITE(*,*) 'Atmospheric density at top height [kg/m3]',rho_atm
+          WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
+          WRITE(*,*) 'Vertical gradient of radius at nbl: dr/dz [m/m] =', dr_dz
+          WRITE(*,*) 'Mass flow rate at neutral buoyancy level [kg/s] =',          &
+               rho_nbl * pi_g * radius_nbl**2 * w_nbl
+          WRITE(*,*) 'Volume flow rate at neutral buoyancy level [m3/s] =',        &
+               pi_g * radius_nbl**2 * w_nbl
+          WRITE(*,*) 'Plume vertical velocity at neutral buoyancy level [m/s] =',  &
+               w_nbl
+          WRITE(*,*) 'Plume horizontal velocity at neutral buoyancy level [m/s] =',&
+               u_source,v_source
+          WRITE(*,*) 'Wind velocity at neutral buoyancy level [m/s] =', u_atm_nbl ,&
+               v_atm_nbl
+          WRITE(*,*) 'Atmospheric density vertical gradient at nbl [kg/m4] =',     &
+               drho_atm_dz
+
+       END IF
+       
        WRITE(*,*) 
        WRITE(*,*) 'Dry air mass fraction  =',dry_air_mass_fraction
        WRITE(*,*) 'Water vapor mass fraction =',water_vapor_mass_fraction
@@ -722,11 +764,11 @@ CONTAINS
             water_mass_fraction
        WRITE(*,*)
        WRITE(*,*) 'Solid partial mass distribution'
-       
+
        DO i_part=1,n_part
 
           partial_mf(:) = mom(1,:,i_part) / SUM( mom(1,:,i_part) )
-          
+
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
@@ -736,45 +778,10 @@ CONTAINS
 
        END DO
 
-       
+
     END IF
 
-
-   ! Write data for umbrella cloud initialization
-   !OPEN(101, file = 'UMBRELLA_CLOUD_inp.py', status = 'replace')  
-     
-   !WRITE(101,'(A20)',advance="no")"H_SOURCE      =     "
-   !WRITE(101,"(30F8.2)")plume_height - height_nbl
-
-   !WRITE(101,'(A20)',advance="no")"R_SOURCE      =     "
-   !WRITE(101,"(30F8.2)")radius_nbl
-
-   !WRITE(101,'(A20)',advance="no")"VEL_SOURCE    =     "
-   !WRITE(101,"(30F8.2)")(radius_nbl * w_nbl ) / (2* ( plume_height - height_nbl))
-
-   !WRITE(101,'(A20)',advance="no")"X_NBL         =     "
-   !WRITE(101,"(30F8.2)")x_nbl
-
-   !WRITE(101,'(A20)',advance="no")"Y_NBL         =     "
-   !WRITE(101,"(30F8.2)")y_nbl
-
-   !WRITE(101,'(A20)',advance="no")"U_NBL         =     "
-   !WRITE(101,"(30F8.2)")u_nbl
-
-   !WRITE(101,'(A20)',advance="no")"V_NBL         =     "
-   !WRITE(101,"(30F8.2)")v_nbl
-
-   !WRITE(101,'(A20)',advance="no")"U_ATM         =     "
-   !WRITE(101,"(30F8.2)")wind_nbl
-
-   !WRITE(101,'(A20)',advance="no")"RHO_ATM       =     "
-   !WRITE(101,"(30ES8.1)")rho_nbl
-
-   !WRITE(101,'(A20)',advance="no")"DRHO_DZ       =     "
-   !WRITE(101,"(30ES8.1)")drhoatm_dz
-   !CLOSE(101)
-
-   RETURN
+    RETURN
 
 
 

@@ -40,6 +40,8 @@ MODULE variables
 
   LOGICAL :: flag_nbl
 
+  LOGICAL :: umbrella_flag
+  
   INTEGER :: n_cloud
 
   REAL*8 :: height_nbl 

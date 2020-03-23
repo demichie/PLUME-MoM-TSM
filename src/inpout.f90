@@ -15,6 +15,13 @@ MODULE inpout
   
     USE variables
 
+    USE parameters_2d, ONLY : t_start , t_end , dt_output , wp , n_vars
+
+    ! -- Variables for the namelist NUMERIC_PARAMETERS
+    USE parameters_2d, ONLY : rsource_cells , solver_scheme, dt0 , max_dt , cfl, limiter , theta, &
+         reconstr_coeff , interfaces_relaxation , n_RK   
+
+    
     USE moments_module, ONLY : n_mom , n_nodes , n_sections
     
     USE plume_module, ONLY: vent_height, alpha_inp , beta_inp , particles_loss ,&
@@ -151,7 +158,8 @@ MODULE inpout
         solid_mfr_oldold(:)
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
-        inversion_flag , hysplit_flag , aggregation_flag, water_flag
+       inversion_flag , hysplit_flag , aggregation_flag, water_flag ,          &
+       umbrella_flag
 
   NAMELIST / mom_parameters / n_part , n_mom , n_nodes , n_sections
 
@@ -189,7 +197,10 @@ MODULE inpout
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
 
-  ! NAMELIST / numeric_parameters / dz0 , dsmax , eps_RK 
+  NAMELIST / umbrella_run_parameters / t_end , dt_output
+  
+  NAMELIST / numeric_parameters / rsource_cells , solver_scheme, dt0 , max_dt , &
+       cfl, limiter , theta , reconstr_coeff , interfaces_relaxation , n_RK   
   
   SAVE
 
@@ -914,8 +925,6 @@ CONTAINS
        STOP          
        
     END IF
-    
-
     
 
     IF ( read_atm_profile .EQ. 'table' ) THEN
@@ -2182,6 +2191,94 @@ CONTAINS
        WRITE(*,*) 'gas mass fraction', gas_mass_fraction
        
     END IF
+
+    IF ( umbrella_flag ) THEN
+
+       nbl_stop = .TRUE.
+       WRITE(*,*) 'Plume equations integrated up to neutral buoyance level'
+       
+       ! ------- READ run_parameters NAMELIST -----------------------------------
+       READ(inp_unit, umbrella_run_parameters,IOSTAT=ios )
+
+       IF ( ios .NE. 0 ) THEN
+
+          WRITE(*,*) 'IOSTAT=',ios
+          WRITE(*,*) 'ERROR: problem with namelist RUN_PARAMETERS'
+          WRITE(*,*) 'Please check the input file'
+          STOP
+
+       ELSE
+
+          REWIND(inp_unit)
+
+       END IF
+
+       ! ------- READ numeric_parameters NAMELIST ----------------------------------
+
+       READ(inp_unit,numeric_parameters)
+
+       IF ( ios .NE. 0 ) THEN
+
+          WRITE(*,*) 'IOSTAT=',ios
+          WRITE(*,*) 'ERROR: problem with namelist NUMERIC_PARAMETERS'
+          WRITE(*,*) 'Please check the input file'
+          STOP
+
+       ELSE
+
+          REWIND(inp_unit)
+
+       END IF
+
+       IF ( ( solver_scheme .NE. 'LxF' ) .AND. ( solver_scheme .NE. 'KT' ) .AND.   &
+            ( solver_scheme .NE. 'GFORCE' ) .AND. ( solver_scheme .NE. 'UP' ) ) THEN
+
+          WRITE(*,*) 'WARNING: no correct solver scheme selected',solver_scheme
+          WRITE(*,*) 'Chose between: LxF, GFORCE or KT'
+          STOP
+
+       END IF
+
+       IF ( ( cfl .GT. 0.25 ) .OR. ( cfl .LT. 0.0_wp ) ) THEN
+
+          WRITE(*,*) 'WARNING: wrong value of cfl ',cfl
+          WRITE(*,*) 'Choose a value between 0.0 and 0.25'
+          READ(*,*)
+
+       END IF
+
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
+
+       limiter(n_vars+1) = limiter(2)
+       limiter(n_vars+2) = limiter(3)
+
+       IF ( ( MAXVAL(limiter(1:n_vars)) .GT. 3 ) .OR.                              &
+            ( MINVAL(limiter(1:n_vars)) .LT. 0 ) ) THEN
+
+          WRITE(*,*) 'WARNING: wrong limiter ',limiter(1:n_vars)
+          WRITE(*,*) 'Choose among: none, minmod,superbee,van_leer'
+          STOP         
+
+       END IF
+
+       IF ( verbose_level .GE. 0 ) THEN
+
+          WRITE(*,*) 'Linear reconstruction and b. c. applied to variables:'
+          WRITE(*,*) 'h,hu,hv'
+
+       END IF
+
+       IF ( ( reconstr_coeff .GT. 1.0_wp ) .OR. ( reconstr_coeff .LT. 0.0_wp ) ) THEN
+
+          WRITE(*,*) 'WARNING: wrong value of reconstr_coeff ',reconstr_coeff
+          WRITE(*,*) 'Change the value between 0.0 and 1.0 in the input file'
+          READ(*,*)
+
+       END IF
+
+    END IF
+    ! ---------------------------------------------------------------------------
+
 
     ! Close input file
 
