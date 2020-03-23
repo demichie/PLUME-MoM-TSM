@@ -44,6 +44,9 @@ MODULE meteo_module
   !> Horizonal wind speed
   REAL*8 :: u_atm   
 
+  REAL*8 :: u_wind
+  REAL*8 :: v_wind
+  
   !> Atmospheric density
   REAL*8 :: rho_atm  
 
@@ -185,7 +188,7 @@ CONTAINS
     ! Variables used to compute duatm_dz
     REAL*8 :: eps_z , z_eps
 
-    REAL*8 :: WE_wind_eps , NS_wind_eps , u_atm_eps
+    REAL*8 :: WE_wind_eps , NS_wind_eps , u_atm_eps , rho_atm_eps
 
     ! Saturation mixing ratio (hPa)
     REAL*8 :: es
@@ -210,6 +213,9 @@ CONTAINS
        ! interp pressure profile
        CALL interp_1d_scalar(atm_profile(1,:), atm_profile(7,:), z, NS_wind)
 
+       u_wind = WE_wind
+       v_wind = -NS_wind
+       
        IF ( ( WE_wind .EQ. 0.D0 ) .AND. ( NS_wind .EQ. 0.D0 ) ) THEN
 
           WE_wind = 1.D-15
@@ -236,6 +242,7 @@ CONTAINS
        u_atm_eps = DSQRT( WE_wind_eps**2 + NS_wind_eps**2 )
 
        duatm_dz = ( u_atm_eps - u_atm ) / eps_z 
+
 
     ELSEIF ( read_atm_profile .EQ. 'table' ) THEN
 
@@ -291,9 +298,21 @@ CONTAINS
 
        END IF
        
-       
-       cos_theta = 1.D0
-       sin_theta = 0.D0
+
+       u_wind = u_r  
+       v_wind = 0.D0
+
+       IF ( u_r .GT. 0.D0 ) THEN
+
+           cos_theta = u_wind/u_r 
+           sin_theta = v_wind/u_r
+
+       ELSE
+
+           cos_theta = 1.D0
+           sin_theta = 0.D0
+
+       END IF
 
        !      
        ! ... Temperature and pressure at the tropopause bottom

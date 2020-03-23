@@ -38,12 +38,12 @@ PROGRAM plume_model
   
   USE rise, ONLY: plumerise 
 
+  USE SW_UMBRELLA, ONLY : solve_umbrella
   
   USE solver_module, ONLY: allocate_matrix
 
-  USE variables, ONLY: hysplit_flag , inversion_flag
+  USE variables, ONLY: hysplit_flag , inversion_flag , umbrella_flag
 
- 
   IMPLICIT NONE
  
   REAL*8 :: t1 , t2
@@ -87,6 +87,12 @@ PROGRAM plume_model
      !***  Solve the plume model
      CALL plumerise
 
+     IF ( umbrella_flag ) THEN
+
+        CALL solve_umbrella
+        
+     END IF
+     
   END IF
     
   CALL close_file_units

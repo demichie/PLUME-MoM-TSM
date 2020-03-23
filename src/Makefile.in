@@ -89,8 +89,12 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_PLUMEMoM_OBJECTS = moments.$(OBJEXT) plume.$(OBJEXT) \
-	variables.$(OBJEXT) meteo.$(OBJEXT) particles.$(OBJEXT) \
-	mixture.$(OBJEXT) solver_rise.$(OBJEXT) inpout.$(OBJEXT) \
+	variables.$(OBJEXT) parameters_2d.$(OBJEXT) complexify.$(OBJEXT) \
+        geometry_2d.$(OBJEXT) constitutive_2d.$(OBJEXT) \
+        solver_2d.$(OBJEXT) \
+        meteo.$(OBJEXT) particles.$(OBJEXT) \
+	mixture.$(OBJEXT) solver_rise.$(OBJEXT) inpout.$(OBJEXT)  \
+        inpout_2d.$(OBJEXT) SW_UMBRELLA.$(OBJEXT) \
 	rise.$(OBJEXT) inversion.$(OBJEXT) plume_model.$(OBJEXT)
 PLUMEMoM_OBJECTS = $(am_PLUMEMoM_OBJECTS)
 PLUMEMoM_LDADD = $(LDADD)
@@ -232,6 +236,13 @@ PLUMEMoM_SOURCES = \
 		moments.f90 \
 		plume.f90 \
                 variables.f90 \
+                parameters_2d.f90 \
+                complexify.f90 \
+                geometry_2d.f90 \
+                constitutive_2d.f90 \
+                solver_2d.f90 \
+                inpout_2d.f90 \
+                SW_UMBRELLA.f90 \
 		meteo.f90 \
 		particles.f90 \
                 mixture.f90 \
