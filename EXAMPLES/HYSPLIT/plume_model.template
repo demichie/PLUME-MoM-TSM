@@ -31,6 +31,11 @@
  ALPHA_INP=  8.9999999999999997E-002,
  BETA_INP= 0.59999999999999998     ,
  /
+&INVERSION_PARAMETERS
+ HEIGHT_OBJ = {plume_height},
+ R_MIN = 10,
+ R_MAX = 200,
+/
 &ATM_PARAMETERS
  VISC_ATM0=  1.8000000000000000E-005,
  RAIR=  287.02600097656250     ,
@@ -43,14 +48,14 @@
  W0=  {vent_velocity}     ,
  LOG10_MFR=  {log10_mfr} ,
  MFR0=   NaN                 ,
- T_MIX0=  1300.0000000000000     ,
+ T_MIX0=  1273.0000000000000     ,
  INITIAL_NEUTRAL_DENSITY=F,
  WATER_MASS_FRACTION0=  {water_mass_fraction0},
  VENT_HEIGHT= {vent_height}    ,
  DS0=  2.5000000000000000     ,
  N_GAS=         {ngas},
  /
-&VOLCGAS_PARAMETERS
+&MIXTURE_PARAMETERS
  RVOLCGAS=  {rvolcgas}   ,
  CPVOLCGAS=  {cpvolcgas} ,
  VOLCGAS_MOL_WT=  {volcgas_mol_wt} ,
@@ -65,14 +70,6 @@
 &LOGNORMAL_PARAMETERS
  MU_LOGNORMAL=  {mu},
  SIGMA_LOGNORMAL=  {sigma}       ,
- /
-&INVERSION_PARAMETERS
- height_obj = {plume_height},
- r_min = 1.D0,
- r_max = 200.D0,
- n_values = 100,
- w_min = 1.D0,
- w_max = 500.D0,
  /
 &HYSPLIT_PARAMETERS
  HY_DELTAZ = {deltaz_release}   ,

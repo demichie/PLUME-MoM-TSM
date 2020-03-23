@@ -37,7 +37,13 @@ for filename in lines:
         os.rename(filename.strip(),filename.strip()+'.air')
 
 # choose the file to plot with a GUI
-filename = easygui.fileopenbox( filetypes=['*.air'])
+
+#option 1
+#filename = easygui.fileopenbox( filetypes=['*.air'])
+
+#option 2 (in case option 1 doesn't work)
+from tkFileDialog import askopenfilename
+filename = askopenfilename(filetypes=[("air files", "*.air")])
 
 
 AIR=[]
@@ -60,21 +66,14 @@ day = filename[und_where[-2]+1:und_where[-1]]
            
 print ' ---> day and time ',day,' ',time,' '
 
-count = 0
-header = []
-with open(filename) as f:
-    lines = f.readlines()
+data = f.read()
+first_line = data.split('\n', 1)[0]
+        
+line_split = first_line.split()
 
-    for line in lines:
-        if line[0].isdigit() == False:
-            header = header + line.split()
-            count = count + 1
-        else:
-            break
-
-f.close()    
-         
 m = []        
+
+total_mass = 0.0
 
 for j in range(99):
 
@@ -84,13 +83,13 @@ for j in range(99):
 
     occurrence = 0
              
-    for i in range(len(header)):
+    for i in range(len(line_split)):
 
-        if to_find in header[i]:
+        if to_find in  line_split[i]:
 
             occurrence = occurrence + 1
 
-            h_new.append(int(header[i][4:]))
+            h_new.append(int(line_split[i][4:]))
 
 
     if occurrence > 0 :
@@ -119,10 +118,8 @@ H_LEVELS = h
 print 'Number of particle classes :',npart
 print 'Heights :',H_LEVELS
 
-a = np.loadtxt(filename, skiprows = int(count))
-        
-total_mass = 0
- 
+a = np.loadtxt(filename, skiprows = 1)
+         
 if a.shape[0] == 0 :
          
     print 'No mass into the air at ',time
@@ -300,12 +297,12 @@ else:
                 plt.ylim(bottom=np.amax(y))
                 plt.ylim(top=np.amin(y))
                 plt.grid()
-                plt.title('Class CL'+str(i+1).zfill(2)+' - H from '+str(H_LEVELS[j,0])+'  to '+str(H_LEVELS[j+1,0])+', mass '+'%.1e'%mass_in_the_air+' kg' )
+                plt.title('Class CL'+str(i+1).zfill(2)+' - H from '+str(H_LEVELS[j,0])+'  to '+str(H_LEVELS[j+1,0])+'\n Mass '+'%.1e'%mass_in_the_air+' kg')
                 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
                 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
 
-                f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
-
+                f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+                plt.close()
             
 
         column = column + n_levels
@@ -361,12 +358,9 @@ plt.xlim(left=np.amin(x))
 plt.xlim(right=np.amax(x))
 plt.ylim(bottom=np.amax(y))
 plt.ylim(top=np.amin(y))
-plt.title('Total loading')
+plt.title('Total atmospheric loading')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
 clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
-f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'.pdf', bbox_inches='tight')
-
+f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+plt.close()
 # plt.show()        
-
-            
-

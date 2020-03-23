@@ -7,7 +7,7 @@ In this folder an inversion test case is included, in which the plume height, th
  /
 
 
-To run the test case, please copy firt (or link) the executable from the bin folder, and then run the model:
+To run the test case, please copy first (or link) the executable from the bin folder, and then run the model:
 
 > ./PLUMEMoM
 
