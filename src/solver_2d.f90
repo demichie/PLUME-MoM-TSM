@@ -20,7 +20,7 @@ MODULE solver_2d
 
   USE geometry_2d, ONLY : source_cell
 
-  USE parameters_2d, ONLY : wp , sp
+  USE variables, ONLY : wp , sp
 
   USE parameters_2d, ONLY : n_eqns , n_vars , n_nh
   USE parameters_2d, ONLY : n_RK

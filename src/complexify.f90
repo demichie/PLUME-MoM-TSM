@@ -26,7 +26,7 @@
 
 module complexify
 
-  USE parameters_2d, ONLY : wp
+  USE variables, ONLY : wp
 
   implicit none
   

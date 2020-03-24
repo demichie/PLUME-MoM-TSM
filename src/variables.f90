@@ -13,6 +13,12 @@ MODULE variables
   USE, intrinsic :: ieee_arithmetic
 
   IMPLICIT NONE
+
+  INTEGER, PARAMETER :: sp = Selected_Real_Kind (P=6,R=35)
+  INTEGER, PARAMETER :: dp = Selected_Real_Kind (P=15,R=300)
+
+  !> working precision
+  INTEGER, PARAMETER :: wp = sp
   
   !> Gravity acceleration 
   REAL*8 :: gi          
@@ -44,9 +50,9 @@ MODULE variables
   
   INTEGER :: n_cloud
 
-  REAL*8 :: height_nbl 
+  REAL(wp) :: height_nbl 
 
-  REAL*8 :: radius_nbl
+  REAL(wp) :: radius_nbl
   
   !> Maximum number of particle phases
   INTEGER, PARAMETER :: max_n_part = 50
@@ -60,11 +66,11 @@ MODULE variables
   
   LOGICAL :: write_flag
 
-  REAL*8 :: height_obj 
-  REAL*8 :: r_min
-  REAL*8 :: r_max
-  REAL*8 :: w_min
-  REAL*8 :: w_max
+  REAL(wp) :: height_obj 
+  REAL(wp) :: r_min
+  REAL(wp) :: r_max
+  REAL(wp) :: w_min
+  REAL(wp) :: w_max
   INTEGER :: n_values
 
   INTEGER :: indent_space
@@ -90,7 +96,7 @@ CONTAINS
   LOGICAL FUNCTION isSet(var)
 
     IMPLICIT NONE
-    REAL*8 :: var
+    REAL(wp) :: var
 
     isSet = .NOT.ieee_is_nan(var)
 

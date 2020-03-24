@@ -6,7 +6,7 @@
 !*********************************************************************
 MODULE geometry_2d
 
-  USE parameters_2d, ONLY : wp , sp
+  USE variables, ONLY : wp , sp
   USE parameters_2d, ONLY : verbose_level
 
   IMPLICIT NONE

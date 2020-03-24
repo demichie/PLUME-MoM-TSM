@@ -12,41 +12,43 @@ MODULE solver_module
   USE moments_module, ONLY: n_mom , n_sections
   USE particles_module, ONLY : n_part
   USE mixture_module, ONLY : n_gas
+  USE variables, ONLY : wp
+  
   !
   IMPLICIT NONE
 
   !> Right-Hand Side (rhs1) terms without aggregation
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rhs1
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rhs1
 
   !> Right-Hand Side (rhs2) aggregation terms only
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rhs2
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rhs2
   
   !> Right-Hand Side (rhs)
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rhstemp
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rhstemp
 
   !> Right-Hand Side (rhs)
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rhs
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rhs
 
   !> Integrated variables
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: ftemp
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: ftemp
 
   !> Integrated variables
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: f
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: f
 
   !> Integrated variables
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: f_stepold
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: f_stepold
 
   !> Rate of change of volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: volcgas_rate
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: volcgas_rate
 
   !> Total number of equations
   INTEGER :: itotal
 
   !> Integration step
-  REAL*8 :: dz                 
+  REAL(wp) :: dz                 
 
   !> Initial integration step
-  REAL*8 :: dz0                
+  REAL(wp) :: dz0                
   !
   SAVE
 
@@ -123,23 +125,23 @@ CONTAINS
 
     INTEGER :: idx
     
-    REAL*8 :: ueps
+    REAL(wp) :: ueps
 
-    REAL*8 :: cos_phi , sin_phi
-    REAL*8 :: factor0
+    REAL(wp) :: cos_phi , sin_phi
+    REAL(wp) :: factor0
 
-    REAL*8 :: solid_term , cp_solid_term
+    REAL(wp) :: solid_term , cp_solid_term
 
-    REAL*8 :: Ri
+    REAL(wp) :: Ri
 
-    REAL*8 :: alpha_p , beta_p
+    REAL(wp) :: alpha_p , beta_p
 
-    REAL*8 :: A , C
+    REAL(wp) :: A , C
 
-    REAL*8 :: a_poly , b_poly , c_poly , d_poly
-    REAL*8 :: s_star
+    REAL(wp) :: a_poly , b_poly , c_poly , d_poly
+    REAL(wp) :: s_star
 
-    REAL*8 :: a_10 , a_10_deriv
+    REAL(wp) :: a_10 , a_10_deriv
 
     !WRITE(*,*) 'mag_u',mag_u
 
@@ -391,7 +393,7 @@ CONTAINS
     USE variables, ONLY: gi
     !
     IMPLICIT NONE
-    REAL*8, DIMENSION(:), INTENT(OUT) :: f_
+    REAL(wp), DIMENSION(:), INTENT(OUT) :: f_
     INTEGER :: i_mom
     INTEGER :: i_part
     INTEGER :: i_sect
@@ -467,8 +469,8 @@ CONTAINS
   SUBROUTINE marching(fold,fnew,rate)
 
     IMPLICIT NONE
-    REAL*8, DIMENSION(:), INTENT(IN) :: fold, rate
-    REAL*8, DIMENSION(:), INTENT(OUT) :: fnew
+    REAL(wp), DIMENSION(:), INTENT(IN) :: fold, rate
+    REAL(wp), DIMENSION(:), INTENT(OUT) :: fnew
     INTEGER :: i
     INTEGER :: i_part, i_mom
 
@@ -536,27 +538,27 @@ CONTAINS
    
     IMPLICIT NONE
 
-    REAL*8, DIMENSION(:), INTENT(INOUT) :: f_
+    REAL(wp), DIMENSION(:), INTENT(INOUT) :: f_
     !
-    REAL*8, DIMENSION(n_part,n_nodes) :: xi , wi , wi_temp
+    REAL(wp), DIMENSION(n_part,n_nodes) :: xi , wi , wi_temp
 
-    REAL*8 :: rhoB_volcgas_w_r2(n_gas)
+    REAL(wp) :: rhoB_volcgas_w_r2(n_gas)
 
-    REAL*8 :: rhoB_solid_w_r2(n_part)
-    REAL*8 :: rhoB_solid_tot_w_r2
+    REAL(wp) :: rhoB_solid_w_r2(n_part)
+    REAL(wp) :: rhoB_solid_tot_w_r2
 
-    REAL*8 :: alfa_s_w_r2(1:n_part)
-    REAL*8 :: alfa_g_w_r2
-    REAL*8 :: alfa_lw_w_r2
-    REAL*8 :: alfa_ice_w_r2
+    REAL(wp) :: alfa_s_w_r2(1:n_part)
+    REAL(wp) :: alfa_g_w_r2
+    REAL(wp) :: alfa_lw_w_r2
+    REAL(wp) :: alfa_ice_w_r2
 
-    REAL*8 :: atm_volume_fraction
-    REAL*8 :: volcgas_mix_volume_fraction
+    REAL(wp) :: atm_volume_fraction
+    REAL(wp) :: volcgas_mix_volume_fraction
 
-    REAL*8 :: w_r2
+    REAL(wp) :: w_r2
 
-    REAL*8 :: rho_solid_avg(n_part)
-    REAL*8 :: rho_solid_tot_avg
+    REAL(wp) :: rho_solid_avg(n_part)
+    REAL(wp) :: rho_solid_tot_avg
 
     INTEGER :: j
     INTEGER :: i_part
@@ -568,18 +570,18 @@ CONTAINS
 
     INTEGER :: idx , idx1 , idx2
     
-    REAL*8 :: enth
+    REAL(wp) :: enth
 
-    REAL*8 :: gas_mix_volume_fraction
+    REAL(wp) :: gas_mix_volume_fraction
 
 
     ! Volume fraction of liquid water in the mixture
 
-    REAL*8 :: liquid_water_volume_fraction
+    REAL(wp) :: liquid_water_volume_fraction
 
     ! Volume fraction of ice in the mixture
 
-    REAL*8 :: ice_volume_fraction
+    REAL(wp) :: ice_volume_fraction
 
 
     x = f_(6)
@@ -801,7 +803,7 @@ CONTAINS
     w_r2 = SUM( alfa_s_w_r2(1:n_part) ) + alfa_g_w_r2 + alfa_lw_w_r2            &
          + alfa_ice_w_r2
 
-    r = DSQRT( w_r2 / w )    
+    r = SQRT( w_r2 / w )    
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*)

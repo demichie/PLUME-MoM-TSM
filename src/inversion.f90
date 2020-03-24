@@ -19,17 +19,19 @@ MODULE inversion
   USE inpout, ONLY: write_inversion
   USE rise, ONLY: plumerise
 
+  USE variables, ONLY : wp
+
   
   IMPLICIT NONE
 
   !> Optimal value of velocity 
-  REAL*8 :: opt_value
+  REAL(wp) :: opt_value
 
   !> Optimal height found (can be different from the input one)
-  REAL*8 :: opt_height
+  REAL(wp) :: opt_height
 
   !> Optimal solution mass flow rate
-  REAL*8 :: opt_mfr
+  REAL(wp) :: opt_mfr
 
   !> Optimal solution regime
   INTEGER :: opt_regime
@@ -54,7 +56,7 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: r_opt , w_opt
+    REAL(wp) :: r_opt , w_opt
     LOGICAL :: search_flag
 
     IF ( .NOT.isSet(w0) ) THEN
@@ -131,7 +133,7 @@ CONTAINS
     
     IMPLICIT NONE
 
-    REAL*8 :: w_opt
+    REAL(wp) :: w_opt
     INTEGER :: i
     LOGICAL :: search_flag
         
@@ -176,13 +178,13 @@ CONTAINS
     
     IMPLICIT none
 
-    REAL*8,INTENT(OUT) :: w_opt
+    REAL(wp),INTENT(OUT) :: w_opt
     LOGICAL,INTENT(OUT) :: search_flag
-    REAL*8 :: w0_init
-    REAL*8 :: w0_0 ,w0_2
-    REAL*8 :: plume_height_0 , plume_height_2
-    REAL*8 :: sign_0 , sign_2
-    REAL*8 :: init_sign , mult_fact
+    REAL(wp) :: w0_init
+    REAL(wp) :: w0_0 ,w0_2
+    REAL(wp) :: plume_height_0 , plume_height_2
+    REAL(wp) :: sign_0 , sign_2
+    REAL(wp) :: init_sign , mult_fact
 
     INTEGER :: iter_interval
     
@@ -190,13 +192,13 @@ CONTAINS
     search_flag = .TRUE.
 
     ! Initial velocity value for the search of the best value
-    w0_init = DSQRT(w_max*w_min)
+    w0_init = SQRT(w_max*w_min)
 
     CALL plumerise
     ! WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
 
     w_opt = w0
-    opt_value = DABS(plume_height-height_obj)
+    opt_value = ABS(plume_height-height_obj)
     opt_height = plume_height
     opt_mfr = mass_flow_rate
     opt_regime = column_regime
@@ -223,10 +225,10 @@ CONTAINS
        
        CALL plumerise
 
-       IF ( DABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
 
           w_opt = w0
-          opt_value = DABS(plume_height-height_obj)
+          opt_value = ABS(plume_height-height_obj)
           opt_height = plume_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
@@ -275,10 +277,10 @@ CONTAINS
        
        CALL plumerise
 
-       IF ( DABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
 
           w_opt = w0
-          opt_value = DABS(plume_height-height_obj)
+          opt_value = ABS(plume_height-height_obj)
           opt_height = plume_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
@@ -290,10 +292,10 @@ CONTAINS
        ! WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
        ! READ(*,*)
 
-       IF ( DABS(plume_height_0-plume_height_2) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(w0_2-w0_0) .LT. 1.D-6 ) THEN
+       IF ( ABS(plume_height_0-plume_height_2) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(w0_2-w0_0) .LT. 1.D-6 ) THEN
 
           search_flag = .FALSE.
           EXIT search_zero 
@@ -340,13 +342,13 @@ CONTAINS
     
     IMPLICIT none
 
-    REAL*8,INTENT(OUT) :: r_opt
+    REAL(wp),INTENT(OUT) :: r_opt
     LOGICAL,INTENT(OUT) :: search_flag
-    REAL*8 :: r0_init
-    REAL*8 :: r0_0 ,r0_2
-    REAL*8 :: plume_height_0 , plume_height_2
-    REAL*8 :: sign_0 , sign_2
-    REAL*8 :: init_sign , mult_fact
+    REAL(wp) :: r0_init
+    REAL(wp) :: r0_0 ,r0_2
+    REAL(wp) :: plume_height_0 , plume_height_2
+    REAL(wp) :: sign_0 , sign_2
+    REAL(wp) :: init_sign , mult_fact
 
     INTEGER :: iter_interval
     
@@ -359,7 +361,7 @@ CONTAINS
     !WRITE(*,*) 'first solve',r0,plume_height,INT(column_regime)
 
     r_opt = r0
-    opt_value = DABS(plume_height-height_obj)
+    opt_value = ABS(plume_height-height_obj)
     opt_height = plume_height
     opt_mfr = mass_flow_rate
     opt_regime = column_regime
@@ -386,10 +388,10 @@ CONTAINS
        CALL plumerise
        !WRITE(*,*) 'search_interval',r0,plume_height,INT(column_regime)
 
-       IF ( DABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
 
           r_opt = r0
-          opt_value = DABS(plume_height-height_obj)
+          opt_value = ABS(plume_height-height_obj)
           opt_height = plume_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
@@ -437,10 +439,10 @@ CONTAINS
 
        CALL plumerise
 
-       IF ( DABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
 
           r_opt = r0
-          opt_value = DABS(plume_height-height_obj)
+          opt_value = ABS(plume_height-height_obj)
           opt_height = plume_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
@@ -452,10 +454,10 @@ CONTAINS
        !WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
        !READ(*,*)
 
-       IF ( DABS(plume_height_0-plume_height_2) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
-       IF ( DABS(r0_2-r0_0) .LT. 1.D-5 ) THEN
+       IF ( ABS(plume_height_0-plume_height_2) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(plume_height-height_obj) .LT. 1.D-3 ) EXIT search_zero
+       IF ( ABS(r0_2-r0_0) .LT. 1.D-5 ) THEN
 
           search_flag = .FALSE.
           EXIT search_zero 

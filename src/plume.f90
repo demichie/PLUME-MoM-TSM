@@ -9,30 +9,33 @@
 !> Mattia de' Michieli Vitturi
 !********************************************************************************
 MODULE plume_module
-  !      
+  !
+
+  USE variables, ONLY : wp
+
   IMPLICIT NONE
   !
-  REAL*8 :: s       !< length along plume centerline
-  REAL*8 :: x       !< plume location (downwind)
-  REAL*8 :: y       !< plume location (crosswind)
-  REAL*8 :: z       !< plume vertical coordinate
-  REAL*8 :: r       !< plume radius
-  REAL*8 :: u       !< plume x-horizontal velocity
-  REAL*8 :: v       !< plume y-horizontal velocity
-  REAL*8 :: w       !< plume vertical velocity
-  REAL*8 :: mag_u   !< velocity magnitude along the centerline
-  REAL*8 :: phi     !< angle between the plume trajectory and ground
-  REAL*8 :: rp      !< radiation coefficient (kg/m**2/deg. k**3/s)
-  REAL*8 :: alpha_inp !< entrainment coefficient (parallel direction)
-  REAL*8 :: beta_inp  !< entrainment coefficient (normal direction)
-  REAL*8 :: prob_factor       !< particle loss factor
+  REAL(wp) :: s       !< length along plume centerline
+  REAL(wp) :: x       !< plume location (downwind)
+  REAL(wp) :: y       !< plume location (crosswind)
+  REAL(wp) :: z       !< plume vertical coordinate
+  REAL(wp) :: r       !< plume radius
+  REAL(wp) :: u       !< plume x-horizontal velocity
+  REAL(wp) :: v       !< plume y-horizontal velocity
+  REAL(wp) :: w       !< plume vertical velocity
+  REAL(wp) :: mag_u   !< velocity magnitude along the centerline
+  REAL(wp) :: phi     !< angle between the plume trajectory and ground
+  REAL(wp) :: rp      !< radiation coefficient (kg/m**2/deg. k**3/s)
+  REAL(wp) :: alpha_inp !< entrainment coefficient (parallel direction)
+  REAL(wp) :: beta_inp  !< entrainment coefficient (normal direction)
+  REAL(wp) :: prob_factor       !< particle loss factor
   LOGICAL :: particles_loss   !< logical defining if we loose particles
 
   !
-  REAL*8 :: vent_height  !< height of the base of the plume 
-  REAL*8 :: w0      !< initial vertical velocity of the plume
-  REAL*8 :: r0      !< initial radius of the plume
-  REAL*8 :: log10_mfr
+  REAL(wp) :: vent_height  !< height of the base of the plume 
+  REAL(wp) :: w0      !< initial vertical velocity of the plume
+  REAL(wp) :: r0      !< initial radius of the plume
+  REAL(wp) :: log10_mfr
   !
   SAVE
 
@@ -53,16 +56,16 @@ CONTAINS
 
     IMPLICIT NONE
 
-    x = 0.D0
-    y = 0.D0
+    x = 0.0_wp
+    y = 0.0_wp
     z = vent_height
-    s = 0.D0
+    s = 0.0_wp
     r = r0
     u = 1.D-5
     v = 1.D-5
     w = w0
 
-    mag_u = DSQRT(u*u+v*v+w*w)
+    mag_u = SQRT(u*u+v*v+w*w)
     phi = ATAN(w/u)
 
     RETURN

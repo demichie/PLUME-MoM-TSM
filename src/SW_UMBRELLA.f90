@@ -1,29 +1,6 @@
 !********************************************************************************
-!> \mainpage SW_UMBRELLA - Shallow Water Finite volume solver
-!> SW_UMBRELLA is a FORTRAN90 code designed to solve an hyperbolic 
-!> system of partial differential equations with relaxation and source
-!> terms.\n 
-!> The model is discretized in time with an explicit-implicit Runge-Kutta
-!> method where the hyperbolic part is solved explicetely and the other
-!> terms (relaxation and surce) are treated implicitely.\n
-!> The finite volume solver for the hyperbolic part of the system is based
-!> on a semidiscrete central scheme and it is not tied on the specific 
-!> eigenstructure of the model.\n
-!> The implicit part is solved with a Newton-Raphson method where the 
-!> elements of the Jacobian of the nonlinear system are evaluated 
-!> numerically with a complex step derivative technique.\n
-!> Version 1.0:\n
-!> \n 
-!> Github project page: http://demichie.github.io/SW_UMBRELLA/
-!> \n
-!> \authors Mattia de' Michieli Vitturi (*)
-!> (*) Istituto Nazionale di Geofisica e vulcanologia, sezione di Pisa\n
-!>     Via Cesare Battisti, 53\n
-!>     I-56125 Pisa, Italy \n
-!>     E-mail: mattia.demichielivitturi@ingv.it \n
+!> \brief Umbrella module
 !********************************************************************************
-
-!> \brief Main Program 
 module SW_UMBRELLA
 
 CONTAINS
@@ -54,7 +31,7 @@ CONTAINS
     USE solver_2d, ONLY : timestep
     USE solver_2d, ONLY : check_solve
 
-    USE parameters_2d, ONLY : wp
+    USE variables, ONLY : wp
 
     USE parameters_2d, ONLY : x_source , y_source , r_source
 

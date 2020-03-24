@@ -11,120 +11,121 @@
 MODULE mixture_module
 
   USE variables, ONLY: gi , pi_g
+  USE variables, ONLY : wp
 
   IMPLICIT NONE
 
   !> gas mass fraction in the mixture
-  REAL*8 :: gas_mass_fraction
+  REAL(wp) :: gas_mass_fraction
 
   !> gas vlume fraction in the mixture
-  REAL*8 :: gas_volume_fraction
+  REAL(wp) :: gas_volume_fraction
 
   !> gas phase density
-  REAL*8 :: rho_gas   
+  REAL(wp) :: rho_gas   
 
   !> universal constant for the mixture
-  REAL*8 :: rgasmix  
+  REAL(wp) :: rgasmix  
 
   !> mixture density
-  REAL*8 :: rho_mix  
+  REAL(wp) :: rho_mix  
 
   !> logical defining if the plume has neutral density at the base
   LOGICAL :: initial_neutral_density
 
   !> mixture temperature
-  REAL*8 :: t_mix
+  REAL(wp) :: t_mix
 
   !> exit_status
-  REAL*8 :: exit_status     
+  REAL(wp) :: exit_status     
 
   !> water volume fraction in the mixture
-  REAL*8 :: water_volume_fraction
+  REAL(wp) :: water_volume_fraction
 
   !> solid volume fraction in the mixture
-  REAL*8 :: solid_tot_volume_fraction
+  REAL(wp) :: solid_tot_volume_fraction
 
   !> initial temperature 
-  REAL*8 :: t_mix0      
+  REAL(wp) :: t_mix0      
 
   !> initial water volume fraction
-  REAL*8 :: water_volume_fraction0
+  REAL(wp) :: water_volume_fraction0
 
   !> initial water mass fraction
-  REAL*8 :: water_mass_fraction0
+  REAL(wp) :: water_mass_fraction0
 
   !> solid mass fraction in the mixture
-  REAL*8 :: solid_tot_mass_fraction
+  REAL(wp) :: solid_tot_mass_fraction
 
   ! mass flow rate
-  REAL*8 :: mass_flow_rate
+  REAL(wp) :: mass_flow_rate
 
   !> volcanic gas species number
   INTEGER :: n_gas
 
   !> volcanic gases densities
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rhovolcgas
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rhovolcgas
 
   !> gas constants for volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: rvolcgas
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: rvolcgas
 
   !> specific heat capacity for volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: cpvolcgas
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: cpvolcgas
 
   !> molecular weight of additional volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: volcgas_mol_wt 
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: volcgas_mol_wt 
 
   !> initial mass fractions of volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: volcgas_mass_fraction0
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: volcgas_mass_fraction0
 
   !> mass fractions of volcanic gases
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: volcgas_mass_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: volcgas_mass_fraction
 
   !> volcanic gases mixture density
-  REAL*8 :: rhovolcgas_mix
+  REAL(wp) :: rhovolcgas_mix
 
   !> gas constant of volcanic gases mixture ( J/(kg K) )
-  REAL*8 :: rvolcgas_mix
+  REAL(wp) :: rvolcgas_mix
 
   !> specific heat of volcanic gases mixture
-  REAL*8 :: cpvolcgas_mix
+  REAL(wp) :: cpvolcgas_mix
 
   !> mass fraction of the entrained air in the mixture
-  REAL*8 :: atm_mass_fraction
+  REAL(wp) :: atm_mass_fraction
 
   !> mass fraction of the volcanic gas in the mixture
-  REAL*8 :: volcgas_mix_mass_fraction
+  REAL(wp) :: volcgas_mix_mass_fraction
 
   !> mass fraction of dry air in the mixture
-  REAL*8 :: dry_air_mass_fraction
+  REAL(wp) :: dry_air_mass_fraction
 
   !> mass fraction of water in the mixture
-  REAL*8 :: water_mass_fraction
+  REAL(wp) :: water_mass_fraction
 
   !> mass fraction of liquid water in the mixture
-  REAL*8 :: liquid_water_mass_fraction
+  REAL(wp) :: liquid_water_mass_fraction
 
   !> mass fraction of water vapor in the mixture
-  REAL*8 :: water_vapor_mass_fraction
+  REAL(wp) :: water_vapor_mass_fraction
 
   !> mass fraction of ice in the mixture
-  REAL*8 :: ice_mass_fraction
+  REAL(wp) :: ice_mass_fraction
 
-  REAL*8 :: volcgas_mix_mol_fract
+  REAL(wp) :: volcgas_mix_mol_fract
 
-  REAL*8 :: volcgas_mix_mol_wt
+  REAL(wp) :: volcgas_mix_mol_wt
 
-  REAL*8 :: mixture_enthalpy
+  REAL(wp) :: mixture_enthalpy
 
   !> Density of liquid water in the mixture
-  REAL*8 :: rho_lw
+  REAL(wp) :: rho_lw
 
   !> Density of ice in the mixture
-  REAL*8 :: rho_ice
+  REAL(wp) :: rho_ice
 
-  REAL*8 :: added_water_temp
+  REAL(wp) :: added_water_temp
 
-  REAL*8 :: added_water_mass_fraction
+  REAL(wp) :: added_water_mass_fraction
 
   SAVE
 
@@ -170,15 +171,15 @@ CONTAINS
     
     IMPLICIT NONE
 
-    REAL*8 :: rho_solid_avg(n_part)
+    REAL(wp) :: rho_solid_avg(n_part)
 
-    REAL*8 :: rho_solid_tot_avg
+    REAL(wp) :: rho_solid_tot_avg
 
-    REAL*8 :: alfa_s(n_part)
+    REAL(wp) :: alfa_s(n_part)
 
-    REAL*8 :: atm_volume_fraction 
+    REAL(wp) :: atm_volume_fraction 
 
-    REAL*8 :: volcgas_mix_volume_fraction 
+    REAL(wp) :: volcgas_mix_volume_fraction 
 
     INTEGER :: i_part
 
@@ -186,17 +187,17 @@ CONTAINS
 
     INTEGER :: i_gas
 
-    REAL*8 :: Rrhovolcgas_mix
+    REAL(wp) :: Rrhovolcgas_mix
 
-    REAL*8 :: rhowv
+    REAL(wp) :: rhowv
 
-    REAL*8 :: enth_at_vent
+    REAL(wp) :: enth_at_vent
 
-    REAL*8 :: mixt_enth , check_enth
+    REAL(wp) :: mixt_enth , check_enth
 
-    REAL*8 :: erupted_mass_Fraction
+    REAL(wp) :: erupted_mass_Fraction
 
-    REAL*8 :: C0
+    REAL(wp) :: C0
 
     IF ( verbose_level .GE. 1 ) THEN
 
@@ -474,15 +475,15 @@ CONTAINS
           IF ( .NOT.isSet(w) ) THEN
 
              ! Equation 4 from Carazzo et al. 2008
-             w = 138 * DSQRT( water_mass_fraction0 * 100.d0 )
-             mag_u = DSQRT(u*u+w*w)
+             w = 138 * SQRT( water_mass_fraction0 * 100.d0 )
+             mag_u = SQRT(u*u+w*w)
              phi = ATAN(w/u)
 
              WRITE(*,*) 'WARNING: calculated initial velocity =',w
 
           END IF
 
-          r = DSQRT( mass_flow_rate / ( pi_g * rho_mix * mag_u ) )
+          r = SQRT( mass_flow_rate / ( pi_g * rho_mix * mag_u ) )
           r0=r
 
           IF ( write_flag) WRITE(*,*)                                           &
@@ -495,7 +496,7 @@ CONTAINS
              r = r0
              w = mass_flow_rate / ( pi_g * rho_mix * r0**2 )
              u = 1.D-5    
-             mag_u = DSQRT(u*u+w*w)
+             mag_u = SQRT(u*u+w*w)
              phi = ATAN(w/u)
 
              WRITE(*,*) 'WARNING: Initial vel [m/s] computed from MER and r =',w
@@ -554,12 +555,12 @@ CONTAINS
     IMPLICIT none
 
     !> mixture enthalpy
-    REAL*8, INTENT(IN) :: enth
+    REAL(wp), INTENT(IN) :: enth
 
     !> pressure in Pa
-    REAL*8, INTENT(IN) :: pa
+    REAL(wp), INTENT(IN) :: pa
 
-    REAL*8, INTENT(IN) :: cpsolid
+    REAL(wp), INTENT(IN) :: cpsolid
 
     ! WRITE(*,*) 'eval_temp'
 
@@ -639,38 +640,38 @@ CONTAINS
     IMPLICIT none
 
     !> mixture enthalpy
-    REAL*8, INTENT(IN) :: enth
+    REAL(wp), INTENT(IN) :: enth
 
     !> pressure in Pa
-    REAL*8, INTENT(IN) :: pres
+    REAL(wp), INTENT(IN) :: pres
 
-    REAL*8, INTENT(IN) :: cpsolid
+    REAL(wp), INTENT(IN) :: cpsolid
 
     !> water vapor molar fraction
-    REAL*8 :: wv_mol_fract
+    REAL(wp) :: wv_mol_fract
 
     !> dry air molar fraction
-    REAL*8 :: da_mol_fract
+    REAL(wp) :: da_mol_fract
 
     !> saturation pressure of vapour over liquid (hPa)
-    REAL*8 :: el
+    REAL(wp) :: el
 
     !> saturation pressure of vapour over ice (hPa)
-    REAL*8 :: es
+    REAL(wp) :: es
 
-    REAL*8 :: wv_pres
+    REAL(wp) :: wv_pres
 
-    REAL*8 :: lw_mf0 , lw_mf1 , lw_mf2
+    REAL(wp) :: lw_mf0 , lw_mf1 , lw_mf2
 
-    REAL*8 :: ice_mf0, ice_mf1, ice_mf2
+    REAL(wp) :: ice_mf0, ice_mf1, ice_mf2
 
-    REAL*8 :: wv_mf0, wv_mf1, wv_mf2
+    REAL(wp) :: wv_mf0, wv_mf1, wv_mf2
 
-    REAL*8 :: f0, f1, f2
+    REAL(wp) :: f0, f1, f2
 
-    REAL*8 :: temp0 , temp1 , temp2
+    REAL(wp) :: temp0 , temp1 , temp2
 
-    REAL*8 :: enth0 , enth1 , enth2
+    REAL(wp) :: enth0 , enth1 , enth2
 
     !WRITE(*,*) 'water_mass_fraction', water_mass_fraction
     !WRITE(*,*) 'volcgas_mix_mass_fraction', volcgas_mix_mass_fraction
@@ -928,7 +929,7 @@ CONTAINS
 
           END IF
 
-          IF ( DABS(temp2-temp0) .LT. 1.D-5 ) THEN
+          IF ( ABS(temp2-temp0) .LT. 1.D-5 ) THEN
 
              t_mix = temp1
 
@@ -936,7 +937,7 @@ CONTAINS
 
              EXIT find_temp1
 
-          ELSEIF ( DABS(lw_mf2 - lw_mf0) .LT. 1.D-7 ) THEN
+          ELSEIF ( ABS(lw_mf2 - lw_mf0) .LT. 1.D-7 ) THEN
 
              t_mix = temp1
 
@@ -967,42 +968,42 @@ CONTAINS
     IMPLICIT none
 
     !> mixture enthalpy
-    REAL*8, INTENT(IN) :: enth
+    REAL(wp), INTENT(IN) :: enth
 
     !> pressure in Pa
-    REAL*8, INTENT(IN) :: pres
+    REAL(wp), INTENT(IN) :: pres
 
-    REAL*8, INTENT(IN) :: cpsolid
+    REAL(wp), INTENT(IN) :: cpsolid
 
     !> water vapor molar fraction
-    REAL*8 :: wv_mol_fract
+    REAL(wp) :: wv_mol_fract
 
     !> dry air molar fraction
-    REAL*8 :: da_mol_fract
+    REAL(wp) :: da_mol_fract
 
     !> saturation pressure of vapour over liquid (hPa)
-    REAL*8 :: el
+    REAL(wp) :: el
 
     !> saturation pressure of vapour over ice (hPa)
-    REAL*8 :: es
+    REAL(wp) :: es
 
-    REAL*8 :: wv_pres
+    REAL(wp) :: wv_pres
 
-    REAL*8 :: lw_mf0 , lw_mf1 , lw_mf2
+    REAL(wp) :: lw_mf0 , lw_mf1 , lw_mf2
 
-    REAL*8 :: ice_mf0, ice_mf1, ice_mf2
+    REAL(wp) :: ice_mf0, ice_mf1, ice_mf2
 
-    REAL*8 :: wv_mf0, wv_mf1, wv_mf2
+    REAL(wp) :: wv_mf0, wv_mf1, wv_mf2
 
-    REAL*8 :: f0, f1, f2
+    REAL(wp) :: f0, f1, f2
 
-    REAL*8 :: temp0 , temp1 , temp2
+    REAL(wp) :: temp0 , temp1 , temp2
 
-    REAL*8 :: enth0 , enth1 , enth2
+    REAL(wp) :: enth0 , enth1 , enth2
 
     exit_status = 0.D0
 
-    !REAL*8 :: exit_status
+    !REAL(wp) :: exit_status
 
     ! ------ Water can be liquid, vapour and ice -----------------------------
     ! For (T_ref-40) <= T <= T_ref, liquid water mass fraction varies linearly
@@ -1218,38 +1219,38 @@ CONTAINS
     IMPLICIT none
 
     !> mixture enthalpy
-    REAL*8, INTENT(IN) :: enth
+    REAL(wp), INTENT(IN) :: enth
 
     !> pressure in Pa
-    REAL*8, INTENT(IN) :: pres
+    REAL(wp), INTENT(IN) :: pres
 
-    REAL*8, INTENT(IN) :: cpsolid
+    REAL(wp), INTENT(IN) :: cpsolid
 
     !> water vapor molar fraction
-    REAL*8 :: wv_mol_fract
+    REAL(wp) :: wv_mol_fract
 
     !> dry air molar fraction
-    REAL*8 :: da_mol_fract
+    REAL(wp) :: da_mol_fract
 
     !> saturation pressure of vapour over liquid (hPa)
-    REAL*8 :: el
+    REAL(wp) :: el
 
     !> saturation pressure of vapour over ice (hPa)
-    REAL*8 :: es
+    REAL(wp) :: es
 
-    REAL*8 :: wv_pres
+    REAL(wp) :: wv_pres
 
-    REAL*8 :: lw_mf0 , lw_mf1 , lw_mf2
+    REAL(wp) :: lw_mf0 , lw_mf1 , lw_mf2
 
-    REAL*8 :: ice_mf0, ice_mf1, ice_mf2
+    REAL(wp) :: ice_mf0, ice_mf1, ice_mf2
 
-    REAL*8 :: wv_mf0, wv_mf1, wv_mf2
+    REAL(wp) :: wv_mf0, wv_mf1, wv_mf2
 
-    REAL*8 :: f0, f1, f2
+    REAL(wp) :: f0, f1, f2
 
-    REAL*8 :: temp0 , temp1 , temp2
+    REAL(wp) :: temp0 , temp1 , temp2
 
-    REAL*8 :: enth0 , enth1 , enth2
+    REAL(wp) :: enth0 , enth1 , enth2
 
 
 
@@ -1526,7 +1527,7 @@ CONTAINS
 
           END IF
 
-          IF ( DABS(temp2-temp0) .LT. 1.D-3 ) THEN
+          IF ( ABS(temp2-temp0) .LT. 1.D-3 ) THEN
 
              t_mix = temp1
 
@@ -1538,7 +1539,7 @@ CONTAINS
              ! WRITE(*,*)'t_mix 1',t_mix
              EXIT find_temp2
 
-          ELSEIF ( DABS(ice_mf2 - ice_mf0) .LT. 1.D-7 ) THEN
+          ELSEIF ( ABS(ice_mf2 - ice_mf0) .LT. 1.D-7 ) THEN
 
              t_mix = temp1
 
@@ -1571,12 +1572,12 @@ CONTAINS
     IMPLICIT none
 
     !> mixture enthalpy
-    REAL*8, INTENT(IN) :: enth
+    REAL(wp), INTENT(IN) :: enth
 
     !> pressure in Pa
-    REAL*8, INTENT(IN) :: pres
+    REAL(wp), INTENT(IN) :: pres
 
-    REAL*8, INTENT(IN) :: cpsolid
+    REAL(wp), INTENT(IN) :: cpsolid
 
     liquid_water_mass_fraction = 0.D0
 

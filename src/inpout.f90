@@ -53,7 +53,7 @@ MODULE inpout
 
   IMPLICIT NONE
 
-  REAL*8 :: notSet
+  REAL(wp) :: notSet
 
   
   !> Counter for unit files
@@ -143,18 +143,18 @@ MODULE inpout
   !> Inversion variables data unit
   INTEGER :: inversion_unit
 
-  REAL*8 :: mfr0
+  REAL(wp) :: mfr0
   
-  REAL*8, ALLOCATABLE :: mu_lognormal(:) , sigma_lognormal(:)
+  REAL(wp), ALLOCATABLE :: mu_lognormal(:) , sigma_lognormal(:)
 
-  REAL*8 :: month
-  REAL*8 :: lat
+  REAL(wp) :: month
+  REAL(wp) :: lat
 
-  REAL*8 :: phi_min , delta_phi
+  REAL(wp) :: phi_min , delta_phi
   
-  REAL*8 :: hy_deltaz , hy_z , hy_z_old , hy_x , hy_y , hy_x_old , hy_y_old 
+  REAL(wp) :: hy_deltaz , hy_z , hy_z_old , hy_x , hy_y , hy_x_old , hy_y_old 
 
-  REAL*8, ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) ,   &
+  REAL(wp), ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) ,   &
         solid_mfr_oldold(:)
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
@@ -229,7 +229,7 @@ CONTAINS
 
     LOGICAL :: lexist
 
-    REAL*8 :: test
+    REAL(wp) :: test
     
     notSet = ieee_value(0.D0, ieee_quiet_nan)
 
@@ -284,7 +284,7 @@ CONTAINS
     SETTLING_MODEL = "none"
     
     gi = 9.81d0               ! Gravity acceleration
-    pi_g = 4.D0 * DATAN(1.D0) 
+    pi_g = 4.D0 * ATAN(1.D0) 
     
     n_unit = 10
 
@@ -460,60 +460,58 @@ CONTAINS
     
     INTEGER :: i , k , j
 
-    REAL*8, DIMENSION(max_n_part) :: solid_volume_fraction0
-    REAL*8, ALLOCATABLE :: d_max(:) 
+    REAL(wp), DIMENSION(max_n_part) :: solid_volume_fraction0
+    REAL(wp), ALLOCATABLE :: d_max(:) 
 
-    REAL*8 :: solid_tot_volume_fraction0
+    REAL(wp) :: solid_tot_volume_fraction0
 
-    REAL*8, DIMENSION(max_n_part) :: rho_solid_avg
+    REAL(wp), DIMENSION(max_n_part) :: rho_solid_avg
 
-    REAL*8 :: rho_solid_tot_avg
+    REAL(wp) :: rho_solid_tot_avg
 
-    REAL*8 :: diam
+    REAL(wp) :: diam
     
-    REAL*8 :: rhowv
-    REAL*8 :: rho_gas
-    REAL*8 :: rho_mix
+    REAL(wp) :: rhowv
+    REAL(wp) :: rho_gas
+    REAL(wp) :: rho_mix
 
-    REAL*8 :: alfa_s
+    REAL(wp) :: alfa_s
 
 
-    REAL*8, ALLOCATABLE :: atm_profile0(:,:)
+    REAL(wp), ALLOCATABLE :: atm_profile0(:,:)
 
     INTEGER :: i_part
 
-    INTEGER*8 :: fact2
-
     INTEGER, ALLOCATABLE :: coeff(:,:)
 
-    REAL*8, ALLOCATABLE :: rho_atm_month(:,:)
+    REAL(wp), ALLOCATABLE :: rho_atm_month(:,:)
 
-    REAL*8 :: rho_atm_jan(100,13)
-    REAL*8 :: rho_atm_apr(100,13)
-    REAL*8 :: rho_atm_jul(100,13)
-    REAL*8 :: rho_atm_oct(100,13)
+    REAL(wp) :: rho_atm_jan(100,13)
+    REAL(wp) :: rho_atm_apr(100,13)
+    REAL(wp) :: rho_atm_jul(100,13)
+    REAL(wp) :: rho_atm_oct(100,13)
 
-    REAL*8, ALLOCATABLE :: pres_atm_month(:,:)
+    REAL(wp), ALLOCATABLE :: pres_atm_month(:,:)
 
-    REAL*8 :: pres_atm_jan(100,13)
-    REAL*8 :: pres_atm_apr(100,13)
-    REAL*8 :: pres_atm_jul(100,13)
-    REAL*8 :: pres_atm_oct(100,13)
+    REAL(wp) :: pres_atm_jan(100,13)
+    REAL(wp) :: pres_atm_apr(100,13)
+    REAL(wp) :: pres_atm_jul(100,13)
+    REAL(wp) :: pres_atm_oct(100,13)
 
-    REAL*8, ALLOCATABLE :: temp_atm_month(:,:)
+    REAL(wp), ALLOCATABLE :: temp_atm_month(:,:)
 
-    REAL*8 :: temp_atm_jan(100,13)
-    REAL*8 :: temp_atm_apr(100,13)
-    REAL*8 :: temp_atm_jul(100,13)
-    REAL*8 :: temp_atm_oct(100,13)
+    REAL(wp) :: temp_atm_jan(100,13)
+    REAL(wp) :: temp_atm_apr(100,13)
+    REAL(wp) :: temp_atm_jul(100,13)
+    REAL(wp) :: temp_atm_oct(100,13)
 
     INTEGER :: atm_level
 
     INTEGER :: n_atm_levels
 
-    REAL*8 :: coeff_lat
+    REAL(wp) :: coeff_lat
 
-    REAL*8 :: Rrhovolcgas_mix
+    REAL(wp) :: Rrhovolcgas_mix
 
     INTEGER :: io
 
@@ -523,7 +521,7 @@ CONTAINS
 
     INTEGER :: ip
 
-    REAL*8 :: rhop
+    REAL(wp) :: rhop
 
     NAMELIST / bin_parameters / bin_partial_mass_fraction
     
@@ -2449,7 +2447,7 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: mfr
+    REAL(wp) :: mfr
 
     INTEGER :: i_part , j_part , i_mom , i_sect
 
@@ -2607,7 +2605,7 @@ CONTAINS
 
     CHARACTER(20), INTENT(IN) :: description
 
-    REAL*8, INTENT(IN) :: value
+    REAL(wp), INTENT(IN) :: value
 
     WRITE(dak_unit,*) description,value
     
@@ -2641,7 +2639,7 @@ CONTAINS
   SUBROUTINE write_inversion(r0,w_opt,opt_mfr,opt_height,search_flag, &
             opt_regime)
 
-    REAL*8,INTENT(IN) :: r0,w_opt,opt_mfr,opt_height
+    REAL(wp),INTENT(IN) :: r0,w_opt,opt_mfr,opt_height
     LOGICAL,INTENT(IN) :: search_flag
     INTEGER,INTENT(IN) :: opt_regime
     
@@ -2673,7 +2671,7 @@ CONTAINS
 
     INTEGER :: i_part , i_sect
 
-    REAL*8, ALLOCATABLE :: delta_solid(:)
+    REAL(wp), ALLOCATABLE :: delta_solid(:)
 
     INTEGER :: n_tot
 
@@ -2751,29 +2749,29 @@ CONTAINS
 
     INTEGER :: i , j , n_hy
 
-    REAL*8 :: temp_k,mfr
-    REAL*8 :: da_mf,wv_mf,lw_mf, ice_mf, volcgas_tot_mf
-    REAL*8, ALLOCATABLE :: x_col(:) , y_col(:) , z_col(:) , r_col(:) 
-    REAL*8, ALLOCATABLE :: mom_col(:,:) , mfr_col(:)
-    REAL*8, ALLOCATABLE :: volcgas_mf(:,:)
-    REAL*8, ALLOCATABLE :: solid_mass_flux(:,:) , solid_mass_loss_cum(:,:)
-    REAL*8, ALLOCATABLE :: volcgas_mass_flux(:,:) 
-    REAL*8 :: z_min , z_max , z_bot , z_top , x_top , x_bot , y_bot , y_top
-    REAL*8 :: r_bot , r_top
-    REAL*8 :: solid_bot , solid_top
-    REAL*8 :: solid_loss_bot , solid_loss_top
-    REAL*8 :: gas_top
-    REAL*8, ALLOCATABLE :: delta_solid(:) , cloud_solid(:)
-    REAL*8, ALLOCATABLE :: cloud_gas(:) 
-    REAL*8, ALLOCATABLE :: solid_tot(:)
+    REAL(wp) :: temp_k,mfr
+    REAL(wp) :: da_mf,wv_mf,lw_mf, ice_mf, volcgas_tot_mf
+    REAL(wp), ALLOCATABLE :: x_col(:) , y_col(:) , z_col(:) , r_col(:) 
+    REAL(wp), ALLOCATABLE :: mom_col(:,:) , mfr_col(:)
+    REAL(wp), ALLOCATABLE :: volcgas_mf(:,:)
+    REAL(wp), ALLOCATABLE :: solid_mass_flux(:,:) , solid_mass_loss_cum(:,:)
+    REAL(wp), ALLOCATABLE :: volcgas_mass_flux(:,:) 
+    REAL(wp) :: z_min , z_max , z_bot , z_top , x_top , x_bot , y_bot , y_top
+    REAL(wp) :: r_bot , r_top
+    REAL(wp) :: solid_bot , solid_top
+    REAL(wp) :: solid_loss_bot , solid_loss_top
+    REAL(wp) :: gas_top
+    REAL(wp), ALLOCATABLE :: delta_solid(:) , cloud_solid(:)
+    REAL(wp), ALLOCATABLE :: cloud_gas(:) 
+    REAL(wp), ALLOCATABLE :: solid_tot(:)
 
 
-    REAL*8 :: angle_release , start_angle
-    REAL*8 :: delta_angle
-    REAL*8 :: dx , dy , dz , dv(3) 
+    REAL(wp) :: angle_release , start_angle
+    REAL(wp) :: delta_angle
+    REAL(wp) :: dx , dy , dz , dv(3) 
 
-    REAL*8 :: vect(3) , vect0(3) , v(3) , c , s
-    REAL*8 :: mat_v(3,3) , mat_R(3,3)
+    REAL(wp) :: vect(3) , vect0(3) , v(3) , c , s
+    REAL(wp) :: mat_v(3,3) , mat_R(3,3)
 
     INTEGER :: i_part , i_sect
     INTEGER :: n_tot
@@ -2944,11 +2942,11 @@ CONTAINS
           
           DO j=1,n_cloud
              
-             start_angle =  DATAN2(sin_theta,cos_theta)
+             start_angle =  ATAN2(sin_theta,cos_theta)
              angle_release = (j-1) * delta_angle - 0.5D0*pi_g
 
-             dx = 0.5D0* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
-             dy = 0.5D0* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
+             dx = 0.5D0* ( r_bot + r_top ) * COS(start_angle + angle_release)
+             dy = 0.5D0* ( r_bot + r_top ) * SIN(start_angle + angle_release)
              dz = 0.D0
 
              !WRITE(*,*) "dx,dy ",dx,dy
@@ -3040,11 +3038,11 @@ CONTAINS
        
        DO i=1,n_cloud
           
-          start_angle =  DATAN2(sin_theta,cos_theta)
+          start_angle =  ATAN2(sin_theta,cos_theta)
           angle_release = (i-1) * delta_angle - 0.5D0*pi_g
           
-          dx = 0.5* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
-          dy = 0.5* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
+          dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
+          dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
 
           dz = 0.D0
           
@@ -3096,11 +3094,11 @@ CONTAINS
               
        DO i=1,n_cloud
           
-          start_angle =  DATAN2(sin_theta,cos_theta)
+          start_angle =  ATAN2(sin_theta,cos_theta)
           angle_release = (i-1) * delta_angle - 0.5D0*pi_g
           
-          dx = 0.5* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
-          dy = 0.5* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
+          dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
+          dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
           dz = 0.D0
           
           IF ( verbose_level .GE. 1 ) THEN
@@ -3213,11 +3211,11 @@ CONTAINS
               
        DO i=1,n_cloud
           
-          start_angle =  DATAN2(sin_theta,cos_theta)
+          start_angle =  ATAN2(sin_theta,cos_theta)
           angle_release = (i-1) * delta_angle - 0.5D0*pi_g
           
-          dx = 0.5* ( r_bot + r_top ) * DCOS(start_angle + angle_release)
-          dy = 0.5* ( r_bot + r_top ) * DSIN(start_angle + angle_release)
+          dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
+          dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
           
           
           IF ( verbose_level .GE. 1 ) THEN
@@ -3257,8 +3255,8 @@ CONTAINS
   !------------------------------------------------------------------------------
   
   FUNCTION cross(a, b)
-    REAL*8, DIMENSION(3) :: cross
-    REAL*8, DIMENSION(3), INTENT(IN) :: a, b
+    REAL(wp), DIMENSION(3) :: cross
+    REAL(wp), DIMENSION(3), INTENT(IN) :: a, b
     
     cross(1) = a(2) * b(3) - a(3) * b(2)
     cross(2) = a(3) * b(1) - a(1) * b(3)
@@ -3280,8 +3278,8 @@ CONTAINS
   !------------------------------------------------------------------------------
    
   FUNCTION normpdf(phi, mu,sigma )
-    REAL*8 :: normpdf
-    REAL*8, INTENT(IN) :: phi,mu,sigma
+    REAL(wp) :: normpdf
+    REAL(wp), INTENT(IN) :: phi,mu,sigma
 
     normpdf = 1.D0 / ( sigma * DSQRT( 2.D0 * pi_g ) ) * DEXP( -0.5D0 *          &
          ( ( phi - mu ) / sigma )**2 )
@@ -3337,14 +3335,14 @@ CONTAINS
  
   FUNCTION numberFromMass(MassL,MassR,Mass) result (Number)
 
-    REAL*8, INTENT(IN) :: MassL(:)
-    REAL*8, INTENT(IN) :: MassR(:)
-    REAL*8, INTENT(IN) :: Mass(:)
+    REAL(wp), INTENT(IN) :: MassL(:)
+    REAL(wp), INTENT(IN) :: MassR(:)
+    REAL(wp), INTENT(IN) :: Mass(:)
 
-    REAL*8 :: Number(size(Mass))
+    REAL(wp) :: Number(size(Mass))
 
-    REAL*8 :: a , b
-    REAL*8 :: x1 , x2
+    REAL(wp) :: a , b
+    REAL(wp) :: x1 , x2
     
     INTEGER :: j
     

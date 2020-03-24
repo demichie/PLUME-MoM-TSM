@@ -44,9 +44,11 @@ PROGRAM plume_model
 
   USE variables, ONLY: hysplit_flag , inversion_flag , umbrella_flag
 
+  USE variables, ONLY : wp
+
   IMPLICIT NONE
  
-  REAL*8 :: t1 , t2
+  REAL(wp) :: t1 , t2
 
   WRITE(*,*)
   WRITE(*,*)

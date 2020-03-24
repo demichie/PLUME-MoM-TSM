@@ -9,10 +9,12 @@
 !********************************************************************************
 MODULE rise
 
+  USE variables, ONLY : wp
+
   IMPLICIT NONE
 
-  REAL*8 :: plume_height
-  REAL*8 :: column_regime
+  REAL(wp) :: plume_height
+  REAL(wp) :: column_regime
 
   INTEGER, PARAMETER :: n_RK = 6
 
@@ -75,58 +77,58 @@ CONTAINS
 
     INTEGER :: i_part
 
-    REAL*8 :: mu(4)
+    REAL(wp) :: mu(4)
 
-    REAL*8 :: k1 , k2
+    REAL(wp) :: k1 , k2
 
-    REAL*8 :: mu_phi , sigma_phi , skew_phi
+    REAL(wp) :: mu_phi , sigma_phi , skew_phi
 
-    REAL*8 :: mass_fract(n_part)
+    REAL(wp) :: mass_fract(n_part)
 
-    REAL*8 :: solid_mass_flux , solid_mass_flux0
+    REAL(wp) :: solid_mass_flux , solid_mass_flux0
 
-    REAL*8 :: solid_mass_flux_change
+    REAL(wp) :: solid_mass_flux_change
 
-    REAL*8 :: obj_function
+    REAL(wp) :: obj_function
 
-    REAL*8 :: w_old , w_oldold
-    REAL*8 :: w_minrel , w_maxrel
-    REAL*8 :: w_maxabs
+    REAL(wp) :: w_old , w_oldold
+    REAL(wp) :: w_minrel , w_maxrel
+    REAL(wp) :: w_maxabs
 
-    REAL*8 :: check_sb
-    REAL*8 :: eps_sb
+    REAL(wp) :: check_sb
+    REAL(wp) :: eps_sb
 
 
     INTEGER :: idx
 
-    REAL*8 :: rho_mix_init , rho_mix_final
+    REAL(wp) :: rho_mix_init , rho_mix_final
 
-    REAL*8 :: delta_rho
+    REAL(wp) :: delta_rho
 
-    REAL*8 :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl
-    REAL*8 :: u_wind_nbl , v_wind_nbl
-    REAL*8 :: deltarho_min
+    REAL(wp) :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl
+    REAL(wp) :: u_wind_nbl , v_wind_nbl
+    REAL(wp) :: deltarho_min
 
     
-    REAL*8 :: rho_atm_old
-    REAL*8 :: z_old
-    REAL*8 :: r_old
-    REAL*8 :: deltarho , deltarho_old
+    REAL(wp) :: rho_atm_old
+    REAL(wp) :: z_old
+    REAL(wp) :: r_old
+    REAL(wp) :: deltarho , deltarho_old
 
-    REAL*8 :: partial_mf(n_sections)
+    REAL(wp) :: partial_mf(n_sections)
 
-    REAL*8 :: rhs_RK(itotal,n_RK)
-    REAL*8 :: rhs1_RK(itotal,n_RK)
-    REAL*8 :: rhs2_RK(itotal,n_RK)
-    REAL*8 :: f_RK(itotal,n_RK)
+    REAL(wp) :: rhs_RK(itotal,n_RK)
+    REAL(wp) :: rhs1_RK(itotal,n_RK)
+    REAL(wp) :: rhs2_RK(itotal,n_RK)
+    REAL(wp) :: f_RK(itotal,n_RK)
 
-    REAL*8 :: A_RK(n_RK,n_RK)
-    REAL*8 :: B_RK(n_RK)
-    REAL*8 :: C_RK(n_RK)
+    REAL(wp) :: A_RK(n_RK,n_RK)
+    REAL(wp) :: B_RK(n_RK)
+    REAL(wp) :: C_RK(n_RK)
 
-    REAL*8 :: f5th(itotal)
-    REAL*8 :: f4th(itotal)
-    REAL*8 :: fscal(itotal)
+    REAL(wp) :: f5th(itotal)
+    REAL(wp) :: f4th(itotal)
+    REAL(wp) :: fscal(itotal)
 
     INTEGER :: i_sect
 
@@ -134,16 +136,16 @@ CONTAINS
 
     INTEGER :: i
 
-    REAL*8 :: delta
-    REAL*8 :: eps_RK
-    REAL*8 :: errmax
+    REAL(wp) :: delta
+    REAL(wp) :: eps_RK
+    REAL(wp) :: errmax
 
-    REAL*8, PARAMETER :: SAFETY = 0.9D0
-    REAL*8, PARAMETER :: PGROW = -0.2D0
-    REAL*8, PARAMETER :: PSHRNK = -0.25D0
-    REAL*8, PARAMETER :: ERRCON = 1.89D-4
+    REAL(wp), PARAMETER :: SAFETY = 0.9_wp
+    REAL(wp), PARAMETER :: PGROW = -0.2_wp
+    REAL(wp), PARAMETER :: PSHRNK = -0.25_wp
+    REAL(wp), PARAMETER :: ERRCON = 1.89D-4
 
-    REAL*8 :: drho_atm_dz
+    REAL(wp) :: drho_atm_dz
 
     !
     ! ... Set initial conditions at the release height
@@ -201,7 +203,7 @@ CONTAINS
        IF ( write_flag ) THEN
 
           mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
-          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
+          sigma_phi = SQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
                SUM( mom(1,:,i_part) ) )
 
           description = 'Init Avg Diam '//trim(x1)
@@ -426,12 +428,12 @@ CONTAINS
 
        END DO
 
-       errmax = MAXVAL( DABS( (f5th-f4th)/fscal ) ) / eps_RK
+       errmax = MAXVAL( ABS( (f5th-f4th)/fscal ) ) / eps_RK
 
        IF ( errmax .GT. 1.D0 ) THEN
 
           delta = SAFETY*errmax**PSHRNK
-          dz = SIGN( MAX(DABS(dz*delta),0.1D0*DABS(dz)) , dz )
+          dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
           f = f_stepold
 
           ! go to the next iteration
@@ -447,7 +449,7 @@ CONTAINS
 
        IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
-          dz = 0.5D0 * dz
+          dz = 0.5_wp * dz
           f = f_stepold
 
           IF ( verbose_level .GT. 0 ) THEN
@@ -668,7 +670,7 @@ CONTAINS
        IF ( write_flag ) THEN
 
           mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
-          sigma_phi = DSQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
+          sigma_phi = SQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
                SUM( mom(1,:,i_part) ) )
 
           description = 'Final Avg Diam '//trim(x1)

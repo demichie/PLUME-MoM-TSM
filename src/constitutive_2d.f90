@@ -3,7 +3,8 @@
 !********************************************************************************
 MODULE constitutive_2d
 
-  USE parameters_2d, ONLY : wp, tolh
+  USE variables, ONLY : wp
+  USE parameters_2d, ONLY : tolh
   USE parameters_2d, ONLY : n_eqns , n_vars
 
   IMPLICIT none

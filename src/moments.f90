@@ -10,6 +10,8 @@
 
 MODULE moments_module
 
+  USE variables, ONLY : wp
+    
   IMPLICIT NONE
 
   !> Number of nodes for the quadrature
@@ -39,19 +41,19 @@ CONTAINS
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
-  REAL*8 FUNCTION beta_function(z,w)
+  REAL(wp) FUNCTION beta_function(z,w)
 
     IMPLICIT NONE
 
-    REAL*8, INTENT(IN):: w,z
+    REAL(wp), INTENT(IN):: w,z
 
-    REAL*8:: gamln_z , gamln_w , gamln_zw
+    REAL(wp):: gamln_z , gamln_w , gamln_zw
 
     gamln_z = gammln(z)
     gamln_w = gammln(w)
     gamln_zw = gammln(z+w)
 
-    beta_function = DEXP( gamln_z + gamln_w - gamln_zw )
+    beta_function = EXP( gamln_z + gamln_w - gamln_zw )
 
     RETURN
 
@@ -73,11 +75,11 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: gammln,xx
+    REAL(wp) :: gammln,xx
 
     INTEGER :: j
 
-    REAL*8 :: ser , tmp , x , y , cof(14)
+    REAL(wp) :: ser , tmp , x , y , cof(14)
 
     cof(1) = 57.1562356658629235
     cof(2) = -59.5979603554754912
@@ -135,11 +137,11 @@ CONTAINS
   subroutine gaulegf(x1, x2, x, w, n)
     implicit none
     integer, intent(in) :: n
-    double precision, intent(in) :: x1, x2
-    double precision, dimension(n), intent(out) :: x, w
+    REAL(wp), intent(in) :: x1, x2
+    REAL(wp), dimension(n), intent(out) :: x, w
     integer :: i, j, m
-    double precision :: p1, p2, p3, pp, xl, xm, z, z1
-    double precision, parameter :: eps=3.d-14
+    REAL(wp) :: p1, p2, p3, pp, xl, xm, z, z1
+    REAL(wp), parameter :: eps=3.d-14
     
     m = (n+1)/2
     xm = 0.5d0*(x2+x1)
@@ -181,17 +183,17 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8, INTENT(IN) :: Ml
-    REAL*8, INTENT(IN) :: Mr
-    REAL*8, INTENT(IN) :: mom(0:1)
-    REAL*8, INTENT(OUT) :: Ma
-    REAL*8, INTENT(OUT) :: Mb
-    REAL*8, INTENT(OUT) :: alfa
-    REAL*8, INTENT(OUT) :: beta
-    REAL*8, INTENT(OUT) :: gamma1
-    REAL*8, INTENT(OUT) :: gamma2
+    REAL(wp), INTENT(IN) :: Ml
+    REAL(wp), INTENT(IN) :: Mr
+    REAL(wp), INTENT(IN) :: mom(0:1)
+    REAL(wp), INTENT(OUT) :: Ma
+    REAL(wp), INTENT(OUT) :: Mb
+    REAL(wp), INTENT(OUT) :: alfa
+    REAL(wp), INTENT(OUT) :: beta
+    REAL(wp), INTENT(OUT) :: gamma1
+    REAL(wp), INTENT(OUT) :: gamma2
 
-    REAL*8 :: M , N , Mmax , Mmin 
+    REAL(wp) :: M , N , Mmax , Mmin 
 
     M = mom(1)
     N = mom(0)

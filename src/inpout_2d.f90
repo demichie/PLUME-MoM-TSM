@@ -15,8 +15,9 @@ MODULE inpout_2d
   USE inpout, ONLY : run_name
   
   USE variables, ONLY : verbose_level , gi
-  
-  USE parameters_2d, ONLY : wp , n_vars
+  USE variables, ONLY : wp
+
+  USE parameters_2d, ONLY : n_vars
 
   ! -- Variables for the namelist RUN_PARAMETERS
   USE parameters_2d, ONLY : t_start , t_end , dt_output 

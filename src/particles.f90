@@ -15,6 +15,7 @@ MODULE particles_module
   USE variables, ONLY : aggregation_flag , verbose_level , indent_space , FMT
 
   USE variables, ONLY : k_b
+  USE variables, ONLY : wp
 
   IMPLICIT NONE
   
@@ -22,73 +23,73 @@ MODULE particles_module
   INTEGER :: n_part
 
   !> mass fraction of the particle phases with respect to the total solid
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction
 
   !> init mass fraction of the particle phases with respect to the total solid
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction0
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_partial_mass_fraction0
 
   !> volume fraction of the particle phases with respect to the total solid
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_partial_volume_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_partial_volume_fraction
 
   !> mass fraction of the particle phases with respect to the mixture
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction
 
   !> initial mass fraction of the particle phases with respect to the mixture
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction0
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_mass_fraction0
 
   !> volume fraction of the particle phases with respect to the mixture
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: solid_volume_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: solid_volume_fraction
 
   !> mass fraction of the bins of particle with respect to the total solid
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: bin_partial_mass_fraction
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: bin_partial_mass_fraction
 
   !> rate of particles lost from the plume in the integration steps ( kg s^-1)
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: particle_loss_rate
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: particle_loss_rate
   
   !> cumulative rate of particles lost up to the integration height ( kg s^-1)
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: cum_particle_loss_rate
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: cum_particle_loss_rate
 
   !> Moments of the particles diameter
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: mom
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: mom
 
   !> Initial moments of the particles diameter
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: mom0
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: mom0
   
   !> Moments of the settling velocities
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: set_mom
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: set_mom
 
   !> Moments of the settling velocities times the heat capacity
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: set_cp_mom
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: set_cp_mom
 
   !> Term accounting for the birth of aggregates in the moments equations
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: birth_mom
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: birth_mom
 
   !> Term accounting for the loss of particles because of aggregation 
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: death_mom
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: death_mom
 
   !> shape factor for settling velocity (Pfeiffer)
-  REAL*8, ALLOCATABLE :: shape_factor(:)
+  REAL(wp), ALLOCATABLE :: shape_factor(:)
 
   !> First diameter for the density function
-  REAL*8, ALLOCATABLE :: phi1(:)
+  REAL(wp), ALLOCATABLE :: phi1(:)
 
   !> Density at phi=phi1
-  REAL*8, ALLOCATABLE :: rho1(:)
+  REAL(wp), ALLOCATABLE :: rho1(:)
 
   !> Second diameter for the density function
-  REAL*8, ALLOCATABLE :: phi2(:)
+  REAL(wp), ALLOCATABLE :: phi2(:)
 
   !> Density at phi=phi2
-  REAL*8, ALLOCATABLE :: rho2(:)
+  REAL(wp), ALLOCATABLE :: rho2(:)
 
   !> Heat capacity of particle phases
-  REAL*8, ALLOCATABLE :: cp_part(:)
+  REAL(wp), ALLOCATABLE :: cp_part(:)
 
   !> Average heat capacity of particles
-  REAL*8 :: cpsolid
+  REAL(wp) :: cpsolid
 
   
-  REAL*8 :: particles_beta0 
+  REAL(wp) :: particles_beta0 
 
   !> Settling model:\n
   !> - 'textor'    => Textor et al. 2006
@@ -108,7 +109,7 @@ MODULE particles_module
   LOGICAL, ALLOCATABLE :: aggregation_array(:)
 
   !> Array for porosity volume fraction of aggregates
-  REAL*8, ALLOCATABLE :: aggregate_porosity(:)
+  REAL(wp), ALLOCATABLE :: aggregate_porosity(:)
   
   !> Aggregation kernel model:\n
   !> - 'constant'   => beta=1
@@ -121,53 +122,53 @@ MODULE particles_module
   INTEGER, ALLOCATABLE :: aggr_idx(:)
 
   !> Abscissa of quadrature formulas
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: m_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: m_quad
 
   !> Weights of quadrature formulas
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: w_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: w_quad
 
   !> Particle size (phi-scale) at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: phi_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: phi_quad
 
   !> Particle diameters (meters) at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: diam_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: diam_quad
 
   !> Particle volumes at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: vol_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: vol_quad
 
   !> Particle densities at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: rho_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: rho_quad
 
   !> Particle settling velocities at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: set_vel_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: set_vel_quad
 
   !> Particle heat capacities at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: cp_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: cp_quad
 
   !> Values of linear reconstructions at quadrature points
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:) :: f_quad
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: f_quad
   
   !> Particle temperature for aggregation (Costa model)
-  REAL*8 :: t_part
+  REAL(wp) :: t_part
 
   !> left boundaries of the sections in phi-scale
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: phiL 
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: phiL 
 
   !> right boundaries of the sections in phi-scale
-  REAL*8, ALLOCATABLE, DIMENSION(:) :: phiR 
+  REAL(wp), ALLOCATABLE, DIMENSION(:) :: phiR 
 
   !> boundaries of the sections in mass scale (kg)
-  REAL*8, ALLOCATABLE, DIMENSION(:,:) :: M
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: M
 
   !> logical defining if particles ip/is+jp/js aggregates on section ks 
   LOGICAL, ALLOCATABLE, DIMENSION(:,:,:,:,:) :: q_flag
 
   !> aggregation kernel computed for ip/is+jp/js
-  REAL*8, ALLOCATABLE, DIMENSION(:,:,:,:,:,:) :: kernel_aggr
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:,:,:,:) :: kernel_aggr
   
-  REAL*8,ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: A
+  REAL(wp),ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: A
 
-  REAL*8,ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: Wij
+  REAL(wp),ALLOCATABLE, DIMENSION(:,:,:,:,:,:,:) :: Wij
 
   SAVE
 
@@ -330,46 +331,46 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: particles_settling_velocity
+    REAL(wp) :: particles_settling_velocity
 
-    REAL*8, INTENT(IN) :: diam
-    REAL*8, INTENT(IN) :: rhop
-    REAL*8, INTENT(IN) :: shape_fact
+    REAL(wp), INTENT(IN) :: diam
+    REAL(wp), INTENT(IN) :: rhop
+    REAL(wp), INTENT(IN) :: shape_fact
 
-    REAL*8 :: k1 , k2 , k3
-    REAL*8 :: CD , CD1 , CD2
+    REAL(wp) :: k1 , k2 , k3
+    REAL(wp) :: CD , CD1 , CD2
 
-    REAL*8 :: Reynolds , Reynoldsk1k2
-    REAL*8 :: Vinit , Vg_Ganser
+    REAL(wp) :: Reynolds , Reynoldsk1k2
+    REAL(wp) :: Vinit , Vg_Ganser
 
     INTEGER :: i
 
     !> cross sectional area
-    REAL*8 :: A_cs
+    REAL(wp) :: A_cs
 
     !> Drag coefficients at Rey=100,1000
-    REAL*8 :: Cd_100 , Cd_1000
+    REAL(wp) :: Cd_100 , Cd_1000
 
     !> Drag coefficent for intermediate values of Re
-    REAL*8 :: Cd_interp
+    REAL(wp) :: Cd_interp
 
     !> Settling velocity at Rey=100,1000
-    REAL*8 :: Us_100 , Us_1000
+    REAL(wp) :: Us_100 , Us_1000
 
     !> Mass of the particle
-    REAL*8 :: mass
+    REAL(wp) :: mass
 
     !> Settling velocities
-    REAL*8 :: Us , Us_1 ,Us_2
+    REAL(wp) :: Us , Us_1 ,Us_2
 
     !> Reynolds numbers for the two solutions of the settling equation
-    REAL*8 :: Rey1 , Rey2
+    REAL(wp) :: Rey1 , Rey2
 
     !> Coefficients of the settling equation
-    REAL*8 :: c0 , c1 , c2
+    REAL(wp) :: c0 , c1 , c2
 
     !> Square root of the discriminant of the settling equation
-    REAL*8 :: sqrt_delta
+    REAL(wp) :: sqrt_delta
 
     IF ( settling_model .EQ. 'textor' ) THEN
 
@@ -379,14 +380,14 @@ CONTAINS
 
           k1 = 1.19D5   ! (m^2 kg^-1 s^-1 )
           
-          particles_settling_velocity = k1 * rhop * DSQRT( rho_atm0 / rho_atm ) &
+          particles_settling_velocity = k1 * rhop * SQRT( rho_atm0 / rho_atm ) &
                * ( 0.5D0 * diam )**2
 
        ELSEIF ( diam .LE. 1.D-3 ) THEN
 
           k2 = 8.D0    ! (m^3 kg^-1 s^-1 )
 
-          particles_settling_velocity = k2 * rhop * DSQRT( rho_atm0 / rho_atm ) &
+          particles_settling_velocity = k2 * rhop * SQRT( rho_atm0 / rho_atm ) &
                * ( 0.5D0 * diam )
 
        ELSE 
@@ -394,8 +395,8 @@ CONTAINS
           k3 = 4.833D0 ! (m^2 kg^-0.5 s^-1 )
           CD = 0.75D0
 
-          particles_settling_velocity = k3 * DSQRT( rhop / CD )                 &
-               * DSQRT(  rho_atm0 / rho_atm ) * DSQRT( 0.5D0 * diam )
+          particles_settling_velocity = k3 * SQRT( rhop / CD )                 &
+               * SQRT(  rho_atm0 / rho_atm ) * SQRT( 0.5D0 * diam )
 
        END IF
 
@@ -440,7 +441,7 @@ CONTAINS
     ELSEIF ( settling_model .EQ. 'pfeiffer' ) THEN
 
        k1 = shape_fact**(-0.828)
-       k2 = 2.D0 * DSQRT( 1.07 - shape_fact )
+       k2 = 2.D0 * SQRT( 1.07 - shape_fact )
 
        mass = rhop * 4.D0/3.D0 * pi_g * ( 0.5*diam )**3
 
@@ -511,7 +512,7 @@ CONTAINS
           Cd_interp = Cd_100 + ( Rey2 - 100 ) / ( 1000 - 100 )                  &
                * ( Cd_1000 - Cd_100)
 
-          Us = DSQRT( 2.D0 * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
+          Us = SQRT( 2.D0 * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
 
        ELSEIF ( Rey2 .GT. 1000.D0 ) THEN
 
@@ -554,9 +555,9 @@ CONTAINS
     !
     IMPLICIT NONE
 
-    REAL*8 :: particles_heat_capacity
+    REAL(wp) :: particles_heat_capacity
     INTEGER, INTENT(IN) :: i_part
-    REAL*8, INTENT(IN) :: diam
+    REAL(wp), INTENT(IN) :: diam
 
     particles_heat_capacity = cp_part(i_part)
 
@@ -578,12 +579,12 @@ CONTAINS
     !
     IMPLICIT NONE
 
-    REAL*8 :: particles_density
+    REAL(wp) :: particles_density
 
     INTEGER, INTENT(IN) :: i_part
-    REAL*8, INTENT(IN) :: phi
+    REAL(wp), INTENT(IN) :: phi
 
-    REAL*8 :: phi_temp,rho_temp
+    REAL(wp) :: phi_temp,rho_temp
     
     IF ( phi1(i_part) .GT. phi2(i_part) ) THEN
 
@@ -645,18 +646,18 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: particles_beta
+    REAL(wp) :: particles_beta
 
-    REAL*8, INTENT(IN) :: temp
-    REAL*8, INTENT(IN) :: visc
-    REAL*8, INTENT(IN) :: diam_i
-    REAL*8, INTENT(IN) :: diam_j
-    REAL*8, INTENT(IN), OPTIONAL :: rho_i
-    REAL*8, INTENT(IN), OPTIONAL :: rho_j
-    REAL*8, INTENT(IN), OPTIONAL :: Vs_i
-    REAL*8, INTENT(IN), OPTIONAL :: Vs_j
-    REAL*8, INTENT(IN), OPTIONAL :: lw_mf 
-    REAL*8, INTENT(IN), OPTIONAL :: ice_mf 
+    REAL(wp), INTENT(IN) :: temp
+    REAL(wp), INTENT(IN) :: visc
+    REAL(wp), INTENT(IN) :: diam_i
+    REAL(wp), INTENT(IN) :: diam_j
+    REAL(wp), INTENT(IN), OPTIONAL :: rho_i
+    REAL(wp), INTENT(IN), OPTIONAL :: rho_j
+    REAL(wp), INTENT(IN), OPTIONAL :: Vs_i
+    REAL(wp), INTENT(IN), OPTIONAL :: Vs_j
+    REAL(wp), INTENT(IN), OPTIONAL :: lw_mf 
+    REAL(wp), INTENT(IN), OPTIONAL :: ice_mf 
 
     SELECT CASE ( aggregation_model )
        
@@ -725,21 +726,21 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: aggregation_kernel
+    REAL(wp) :: aggregation_kernel
 
-    REAL*8, INTENT(IN) :: diam_i
-    REAL*8, INTENT(IN) :: rho_i
-    REAL*8, INTENT(IN) :: Vs_i
-    REAL*8, INTENT(IN) :: diam_j
-    REAL*8, INTENT(IN) :: rho_j
-    REAL*8, INTENT(IN) :: Vs_j
-    REAL*8, INTENT(IN) :: lw_mf 
-    REAL*8, INTENT(IN) :: ice_mf 
-    REAL*8, INTENT(IN) :: temp
-    REAL*8, INTENT(IN) :: visc
+    REAL(wp), INTENT(IN) :: diam_i
+    REAL(wp), INTENT(IN) :: rho_i
+    REAL(wp), INTENT(IN) :: Vs_i
+    REAL(wp), INTENT(IN) :: diam_j
+    REAL(wp), INTENT(IN) :: rho_j
+    REAL(wp), INTENT(IN) :: Vs_j
+    REAL(wp), INTENT(IN) :: lw_mf 
+    REAL(wp), INTENT(IN) :: ice_mf 
+    REAL(wp), INTENT(IN) :: temp
+    REAL(wp), INTENT(IN) :: visc
 
-    REAL*8 :: beta
-    REAL*8 :: alfa
+    REAL(wp) :: beta
+    REAL(wp) :: alfa
 
     IF ( verbose_level .GE. 2 ) THEN
 
@@ -801,34 +802,34 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: collision_kernel
+    REAL(wp) :: collision_kernel
 
-    REAL*8,INTENT(IN) :: diam_i
-    REAL*8,INTENT(IN) :: rho_i
-    REAL*8,INTENT(IN) :: Vs_i
-    REAL*8,INTENT(IN) :: diam_j
-    REAL*8,INTENT(IN) :: rho_j
-    REAL*8,INTENT(IN) :: Vs_j
-    REAL*8,INTENT(IN) :: temp
-    REAL*8,INTENT(IN) :: visc
+    REAL(wp),INTENT(IN) :: diam_i
+    REAL(wp),INTENT(IN) :: rho_i
+    REAL(wp),INTENT(IN) :: Vs_i
+    REAL(wp),INTENT(IN) :: diam_j
+    REAL(wp),INTENT(IN) :: rho_j
+    REAL(wp),INTENT(IN) :: Vs_j
+    REAL(wp),INTENT(IN) :: temp
+    REAL(wp),INTENT(IN) :: visc
 
     !> Brownian motion collisions kernel
-    REAL*8 :: beta_B   
+    REAL(wp) :: beta_B   
 
     !> Laminar and turbulent fluid shear collisions kernel
-    REAL*8 :: beta_S
+    REAL(wp) :: beta_S
 
     !> Differential sedimentation kernel
-    REAL*8 :: beta_DS
+    REAL(wp) :: beta_DS
 
     !> Gravitational collision efficiency
-    REAL*8 :: E_coll
+    REAL(wp) :: E_coll
 
     !> Rate of dissipation of turbulent kinetic energy
-    REAL*8 :: epsilon
+    REAL(wp) :: epsilon
 
     !> Fluid shear
-    REAL*8 :: Gamma_s
+    REAL(wp) :: Gamma_s
 
     !WRITE(*,*) 'collision_kernel'
 
@@ -848,7 +849,7 @@ CONTAINS
 
     !WRITE(*,*) 'beta_B',beta_B
 
-    ! Gamma_s = DSQRT( 1.3D0 * epsilon * air_kin_viscosity )
+    ! Gamma_s = SQRT( 1.3D0 * epsilon * air_kin_viscosity )
 
     ! Value from Table 1 (Costa 2010)
     Gamma_s = 0.0045D0 
@@ -862,7 +863,7 @@ CONTAINS
     !WRITE(*,*) Vs_j , Vs_i
     
     ! Eq. 3, third term Costa et al. JGR 2010
-    beta_DS = pi_g / 4.D0 * ( diam_i + diam_j )**2 * DABS( Vs_j - Vs_i )
+    beta_DS = pi_g / 4.D0 * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
 
     !WRITE(*,*) 'beta_DS',beta_DS
 
@@ -907,29 +908,29 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: coalescence_efficiency
+    REAL(wp) :: coalescence_efficiency
 
-    REAL*8, INTENT(IN) :: diam_i
-    REAL*8, INTENT(IN) :: rho_i
-    REAL*8, INTENT(IN) :: Vs_i
-    REAL*8, INTENT(IN) :: diam_j
-    REAL*8, INTENT(IN) :: rho_j
-    REAL*8, INTENT(IN) :: Vs_j
-    REAL*8, INTENT(IN) :: lw_mf 
-    REAL*8, INTENT(IN) :: ice_mf 
+    REAL(wp), INTENT(IN) :: diam_i
+    REAL(wp), INTENT(IN) :: rho_i
+    REAL(wp), INTENT(IN) :: Vs_i
+    REAL(wp), INTENT(IN) :: diam_j
+    REAL(wp), INTENT(IN) :: rho_j
+    REAL(wp), INTENT(IN) :: Vs_j
+    REAL(wp), INTENT(IN) :: lw_mf 
+    REAL(wp), INTENT(IN) :: ice_mf 
     
-    REAL*8 :: coalescence_efficiency_ice , coalescence_efficiency_water
+    REAL(wp) :: coalescence_efficiency_ice , coalescence_efficiency_water
     
     !> particle Stokes number
-    REAL*8 :: Stokes
+    REAL(wp) :: Stokes
 
     !> Critical Stokes number
-    REAL*8 :: Stokes_cr
+    REAL(wp) :: Stokes_cr
 
     !> Efficiency exponent
-    REAL*8 :: q
+    REAL(wp) :: q
 
-    REAL*8 :: mu_liq
+    REAL(wp) :: mu_liq
 
     IF ( verbose_level .GE. 2 ) THEN
 
@@ -946,7 +947,7 @@ CONTAINS
     mu_liq = 5.43D-4
     
     ! Eq. 6 Costa et al. JGR 2010 (CHECK DENSITY!)
-    Stokes = 8.d0 * ( 0.5D0 * ( rho_i + rho_j ) ) * DABS( Vs_i - Vs_j ) /       &
+    Stokes = 8.d0 * ( 0.5D0 * ( rho_i + rho_j ) ) * ABS( Vs_i - Vs_j ) /       &
          ( 9.d0 * mu_liq ) * diam_i * diam_j / ( diam_i + diam_j )
     
     Stokes_cr = 1.3D0
@@ -1079,11 +1080,11 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER :: i_part , i_sect
-    REAL*8 :: coeff_lin(4)
-    REAL*8 :: Mai , Mbi
-    REAL*8 :: alfai , betai,gamma1,gamma2
+    REAL(wp) :: coeff_lin(4)
+    REAL(wp) :: Mai , Mbi
+    REAL(wp) :: alfai , betai,gamma1,gamma2
 
-    REAL*8 :: Ml , Mr
+    REAL(wp) :: Ml , Mr
 
     INTEGER :: condition1(n_nodes) , condition2(n_nodes)
 
@@ -1134,14 +1135,14 @@ CONTAINS
     
     IMPLICIT NONE
 
-    REAL*8 :: x(n_nodes) , w(n_nodes)
+    REAL(wp) :: x(n_nodes) , w(n_nodes)
 
     INTEGER :: i_part , i_sect
 
-    REAL*8 :: Ml , Mr
+    REAL(wp) :: Ml , Mr
 
     ! Compute the quadrature abscissas and weights on the interval [-1;1]
-    CALL gaulegf(-1.D0, 1.D0, x, w, n_nodes)
+    CALL gaulegf(-1.0_wp, 1.0_wp, x, w, n_nodes)
 
     IF ( verbose_level .GE. 1 ) THEN
 
@@ -1196,19 +1197,19 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: diam1 , diam2
-    REAL*8 :: Vol1 , Vol2
-    REAL*8 :: M1 , M2
-    REAL*8 :: Vol(n_nodes,n_sections)
-    REAL*8 :: f1(n_nodes,n_sections) , f2(n_nodes,n_sections)
-    REAL*8 :: f(n_nodes,n_sections)
-    REAL*8 :: phiL(n_nodes,n_sections) , phiR(n_nodes,n_sections)
-    REAL*8 :: phi(n_nodes,n_sections)
-    REAL*8 :: diam(n_nodes,n_sections)
-    REAL*8 :: Mi(n_nodes,n_sections)
-    REAL*8 :: rho_p(1:n_nodes,1:n_sections)
-    REAL*8 :: cond1(n_nodes,n_sections), cond2(n_nodes,n_sections)
-    REAL*8 :: cond3(n_nodes,n_sections)
+    REAL(wp) :: diam1 , diam2
+    REAL(wp) :: Vol1 , Vol2
+    REAL(wp) :: M1 , M2
+    REAL(wp) :: Vol(n_nodes,n_sections)
+    REAL(wp) :: f1(n_nodes,n_sections) , f2(n_nodes,n_sections)
+    REAL(wp) :: f(n_nodes,n_sections)
+    REAL(wp) :: phiL(n_nodes,n_sections) , phiR(n_nodes,n_sections)
+    REAL(wp) :: phi(n_nodes,n_sections)
+    REAL(wp) :: diam(n_nodes,n_sections)
+    REAL(wp) :: Mi(n_nodes,n_sections)
+    REAL(wp) :: rho_p(1:n_nodes,1:n_sections)
+    REAL(wp) :: cond1(n_nodes,n_sections), cond2(n_nodes,n_sections)
+    REAL(wp) :: cond3(n_nodes,n_sections)
     
     INTEGER :: i_part
     INTEGER :: i_sect
@@ -1359,22 +1360,22 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8,INTENT(IN) :: temp
-    REAL*8,INTENT(IN) :: visc
-    REAL*8,INTENT(IN) :: lw_mf
-    REAL*8,INTENT(IN) :: ice_mf
+    REAL(wp),INTENT(IN) :: temp
+    REAL(wp),INTENT(IN) :: visc
+    REAL(wp),INTENT(IN) :: lw_mf
+    REAL(wp),INTENT(IN) :: ice_mf
   
     INTEGER :: i_part , j_part
     INTEGER :: i_sect , j_sect , k_sect
     
     INTEGER :: i_node , j_node
     
-    REAL*8 :: kernel_ji(n_nodes,n_nodes)
+    REAL(wp) :: kernel_ji(n_nodes,n_nodes)
 
-    REAL*8 :: f1i(n_nodes)
-    REAL*8 :: f2j(n_nodes)
-    REAL*8 :: integrand_ijkm
-    REAL*8 :: f1i_f2j(n_nodes,n_nodes)
+    REAL(wp) :: f1i(n_nodes)
+    REAL(wp) :: f2j(n_nodes)
+    REAL(wp) :: integrand_ijkm
+    REAL(wp) :: f1i_f2j(n_nodes,n_nodes)
 
 
     DO i_part=1,n_part 
@@ -1518,15 +1519,15 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: mi1(n_nodes) , mj2(n_nodes)
-    REAL*8 :: wi1(n_nodes) , wj2(n_nodes)
+    REAL(wp) :: mi1(n_nodes) , mj2(n_nodes)
+    REAL(wp) :: wi1(n_nodes) , wj2(n_nodes)
 
-    REAL*8 :: mij12(n_nodes,n_nodes)
-    REAL*8 :: wij12(n_nodes,n_nodes)
+    REAL(wp) :: mij12(n_nodes,n_nodes)
+    REAL(wp) :: wij12(n_nodes,n_nodes)
     INTEGER :: Aijk(n_nodes,n_nodes)
-    REAL*8 :: Wijm(n_nodes,n_nodes)
+    REAL(wp) :: Wijm(n_nodes,n_nodes)
 
-    REAL*8 :: kernel_ji(n_nodes,n_nodes)
+    REAL(wp) :: kernel_ji(n_nodes,n_nodes)
     
     INTEGER :: i_part , j_part
     INTEGER :: i_sect , j_sect , k_sect

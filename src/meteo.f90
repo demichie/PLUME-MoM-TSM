@@ -11,101 +11,102 @@
 MODULE meteo_module
 
   USE variables, ONLY: gi   ! Grav acceleration 
+  USE variables, ONLY : wp
 
   IMPLICIT NONE
 
   !> Temp gradient Troposphere
-  REAL*8 :: gt     
+  REAL(wp) :: gt     
   
   !> Temp gradient Stratosphere
-  REAL*8 :: gs    
+  REAL(wp) :: gs    
   
   !> Pressure at sea level
-  REAL*8 :: p0     
+  REAL(wp) :: p0     
   
   !> Temperature at sea level
-  REAL*8 :: t0     
+  REAL(wp) :: t0     
   
   !> Bottom height of the tropopause
-  REAL*8 :: h1    
+  REAL(wp) :: h1    
   
   !> Top height of the tropopause
-  REAL*8 :: h2    
+  REAL(wp) :: h2    
 
   !> Relative humidity for standard atmosphere
-  REAL*8 :: rh
+  REAL(wp) :: rh
   
   !> Wind angle
-  REAL*8 :: cos_theta , sin_theta
+  REAL(wp) :: cos_theta , sin_theta
 
   !> Atmospheric density at sea level
-  REAL*8 :: rho_atm0
+  REAL(wp) :: rho_atm0
 
   !> Horizonal wind speed
-  REAL*8 :: u_atm   
+  REAL(wp) :: u_atm   
 
-  REAL*8 :: u_wind
-  REAL*8 :: v_wind
+  REAL(wp) :: u_wind
+  REAL(wp) :: v_wind
   
   !> Atmospheric density
-  REAL*8 :: rho_atm  
+  REAL(wp) :: rho_atm  
 
   !> Atmospheric specific humidity 
-  REAL*8 :: sphu_atm
+  REAL(wp) :: sphu_atm
 
   !> Atmospheric kinematic viscosity
-  REAL*8 :: visc_atm 
+  REAL(wp) :: visc_atm 
 
   !> Atmospheric kinematic viscosity at sea level 
-  REAL*8 :: visc_atm0
+  REAL(wp) :: visc_atm0
 
   !> Atmospheric temperature
-  REAL*8 :: ta      
+  REAL(wp) :: ta      
 
   !> Atmospheric pressure
-  REAL*8 :: pa      
+  REAL(wp) :: pa      
 
   !> Vertical gradient of the pressure
-  REAL*8 :: dpdz     
+  REAL(wp) :: dpdz     
 
   !> Vertical gradient of the temperature
-  REAL*8 :: dtdz     
+  REAL(wp) :: dtdz     
 
   !> Vertical gradient of the hor. atm. vel.
-  REAL*8 :: duatm_dz 
+  REAL(wp) :: duatm_dz 
 
   !> perfect gas constant for dry air ( J/(kg K) )
-  REAL*8 :: rair
+  REAL(wp) :: rair
 
   !> specific heat capacity for dry air
-  REAL*8 :: cpair
+  REAL(wp) :: cpair
   
   !> reference temperature (K)
-  REAL*8, PARAMETER :: T_ref = 273.15D0
+  REAL(wp), PARAMETER :: T_ref = 273.15D0
   
   !> enthalpy of water vapor at reference temperature (J kg-1)
-  REAL*8, PARAMETER :: h_wv0 = 2.501D6
+  REAL(wp), PARAMETER :: h_wv0 = 2.501D6
   
   !> specifc heat of water vapor (J K-1 kg-1)
-  REAL*8, PARAMETER :: c_wv = 1996.D0
+  REAL(wp), PARAMETER :: c_wv = 1996.D0
   
   !> enthalpy of liquid water at reference temperature (J kg-1)
-  REAL*8, PARAMETER :: h_lw0 = 3.337D5
+  REAL(wp), PARAMETER :: h_lw0 = 3.337D5
   
   !> specific heat of liquid water (J K-1 kg-1)
-  REAL*8, PARAMETER :: c_lw = 4187.0D0
+  REAL(wp), PARAMETER :: c_lw = 4187.0D0
 
   !> specific heat of ice (J K-1 kg-1)
-  REAL*8, PARAMETER :: c_ice = 2108.0D0
+  REAL(wp), PARAMETER :: c_ice = 2108.0D0
   
   !> molecular weight of dry air
-  REAL*8, PARAMETER :: da_mol_wt = 0.029D0
+  REAL(wp), PARAMETER :: da_mol_wt = 0.029D0
   
   !> molecular weight of water vapor
-  REAL*8, PARAMETER :: wv_mol_wt = 0.018D0
+  REAL(wp), PARAMETER :: wv_mol_wt = 0.018D0
    
   !> gas constant for water vapor ( J/(kg K) )
-  REAL*8, PARAMETER :: rwv = 462
+  REAL(wp), PARAMETER :: rwv = 462
 
   INTEGER :: n_atm_profile
 
@@ -119,18 +120,18 @@ MODULE meteo_module
   !> - 6) wind velocity West->East (m/s)
   !> - 7) wind velocity North-South (m/s)
   !> .
-  REAL*8, ALLOCATABLE :: atm_profile(:,:)
+  REAL(wp), ALLOCATABLE :: atm_profile(:,:)
 
   CHARACTER*10 :: read_atm_profile
 
-  REAL*8 :: u_r , z_r , exp_wind
+  REAL(wp) :: u_r , z_r , exp_wind
 
-  REAL*8, ALLOCATABLE :: rho_atm_month_lat(:) , pres_atm_month_lat(:) ,   &
+  REAL(wp), ALLOCATABLE :: rho_atm_month_lat(:) , pres_atm_month_lat(:) ,   &
        temp_atm_month_lat(:) , temp_atm_month(:,:)
 
-  REAL*8, ALLOCATABLE :: h_levels(:)
+  REAL(wp), ALLOCATABLE :: h_levels(:)
   
-  REAL*8 :: wind_mult_coeff
+  REAL(wp) :: wind_mult_coeff
 
   SAVE
 
@@ -176,22 +177,22 @@ CONTAINS
 
     IMPLICIT NONE
 
-    REAL*8 :: const, const1, t1, p1, p2
-    REAL*8 :: const2
+    REAL(wp) :: const, const1, t1, p1, p2
+    REAL(wp) :: const2
 
     !> Horizontal components of the wind
-    REAL*8 :: WE_wind , NS_wind
+    REAL(wp) :: WE_wind , NS_wind
 
     !> Sutherland's constant
-    REAL*8 :: Cs
+    REAL(wp) :: Cs
 
     ! Variables used to compute duatm_dz
-    REAL*8 :: eps_z , z_eps
+    REAL(wp) :: eps_z , z_eps
 
-    REAL*8 :: WE_wind_eps , NS_wind_eps , u_atm_eps , rho_atm_eps
+    REAL(wp) :: WE_wind_eps , NS_wind_eps , u_atm_eps , rho_atm_eps
 
     ! Saturation mixing ratio (hPa)
-    REAL*8 :: es
+    REAL(wp) :: es
     
     IF ( read_atm_profile .EQ. 'card' ) THEN
 
@@ -223,7 +224,7 @@ CONTAINS
           
        END IF
        
-       u_atm = DSQRT( WE_wind**2 + NS_wind**2 )
+       u_atm = SQRT( WE_wind**2 + NS_wind**2 )
 
        cos_theta = WE_wind / u_atm
        sin_theta = NS_wind / u_atm
@@ -239,7 +240,7 @@ CONTAINS
        CALL interp_1d_scalar(atm_profile(1,:), atm_profile(7,:), z_eps,         &
             NS_wind_eps)
 
-       u_atm_eps = DSQRT( WE_wind_eps**2 + NS_wind_eps**2 )
+       u_atm_eps = SQRT( WE_wind_eps**2 + NS_wind_eps**2 )
 
        duatm_dz = ( u_atm_eps - u_atm ) / eps_z 
 
@@ -321,7 +322,7 @@ CONTAINS
        t1 = t0 + gt * h1
        p1 = p0 * (t1/t0)**const
        const1 = gi / ( rair * t1 )
-       p2 = p1 * DEXP( -const1 * ( h2-h1 ) )
+       p2 = p1 * EXP( -const1 * ( h2-h1 ) )
        const2 = - gi / ( rair * gs )
 
        IF ( z <= h1 ) THEN
@@ -337,7 +338,7 @@ CONTAINS
           ! ... Tropopause
 
           ta = t1
-          pa = p1 * DEXP( -const1 * ( z - h1 ) )
+          pa = p1 * EXP( -const1 * ( z - h1 ) )
           rho_atm = pa / ( rair * ta )
 
        ELSE
@@ -350,7 +351,7 @@ CONTAINS
 
        ENDIF
 
-       es = DEXP( 21.4D0 - ( 5351.D0 / ta) )
+       es = EXP( 21.4D0 - ( 5351.D0 / ta) )
 
        sphu_atm = MIN( 1.D0 , rh * ( 0.622D0 * es ) / ( pa / 100.D0 ) )
 
@@ -392,11 +393,11 @@ CONTAINS
   SUBROUTINE interp_1d_scalar(x1, f1, x2, f2)
     IMPLICIT NONE
     
-    REAL*8, INTENT(IN), DIMENSION(:) :: x1, f1
-    REAL*8, INTENT(IN) :: x2
-    REAL*8, INTENT(OUT) :: f2
+    REAL(wp), INTENT(IN), DIMENSION(:) :: x1, f1
+    REAL(wp), INTENT(IN) :: x2
+    REAL(wp), INTENT(OUT) :: f2
     INTEGER :: n, n1x, t
-    REAL*8 :: grad
+    REAL(wp) :: grad
     
     n1x = SIZE(x1)
   

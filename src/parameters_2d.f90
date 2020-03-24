@@ -6,13 +6,9 @@
 !********************************************************************************
 MODULE parameters_2d
 
+  USE variables, ONLY : wp
+  
   IMPLICIT NONE
-
-  INTEGER, PARAMETER :: sp = Selected_Real_Kind (P=6,R=35)
-  INTEGER, PARAMETER :: dp = Selected_Real_Kind (P=15,R=300)
-
-  !> working precision
-  INTEGER, PARAMETER :: wp = sp
 
   REAL(wp), PARAMETER :: tolh = 10.0_wp * EPSILON(1.0_wp)
 
