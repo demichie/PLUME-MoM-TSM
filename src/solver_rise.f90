@@ -597,8 +597,7 @@ CONTAINS
     mag_u = SQRT( u*u + v*v + w*w ) 
     
     phi = ATAN( w / SQRT(u**2+v**2) )
- 
-   
+    
     ! Mass fractions of volcanic gases (H2O excluded ) in mixture of volc. gases
     volcgas_mass_fraction(1:n_gas) =                                            &
          f_(9+n_part*n_mom*n_sections+1:9+n_part*n_mom*n_sections+n_gas) / f_(1) 
@@ -638,7 +637,6 @@ CONTAINS
 
     END IF
 
-
     ! mass fraction of dry air in the mixture
     dry_air_mass_fraction = f_(8+n_part*n_mom*n_sections) / f_(1)
 
@@ -669,7 +667,7 @@ CONTAINS
     END DO
 
     ! The moments updated here are not correct, because a common multiplying
-    ! factor (u*r^2) is present. In any case, the quadrature values computed
+    ! factor (w*r^2) is present. In any case, the quadrature values computed
     ! from these "wrong" moments can be used to compute the new densities
     ! of the solid phases, because the terms f_quad appear both at the
     ! numerator and denominator and they are all scaled by the same factor.
