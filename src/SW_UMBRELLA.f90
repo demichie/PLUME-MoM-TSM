@@ -44,7 +44,6 @@ CONTAINS
     USE parameters_2d, ONLY : n_vars
 
     USE solver_2d, ONLY : q , qp , t, dt
-    USE solver_2d, ONLY : q1max
     USe solver_2d, ONLY : q_mg_new
 
     USE constitutive_2d, ONLY : qc_to_qp
@@ -71,8 +70,8 @@ CONTAINS
     INTEGER :: ix
     INTEGER :: iy
 
-    REAL(wp) :: x1 , x2 , x3
-    REAL(wp) :: y1 , y2 , y3
+    REAL(wp) :: x1 , x2 , x3 , xt
+    REAL(wp) :: y1 , y2 , y3 , yt
     REAL(wp) :: x_new_source
     REAL(wp) :: y_new_source
     REAL(wp) :: r_new_source
@@ -172,8 +171,6 @@ CONTAINS
 
     END IF
 
-    q1max(:,:) = q(1,:,:)
-
     dt_old = dt0
     dt_old_old = dt_old
     t_steady = t_end
@@ -260,8 +257,6 @@ CONTAINS
 
              CALL qc_to_qp(q(1:n_vars,j,k) , qp(1:n_vars+2,j,k) )
 
-             q1max(j,k) = MAX( q1max(j,k) , q(1,j,k) )
-
              IF ( qp(1,j,k) .GE. 10.0_wp ) THEN
 
                 upwind_dist(j,k) = - ( u_atm_nbl * ( x_comp(j) - x_source ) +   &
@@ -314,7 +309,20 @@ CONTAINS
        !$OMP END PARALLEL DO
 
        ! WRITE(*,*) x1,y1,x2,y2,x3,y3
-       
+
+       IF ( ABS( y1 - y2 ) .LT. ABS( y1 - y3 ) ) THEN
+
+          xt = x2
+          yt = y2
+
+          x2 = x3
+          y2 = y3
+
+          x3 = xt
+          y3 = yt
+
+       END IF
+
        csq1 = x1**2 + y1**2
        csq2 = x2**2 + y2**2
        csq3 = x3**2 + y3**2
