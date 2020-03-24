@@ -80,11 +80,11 @@ CONTAINS
     ALLOCATE(volcgas_rate(n_gas))
 
     !
-    f = 0.D0
-    f_stepold = 0.D0
-    ftemp = 0.D0
-    rhs = 0.D0
-    rhstemp = 0.D0
+    f = 0.0_wp
+    f_stepold = 0.0_wp
+    ftemp = 0.0_wp
+    rhs = 0.0_wp
+    rhstemp = 0.0_wp
     !
     RETURN
   END SUBROUTINE allocate_matrix
@@ -148,26 +148,26 @@ CONTAINS
     cos_phi = SQRT( u**2+v**2 ) / mag_u
     sin_phi = w / mag_u
     
-    IF ( alpha_inp .LE. 0.d0 ) THEN 
+    IF ( alpha_inp .LE. 0.0_wp ) THEN 
 
        s_star = s / r0
        
        IF ( s_star .LE. 10 ) THEN
           
           ! value and slope at s_star=10 from equation 3.4 Carazzo et al. 2006
-          a_10 = 2.45 - 1.05* exp( -4.65e-3*10.d0)
+          a_10 = 2.45_wp - 1.05_wp * EXP( -4.65E-3_wp * 10.0_wp )
           
-          a_10_deriv = - 1.05* exp( -4.65e-3*10.d0) * ( -4.65e-3)
+          a_10_deriv = - 1.05_wp * EXP( -4.65E-3_wp * 10.0_wp ) * ( -4.65E-3_wp )
           
           ! coefficients for the 3rd order polynomial defining A as a function of z/D
           
-          a_poly = 1.1
+          a_poly = 1.1_wp
           
           b_poly = 0
                     
-          d_poly = - ( a_10 - 1.1 - a_10_deriv ) / 500
+          d_poly = - ( a_10 - 1.1_wp - a_10_deriv ) / 500.0_wp
           
-          c_poly = ( a_10 - 1.1 - 1000*d_poly ) / 100
+          c_poly = ( a_10 - 1.1_wp - 1000.0_wp * d_poly ) / 100.0_wp
 
           ! Equation 12 Carazzo et al. 2008
           A = a_poly + b_poly*s_star + c_poly*s_star**2 + d_poly*s_star**3
@@ -175,15 +175,15 @@ CONTAINS
        ELSE
         
           ! Equation 3.4 Carazzo et al. 2006
-          A = 2.45d0 - 1.05d0* exp( -4.65e-3*s_star )
+          A = 2.45_wp - 1.05_wp * EXP( -4.65E-3_wp * s_star )
         
        END IF
     
-       C = 0.135d0
+       C = 0.135_wp
 
        Ri = gi * ( rho_atm - rho_mix ) * r / ( rho_atm * mag_u**2 )
 
-       alpha_p = MAX( 0.d0 , 0.5D0 * C + ( 1.d0 - 1.d0 / A ) * Ri )
+       alpha_p = MAX( 0.0_wp , 0.5_wp * C + ( 1.0_wp - 1.0_wp / A ) * Ri )
 
        !WRITE(*,*) 's_star,Ri,alpha_p',s_star,Ri,alpha_p
 
@@ -196,19 +196,19 @@ CONTAINS
     IF ( particles_loss ) THEN
 
        !---- Probability of particle loss (Eq. 15 PlumeMoM - GMD) 
-       factor0 = ( 1.D0 + 6.D0 / 5.D0 * alpha_p )** 2
-       prob_factor = ( factor0 - 1.D0 ) / ( factor0 + 1.D0 ) 
+       factor0 = ( 1.0_wp + 6.0_wp / 5.0_wp * alpha_p )**2
+       prob_factor = ( factor0 - 1.0_wp ) / ( factor0 + 1.0_wp ) 
 
     ELSE
 
-       prob_factor = 0.D0
+       prob_factor = 0.0_wp
 
     END IF
 
     !---- Crosswind entrainment coefficient
-    IF ( beta_inp .LE. 0.d0 ) THEN 
+    IF ( beta_inp .LE. 0.0_wp ) THEN 
 
-       beta_p = 0.0D0
+       beta_p = 0.0_wp
 
     ELSE
 
@@ -219,7 +219,7 @@ CONTAINS
     !---- Entrainment velocity (Eq. 20 PlumeMoM - GMD) 
     IF ( flag_nbl ) THEN
 
-       ueps = 0.D0
+       ueps = 0.0_wp
 
     ELSE
 
@@ -235,24 +235,24 @@ CONTAINS
 
     DO i_gas=1,n_gas
 
-       volcgas_rate(i_gas) = 0.D0
+       volcgas_rate(i_gas) = 0.0_wp
 
     END DO
 
     !---- Mass conservation of the plume  (Eq. 20 PlumeMoM - GMD)
-    rhs1(1) = 2.D0 * r * rho_atm * ueps - prob_factor * 2.D0 * r *              &
+    rhs1(1) = 2.0_wp * r * rho_atm * ueps - prob_factor * 2.0_wp * r *              &
          solid_term + SUM( volcgas_rate(1:n_gas) )
 
     !---- Horizontal x-momentum conservation   (Eq. 21 PlumeMoM - GMD)
-    rhs1(2) = 2.D0 * r * rho_atm * ueps * u_wind - u * prob_factor * 2.D0 * r * &
+    rhs1(2) = 2.0_wp * r * rho_atm * ueps * u_wind - u * prob_factor * 2.0_wp * r * &
          solid_term + u * SUM( volcgas_rate(1:n_gas) )
 
     !---- Horizontal y-momentum conservation   (Eq. 21 PlumeMoM - GMD)
-    rhs1(3) = 2.D0 * r * rho_atm * ueps * v_wind - v * prob_factor * 2.D0 * r * &
+    rhs1(3) = 2.0_wp * r * rho_atm * ueps * v_wind - v * prob_factor * 2.0_wp * r * &
          solid_term + v * SUM( volcgas_rate(1:n_gas) )
 
     !---- Vertical momentum conservation   (Eq. 22 PlumeMoM - GMD)  
-    rhs1(4) = gi * r**2 * ( rho_atm - rho_mix ) - w * prob_factor * 2.D0 * r *  &
+    rhs1(4) = gi * r**2 * ( rho_atm - rho_mix ) - w * prob_factor * 2.0_wp * r *  &
          solid_term + w * SUM( volcgas_rate(1:n_gas) ) 
 
     !---- Mixture specific heat integration 
@@ -261,10 +261,10 @@ CONTAINS
 
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
-    rhs1(5) = 2.D0 * r * ueps * rho_atm * ( cpair * ta * ( 1.D0 - sphu_atm )    &
+    rhs1(5) = 2.0_wp * r * ueps * rho_atm * ( cpair * ta * ( 1.0_wp - sphu_atm )    &
          + sphu_atm * ( h_wv0 - c_wv * ta ) + gi * z                            &
-         + 0.5D0 * u_atm**2 ) - prob_factor * 2.D0* r * ( t_mix * cp_solid_term &
-         + 0.5D0 * mag_u**2.D0 * solid_term)                                    &
+         + 0.5_wp * u_atm**2 ) - prob_factor * 2.0_wp * r * ( t_mix * cp_solid_term &
+         + 0.5_wp * mag_u**2 * solid_term)                                    &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
          
     !---- X integration dx/dz = (dx/dt)*(dt/dz) = u/w
@@ -283,7 +283,7 @@ CONTAINS
              idx = 8+i+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
              !---- Momentum equation RHS term (Eq. 32 PlumeMoM - GMD)
-             rhs1(idx) = - 2.D0 * prob_factor * r * set_mom(i,i_sect,i_part)    &
+             rhs1(idx) = - 2.0_wp * prob_factor * r * set_mom(i,i_sect,i_part)    &
                   * mom(i,i_sect,i_part)
              
           END DO
@@ -293,11 +293,11 @@ CONTAINS
     END DO
     
     ! ---- Equations for entrained dry air
-    rhs1(n_part*n_sections*n_mom+8) =  ( 2.D0 * r * rho_atm * ueps )            &
-         * ( 1.D0 - sphu_atm )
+    rhs1(n_part*n_sections*n_mom+8) =  ( 2.0_wp * r * rho_atm * ueps )            &
+         * ( 1.0_wp - sphu_atm )
 
     ! ---- Equations for H20 (volcanic+entrained)
-    rhs1(n_part*n_sections*n_mom+9) =  ( 2.D0 * r * rho_atm * ueps )            &
+    rhs1(n_part*n_sections*n_mom+9) =  ( 2.0_wp * r * rho_atm * ueps )            &
          * ( sphu_atm )
 
     ! ---- Equations for additional volcanic gases 
@@ -337,7 +337,7 @@ CONTAINS
     
     INTEGER :: idx
     
-    rhs2 = 0.D0
+    rhs2 = 0.0_wp
 
     !---- Moments equations
     DO i_part=1,n_part
@@ -348,7 +348,7 @@ CONTAINS
              
              idx = 8+i_mom+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
-             rhs2(idx) = 1.D-10 * r**2 *  ( birth_mom(i_mom,i_sect,i_part) -    &
+             rhs2(idx) = 1.E-10_wp * r**2 *  ( birth_mom(i_mom,i_sect,i_part) -    &
                   death_mom(i_mom,i_sect,i_part))
              
           END DO
@@ -415,7 +415,7 @@ CONTAINS
          + volcgas_mix_mass_fraction * cpvolcgas_mix * t_mix 
 
     ! ---- Total energy flow rate
-    f_(5) = f_(1) * ( mixture_enthalpy + gi * z + 0.5D0 * mag_u**2 ) 
+    f_(5) = f_(1) * ( mixture_enthalpy + gi * z + 0.5_wp * mag_u**2 ) 
    
     f_(6) = x
     f_(7) = y
@@ -606,8 +606,8 @@ CONTAINS
     ! Sum of additional gas (H2O excluded) mass fractions
     volcgas_mix_mass_fraction = SUM( volcgas_mass_fraction(1:n_gas) )
 
-    rvolcgas_mix = 0.D0
-    cpvolcgas_mix = 0.D0
+    rvolcgas_mix = 0.0_wp
+    cpvolcgas_mix = 0.0_wp
 
     ! Properties of the mixture of volcanic gases (H2O excluded)
     IF ( n_gas .GT. 0 ) THEN
@@ -633,8 +633,8 @@ CONTAINS
        
     ELSE
         
-       rvolcgas_mix = 0.D0 
-       cpvolcgas_mix = 0.D0
+       rvolcgas_mix = 0.0_wp 
+       cpvolcgas_mix = 0.0_wp
 
     END IF
 
@@ -646,7 +646,7 @@ CONTAINS
     water_mass_fraction = f_(9+n_part*n_mom*n_sections) / f_(1)
 
     ! solid mass fraction in the mixture
-    solid_tot_mass_fraction = 1.D0- dry_air_mass_fraction - water_mass_fraction &
+    solid_tot_mass_fraction = 1.0_wp- dry_air_mass_fraction - water_mass_fraction &
          - volcgas_mix_mass_fraction
     
     DO i_part=1,n_part
@@ -696,7 +696,7 @@ CONTAINS
     ! compute the average densities of the particle phases with f_quad values
     DO i_part=1,n_part
        
-       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
+       rho_solid_avg(i_part) = 1.0_wp / ( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
             * m_quad(:,:,i_part)/rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)&
             * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
@@ -721,7 +721,7 @@ CONTAINS
     ! solid total mass flow rate 
     rhoB_solid_tot_w_r2 = SUM( rhoB_solid_w_r2(1:n_part) )
         
-    enth =  f_(5) / f_(1) - gi * z - 0.5D0 * mag_u**2 
+    enth =  f_(5) / f_(1) - gi * z - 0.50_wp * mag_u**2 
 
     ! --- Compute  water_vapor_mass_fraction, ice_mass_fraction -----------------
     ! --- and t_mix from other variables ----------------------------------------
@@ -770,7 +770,7 @@ CONTAINS
 
     ELSE
 
-       rhovolcgas_mix = 0.D0
+       rhovolcgas_mix = 0.0_wp
 
     END IF
        
@@ -791,7 +791,7 @@ CONTAINS
     alfa_s_w_r2(1:n_part) = rhoB_solid_w_r2(1:n_part) / rho_solid_avg(1:n_part)
     
     ! contribution from all gas (water vapour, other volcanic gas, dry air)
-    alfa_g_w_r2 = ( f_(1) * ( 1.D0 - liquid_water_mass_fraction                 &
+    alfa_g_w_r2 = ( f_(1) * ( 1.0_wp - liquid_water_mass_fraction                 &
          - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / rho_gas 
     
     ! contribution from liquid water
@@ -878,10 +878,10 @@ CONTAINS
     ! --------- gas fractions ---------------------------------------------------
     ! --------- mixture of dry air + water vapor + other volcanic gases ---------
     
-    gas_mass_fraction = ( f_(1)  * ( 1.D0 - liquid_water_mass_fraction          &
+    gas_mass_fraction = ( f_(1)  * ( 1.0_wp - liquid_water_mass_fraction          &
          - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / f_(1)
 
-    gas_volume_fraction = 1.D0 - solid_tot_volume_fraction -                    &
+    gas_volume_fraction = 1.0_wp - solid_tot_volume_fraction -                    &
          liquid_water_volume_fraction - ice_volume_fraction
 
     volcgas_mix_volume_fraction = volcgas_mix_mass_fraction * ( rho_mix /       &

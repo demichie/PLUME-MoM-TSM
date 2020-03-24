@@ -1103,7 +1103,7 @@ CONTAINS
 
        negative_thickness_check:IF ( q(1,j,k) .LT. 0.0_wp ) THEN
 
-          IF ( q(1,j,k) .GT. -1.D-7 ) THEN
+          IF ( q(1,j,k) .GT. -1.E-7_wp ) THEN
 
              q(1,j,k) = 0.0_wp
              q(2:n_vars,j,k) = 0.0_wp
@@ -1229,7 +1229,7 @@ CONTAINS
     REAL(wp) :: stpmax
     LOGICAL :: check
 
-    REAL(wp), PARAMETER :: TOLF=1.D-10 , TOLMIN=1.D-6
+    REAL(wp), PARAMETER :: TOLF=1.E-10_wp , TOLMIN=1.E-6_wp
     REAL(wp) :: TOLX
 
     ! REAL(wp) :: qpj(n_vars+2)
@@ -1286,7 +1286,7 @@ CONTAINS
 
        qj_org = qj
 
-       qj_org = MAX( ABS(qj_org) , 1.D-3 )
+       qj_org = MAX( ABS(qj_org) , 1.E-3_wp )
 
     ELSE 
 
@@ -1328,7 +1328,7 @@ CONTAINS
 
        END IF
 
-       IF ( ( normalize_f ) .AND. ( scal_f < 1.D-6 ) ) THEN
+       IF ( ( normalize_f ) .AND. ( scal_f < 1.E-6_wp ) ) THEN
 
           IF ( verbose_level .GE. 3 ) WRITE(*,*) 'check scal_f',check
           RETURN

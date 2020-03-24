@@ -143,7 +143,7 @@ CONTAINS
     REAL(wp), PARAMETER :: SAFETY = 0.9_wp
     REAL(wp), PARAMETER :: PGROW = -0.2_wp
     REAL(wp), PARAMETER :: PSHRNK = -0.25_wp
-    REAL(wp), PARAMETER :: ERRCON = 1.89D-4
+    REAL(wp), PARAMETER :: ERRCON = 1.89E-4_wp
 
     REAL(wp) :: drho_atm_dz
 
@@ -193,10 +193,10 @@ CONTAINS
        ! converting integer to string using a 'internal file'
        WRITE(x1,'(I2.2)') i_part 
 
-       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.D0 -      &
+       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.0_wp -      &
             gas_mass_fraction)
 
-       solid_mass_flux0 = solid_partial_mass_fraction(i_part) * ( 1.D0 -        &
+       solid_mass_flux0 = solid_partial_mass_fraction(i_part) * ( 1.0_wp -        &
             gas_mass_fraction) * rho_mix * pi_g * r**2 * w
 
 
@@ -238,12 +238,12 @@ CONTAINS
     !
     dz = dz0
 
-    particle_loss_rate(1:n_part,1:n_sections) = 0.D0
-    cum_particle_loss_rate(1:n_part,1:n_sections) = 0.D0
+    particle_loss_rate(1:n_part,1:n_sections) = 0.0_wp
+    cum_particle_loss_rate(1:n_part,1:n_sections) = 0.0_wp
 
     IF ( write_flag ) CALL write_column
 
-    IF ( ( height_obj .EQ. 0.D0 ) .OR. ( log10_mfr .EQ. 0.D0 ) ) THEN
+    IF ( ( height_obj .EQ. 0.0_wp ) .OR. ( log10_mfr .EQ. 0.0_wp ) ) THEN
 
        WRITE(*,*) 'WRITING ZERO EMISSION HYSPLIT FILE'
        CALL write_zero_hysplit
@@ -252,82 +252,82 @@ CONTAINS
 
     END IF
 
-    deltarho_min = 1000.D0
+    deltarho_min = 1000.0_wp
 
-    deltarho_old = 0.D0
+    deltarho_old = 0.0_wp
 
 
-    A_RK(1,1) = 0.D0
-    A_RK(1,2) = 0.D0
+    A_RK(1,1) = 0.0_wp
+    A_RK(1,2) = 0.0_wp
 
-    A_RK(2,1) = 1.D0
-    A_RK(2,2) = 0.D0
+    A_RK(2,1) = 1.0_wp
+    A_RK(2,2) = 0.0_wp
 
-    B_RK(1) = 0.5D0
-    B_RK(2) = 0.5D0
+    B_RK(1) = 0.5_wp
+    B_RK(2) = 0.5_wp
 
-    C_RK(1) = 1.D0
-    C_RK(2) = 0.D0
+    C_RK(1) = 1.0_wp
+    C_RK(2) = 0.0_wp
 
-    A_RK(1,1) = 0.D0
-    A_RK(1,2) = 0.D0
-    A_RK(1,3) = 0.D0
-    A_RK(1,4) = 0.D0
-    A_RK(1,5) = 0.D0
-    A_RK(1,6) = 0.D0
+    A_RK(1,1) = 0.0_wp
+    A_RK(1,2) = 0.0_wp
+    A_RK(1,3) = 0.0_wp
+    A_RK(1,4) = 0.0_wp
+    A_RK(1,5) = 0.0_wp
+    A_RK(1,6) = 0.0_wp
 
-    A_RK(2,1) = 0.25D0
-    A_RK(2,2) = 0.D0
-    A_RK(2,3) = 0.D0
-    A_RK(2,4) = 0.D0
-    A_RK(2,5) = 0.D0
-    A_RK(2,6) = 0.D0
+    A_RK(2,1) = 0.25_wp
+    A_RK(2,2) = 0.0_wp
+    A_RK(2,3) = 0.0_wp
+    A_RK(2,4) = 0.0_wp
+    A_RK(2,5) = 0.0_wp
+    A_RK(2,6) = 0.0_wp
 
-    A_RK(3,1) = 3.D0 / 32.D0
-    A_RK(3,2) = 9.D0 / 32.D0
-    A_RK(3,3) = 0.D0
-    A_RK(3,4) = 0.D0
-    A_RK(3,5) = 0.D0
-    A_RK(3,6) = 0.D0
+    A_RK(3,1) = 3.0_wp / 32.0_wp
+    A_RK(3,2) = 9.0_wp / 32.0_wp
+    A_RK(3,3) = 0.0_wp
+    A_RK(3,4) = 0.0_wp
+    A_RK(3,5) = 0.0_wp
+    A_RK(3,6) = 0.0_wp
 
-    A_RK(4,1) = 1932.D0 / 2197.D0
-    A_RK(4,2) = -7200.D0 / 2197.D0
-    A_RK(4,3) = 7296.D0 / 2197.D0
-    A_RK(4,4) = 0.D0
-    A_RK(4,5) = 0.D0
-    A_RK(4,6) = 0.D0
+    A_RK(4,1) = 1932.0_wp / 2197.0_wp
+    A_RK(4,2) = -7200.0_wp / 2197.0_wp
+    A_RK(4,3) = 7296.0_wp / 2197.0_wp
+    A_RK(4,4) = 0.0_wp
+    A_RK(4,5) = 0.0_wp
+    A_RK(4,6) = 0.0_wp
 
-    A_RK(5,1) = 439.D0 / 216.D0
-    A_RK(5,2) = -8.D0
-    A_RK(5,3) = 3680.D0 / 513.D0
-    A_RK(5,4) = -845.D0 / 4104.D0
-    A_RK(5,5) = 0.D0
-    A_RK(5,6) = 0.D0
+    A_RK(5,1) = 439.0_wp / 216.0_wp
+    A_RK(5,2) = -8.0_wp
+    A_RK(5,3) = 3680.0_wp / 513.0_wp
+    A_RK(5,4) = -845.0_wp / 4104.0_wp
+    A_RK(5,5) = 0.0_wp
+    A_RK(5,6) = 0.0_wp
 
-    A_RK(6,1) = -8.D0 / 27.D0
-    A_RK(6,2) = 2.D0
-    A_RK(6,3) = -3544.D0 / 2565.D0
-    A_RK(6,4) = 1859.D0 / 4104.D0
-    A_RK(6,5) = -11.D0 / 40.D0
-    A_RK(6,6) = 0.D0
+    A_RK(6,1) = -8.0_wp / 27.0_wp
+    A_RK(6,2) = 2.0_wp
+    A_RK(6,3) = -3544.0_wp / 2565.0_wp
+    A_RK(6,4) = 1859.0_wp / 4104.0_wp
+    A_RK(6,5) = -11.0_wp / 40.0_wp
+    A_RK(6,6) = 0.0_wp
 
     ! 5th order solution coefficients
-    B_RK(1) = 16.D0 / 135.D0
-    B_RK(2) = 0.D0
-    B_RK(3) = 6656.D0 / 12825.D0
-    B_RK(4) = 28561.D0 / 56430.D0
-    B_RK(5) = -9.D0 / 50.D0
-    B_RK(6) = 2.D0 / 55.D0
+    B_RK(1) = 16.0_wp / 135.0_wp
+    B_RK(2) = 0.0_wp
+    B_RK(3) = 6656.0_wp / 12825.0_wp
+    B_RK(4) = 28561.0_wp / 56430.0_wp
+    B_RK(5) = -9.0_wp / 50.0_wp
+    B_RK(6) = 2.0_wp / 55.0_wp
 
     ! 4th order solution coefficients
-    C_RK(1) = 25.D0 / 216.D0
-    C_RK(2) = 0.D0
-    C_RK(3) = 1408.D0 / 2565.D0
-    C_RK(4) = 2197.D0 / 4104.D0
-    C_RK(5) = -1.D0 / 5.D0
-    C_RK(6) = 0.D0
+    C_RK(1) = 25.0_wp / 216.0_wp
+    C_RK(2) = 0.0_wp
+    C_RK(3) = 1408.0_wp / 2565.0_wp
+    C_RK(4) = 2197.0_wp / 4104.0_wp
+    C_RK(5) = -1.0_wp / 5.0_wp
+    C_RK(6) = 0.0_wp
 
-    eps_RK = 1.D-8
+    eps_RK = 1.0E-8_wp
 
     flag_nbl = .FALSE.
 
@@ -345,7 +345,7 @@ CONTAINS
 
        ELSE
 
-          rhs2(1:itotal) = 0.D0
+          rhs2(1:itotal) = 0.0_wp
 
        END IF
 
@@ -355,7 +355,7 @@ CONTAINS
        w_old = w
        r_old = r
 
-       rhs_RK(1:itotal,1:n_RK) = 0.D0
+       rhs_RK(1:itotal,1:n_RK) = 0.0_wp
 
        RungeKutta:DO i_RK = 1,n_RK
 
@@ -370,14 +370,14 @@ CONTAINS
 
           ! ----- Check on the solution to reduce step-size condition -------------
 
-          IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
+          IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
-             dz = 0.5D0 * dz
+             dz = 0.5_wp * dz
              f = f_stepold
 
              IF ( verbose_level .GT. 0 ) THEN
 
-                IF ( w .LE. 0.D0) THEN
+                IF ( w .LE. 0.0_wp) THEN
 
                    WRITE(*,*) 'WARNING: negative velocity w= ',w
 
@@ -412,7 +412,7 @@ CONTAINS
 
           ELSE
 
-             rhs2_RK(1:itotal,i_RK) = 0.D0
+             rhs2_RK(1:itotal,i_RK) = 0.0_wp
 
           END IF
 
@@ -430,7 +430,7 @@ CONTAINS
 
        errmax = MAXVAL( ABS( (f5th-f4th)/fscal ) ) / eps_RK
 
-       IF ( errmax .GT. 1.D0 ) THEN
+       IF ( errmax .GT. 1.0_wp ) THEN
 
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
@@ -447,14 +447,14 @@ CONTAINS
 
        ! ----- Reduce step-size condition and repeat iteration ------------------
 
-       IF ( ( w .LE. 0.D0) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
+       IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
           dz = 0.5_wp * dz
           f = f_stepold
 
           IF ( verbose_level .GT. 0 ) THEN
 
-             IF ( w .LE. 0.D0) THEN
+             IF ( w .LE. 0.0_wp) THEN
 
                 WRITE(*,*) 'WARNING: negative velocit w= ',w
 
@@ -514,7 +514,7 @@ CONTAINS
        ! used to define the neutral buoyancy level 
        deltarho =  rho_mix - rho_atm
 
-       IF ( deltarho * deltarho_old .LT. 0.D0 ) THEN
+       IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
 
           rho_nbl = rho_mix
           height_nbl = z - vent_height
@@ -536,7 +536,7 @@ CONTAINS
           drho_dz = drho_atm_dz
           dr_dz = ( r - r_old ) / dz
        
-          IF ( deltarho .GT. 0.D0 ) flag_nbl = .TRUE.
+          IF ( deltarho .GT. 0.0_wp ) flag_nbl = .TRUE.
 
        END IF
 
@@ -555,15 +555,15 @@ CONTAINS
 
        ELSE
 
-          dz = 5.D0 * dz
+          dz = 5.0_wp * dz
 
        END IF
 
-       dz = MIN( dz, 50.D0 )
+       dz = MIN( dz, 50.0_wp )
 
        ! ----- Exit condition ---------------------------------------------------
 
-       IF ( w .LE. 1.D-5 ) THEN
+       IF ( w .LE. 1.0E-5_wp ) THEN
 
           EXIT main_loop
 
@@ -583,10 +583,10 @@ CONTAINS
     ! ---- check plume regime 
     check_sb = ( w_maxrel - w_minrel ) / w_maxabs
 
-    eps_sb = 0.05D0
+    eps_sb = 0.05_wp
 
 
-    IF ( delta_rho .GT. 0.d0 ) THEN
+    IF ( delta_rho .GT. 0.0_wp ) THEN
 
        column_regime = 3
 
@@ -658,13 +658,13 @@ CONTAINS
 
        WRITE(x1,'(I2.2)') i_part ! convert int to string using an 'internal file'
 
-       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.D0 -      &
+       mass_fract(i_part) = solid_partial_mass_fraction(i_part) * ( 1.0_wp -      &
             gas_mass_fraction)
 
-       solid_mass_flux = solid_partial_mass_fraction(i_part) * ( 1.D0 -         &
+       solid_mass_flux = solid_partial_mass_fraction(i_part) * ( 1.0_wp -         &
             gas_mass_fraction) * rho_mix * pi_g * r**2 * w
 
-       solid_mass_flux_change = 1.D0 - solid_mass_flux / solid_mass_flux0
+       solid_mass_flux_change = 1.0_wp - solid_mass_flux / solid_mass_flux0
 
 
        IF ( write_flag ) THEN

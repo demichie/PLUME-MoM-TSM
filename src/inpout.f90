@@ -18,8 +18,8 @@ MODULE inpout
     USE parameters_2d, ONLY : t_start , t_end , dt_output , wp , n_vars
 
     ! -- Variables for the namelist NUMERIC_PARAMETERS
-    USE parameters_2d, ONLY : rsource_cells , solver_scheme, dt0 , max_dt , cfl, limiter , theta, &
-         reconstr_coeff , interfaces_relaxation , n_RK   
+    USE parameters_2d, ONLY : rsource_cells , solver_scheme, dt0 , max_dt , cfl,&
+         limiter , theta, reconstr_coeff , interfaces_relaxation , n_RK   
 
     
     USE moments_module, ONLY : n_mom , n_nodes , n_sections
@@ -154,11 +154,11 @@ MODULE inpout
   
   REAL(wp) :: hy_deltaz , hy_z , hy_z_old , hy_x , hy_y , hy_x_old , hy_y_old 
 
-  REAL(wp), ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) ,   &
+  REAL(wp), ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) , &
         solid_mfr_oldold(:)
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
-       inversion_flag , hysplit_flag , aggregation_flag, water_flag ,          &
+       inversion_flag , hysplit_flag , aggregation_flag, water_flag ,           &
        umbrella_flag
 
   NAMELIST / mom_parameters / n_part , n_mom , n_nodes , n_sections
@@ -231,7 +231,7 @@ CONTAINS
 
     REAL(wp) :: test
     
-    notSet = ieee_value(0.D0, ieee_quiet_nan)
+    notSet = ieee_value(0.0_wp, ieee_quiet_nan)
 
     
     !---------- default flags of the CONTROL_PARAMETERS namelist ----------------
@@ -283,8 +283,8 @@ CONTAINS
     READ_ATM_PROFILE = "" 
     SETTLING_MODEL = "none"
     
-    gi = 9.81d0               ! Gravity acceleration
-    pi_g = 4.D0 * ATAN(1.D0) 
+    gi = 9.81_wp               ! Gravity acceleration
+    pi_g = 4.0_wp * ATAN(1.0_wp) 
     
     n_unit = 10
 
@@ -299,7 +299,7 @@ CONTAINS
        !***  the input file)
        !
 
-       !---------- parameters of the CONTROL_PARAMETERS namelist --------------
+       !---------- parameters of the CONTROL_PARAMETERS namelist ----------------
        RUN_NAME="default_run"
        VERBOSE_LEVEL = 0
        DAKOTA_FLAG = .false.
@@ -308,7 +308,7 @@ CONTAINS
        WATER_FLAG = .false.
        AGGREGATION_FLAG = .false.
 
-       !---------- parameters of the MOM_PARAMETERS namelist --------------
+       !---------- parameters of the MOM_PARAMETERS namelist --------------------
        N_PART = 1
        N_MOM = 2
        N_NODES = 5
@@ -316,79 +316,79 @@ CONTAINS
 
        CALL allocate_particles
 
-       !---------- parameters of the PARTICLES_PARAMETERS namelist ------------
-       PHI_MIN = -4.D0
-       DELTA_PHI = 1.0
+       !---------- parameters of the PARTICLES_PARAMETERS namelist --------------
+       PHI_MIN = -4.0_wp
+       DELTA_PHI = 1.0_wp
        DISTRIBUTION = 'LOGNORMAL'
-       SOLID_PARTIAL_MASS_FRACTION = 1.0
-       PHI1 = -1.D0
-       RHO1 = 2000.D0
-       PHI2 = 4.D0
-       RHO2 = 2600.D0
-       SHAPE_FACTOR = 1.0
-       CP_PART = 1100
+       SOLID_PARTIAL_MASS_FRACTION = 1.0_wp
+       PHI1 = -1.0_wp
+       RHO1 = 2000.0_wp
+       PHI2 = 4.0_wp
+       RHO2 = 2600.0_wp
+       SHAPE_FACTOR = 1.0_wp
+       CP_PART = 1100.0_wp
        PARTICLES_LOSS= .true.
        SETTLING_MODEL="textor"
  
        !---------- parameters of the ENTRAINMENT_PARAMETERS namelist ------------
-       alpha_inp = 9.0D-2
-       beta_inp = 0.6D0
+       alpha_inp = 9.0E-2_wp
+       beta_inp = 0.60_wp
 
        !---------- parameters of the WATER_PARAMETERS namelist ------------------
-       rho_lw = 1000.D0
-       rho_ice = 920.D0
-       added_water_temp = 273.D0
-       added_water_mass_fraction = 0.D0
+       rho_lw = 1000.0_wp
+       rho_ice = 920.0_wp
+       added_water_temp = 273.0_wp
+       added_water_mass_fraction = 0.0_wp
 
        !---------- parameters of the ATM_PARAMETERS namelist --------------------
-       VISC_ATM0 =  1.8D-5
-       RAIR=  287.026
-       CPAIR=  998.000000  
-       WIND_MULT_COEFF = 1.D0
+       VISC_ATM0 =  1.8E-5_wp
+       RAIR=  287.026_wp
+       CPAIR=  998.0_wp  
+       WIND_MULT_COEFF = 1.0_wp
        READ_ATM_PROFILE = "standard" 
        SETTLING_MODEL = "textor"
 
-       !---------- parameters of the STD_ATM_PARAMETERS namelist -------------------
-       GT= -6.4999999999999997E-003
-       GS=  1.0000000000000000E-003
-       P0=  101325.00000000000     
-       T0=  288.14999999999998     
-       H1=  11000.000000000000     
-       H2=  20000.000000000000     
-       RH= 0.D0 
-       U_R=  5.0000000000000000     
-       Z_R=  1000.0000000000000000     
-       EXP_WIND=  0.0000000000000000     
+       !---------- parameters of the STD_ATM_PARAMETERS namelist ----------------
+       GT= -6.5E-3_wp
+       GS=  1.0E-3_wp
+       P0=  101325.0_wp     
+       T0=  288.15_wp     
+       H1=  11000.0_wp     
+       H2=  20000.0_wp     
+       RH= 0.0_wp 
+       U_R=  5.0_wp     
+       Z_R=  1000.0_wp     
+       EXP_WIND=  0.0_wp     
 
        !---------- parameters of the INITIAL_VALUES namelist --------------------
-       R0= 50     
-       W0 = 130.0 
-       T_MIX0=  1373.0000000000000     
-       INITIAL_NEUTRAL_DENSITY = .false.
-       WATER_MASS_FRACTION0=  3.0E-002
-       VENT_HEIGHT=  1500.0000000000000     
-       DZ0=  5.0000000000000000     
-       N_GAS=          2
+       R0= 50.0_wp     
+       W0 = 130.0_wp 
+       T_MIX0=  1373.0_wp     
+       INITIAL_NEUTRAL_DENSITY = .FALSE.
+       WATER_MASS_FRACTION0=  3.0E-2_wp
+       VENT_HEIGHT=  1500.0_wp     
+       DZ0=  5.0_wp     
+       N_GAS= 2
 
        ALLOCATE ( rvolcgas(n_gas) , cpvolcgas(n_gas) , volcgas_mol_wt(n_gas) ,  &
             volcgas_mass_fraction(n_gas) , volcgas_mass_fraction0(n_gas) ,      &
             rhovolcgas(n_gas) )
        
        !---------- parameters of the VOLCGAS_PARAMETERS namelist ----------------
-       RVOLCGAS(1) = 189.000000    
-       RVOLCGAS(2) =  130.000000   
-       CPVOLCGAS(1)=  844.000000
-       CPVOLCGAS(2)=  640.000000
-       VOLCGAS_MOL_WT(1) = 0.044000
-       VOLCGAS_MOL_WT(2) = 0.064000 
-       VOLCGAS_MASS_FRACTION0(1) = 0.0050000
-       VOLCGAS_MASS_FRACTION0(2) = 0.0050000
+       RVOLCGAS(1) = 189.0_wp    
+       RVOLCGAS(2) =  130.0_wp   
+       CPVOLCGAS(1)=  844.0_wp
+       CPVOLCGAS(2)=  640.0_wp
+       VOLCGAS_MOL_WT(1) = 0.044_wp
+       VOLCGAS_MOL_WT(2) = 0.064_wp 
+       VOLCGAS_MASS_FRACTION0(1) = 0.005_wp
+       VOLCGAS_MASS_FRACTION0(2) = 0.005_wp
        
        !---------- parameters of the LOGNORMAL_PARAMETERS namelist --------------
        ALLOCATE( mu_lognormal(n_part) )
        ALLOCATE( sigma_lognormal(n_part) )
-       MU_LOGNORMAL=  2.0000000000000000     
-       SIGMA_LOGNORMAL=  1.6000000000000001     
+       MU_LOGNORMAL=  2.0_wp
+       SIGMA_LOGNORMAL=  1.6_wp
 
        inp_unit = n_unit
 
@@ -703,11 +703,11 @@ CONTAINS
     ! Compute the mass instervals for the different particles (1,n_part)
     DO i_part = 1,n_part
 
-       M(1,i_part) = 0.D0
+       M(1,i_part) = 0.0_wp
 
        DO i_sect = 1,n_sections
 
-          diam = 1.D-3 * 2.D0**( - phiR(i_sect) )
+          diam = 1.E-3_wp * 2.0_wp**( - phiR(i_sect) )
           rhop = particles_density( i_part,phiR(i_sect) )
           M(i_sect+1,i_part) = rhop * (shape_factor(i_part) * diam**3)
 
@@ -805,8 +805,8 @@ CONTAINS
 
           ELSE
 
-             IF ( ( added_water_mass_fraction .LT. 0.D0 ) .OR.                  &
-                  ( added_water_mass_fraction .GE. 1.D0 ) ) THEN
+             IF ( ( added_water_mass_fraction .LT. 0.0_wp ) .OR.                &
+                  ( added_water_mass_fraction .GE. 1.0_wp ) ) THEN
              
                 WRITE(*,*) 'Namelist WATER_PARAMETERS'
                 WRITE(*,*) 'added_water_mass_fraction should be >=0 and <1'
@@ -847,10 +847,10 @@ CONTAINS
 
     ELSE
        
-       rho_ice = 920.D0
-       rho_lw = 1000.D0
-       added_water_mass_fraction = 0.D0
-       added_water_temp = 273.D0
+       rho_ice = 920.0_wp
+       rho_lw = 1000.0_wp
+       added_water_mass_fraction = 0.0_wp
+       added_water_temp = 273.0_wp
 
     END IF
 
@@ -1239,25 +1239,25 @@ CONTAINS
        ALLOCATE(pres_atm_month_lat(n_atm_levels),pres_atm_month(n_atm_levels,8))
        ALLOCATE(temp_atm_month_lat(n_atm_levels),temp_atm_month(n_atm_levels,8))
 
-       IF ((month .GE. 0.d0) .and. (month .LE. 1.d0)) THEN
+       IF ((month .GE. 0.0_wp) .and. (month .LE. 1.0_wp)) THEN
           WRITE(*,*)  'winter'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_jan(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_jan(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_jan(1:n_atm_levels,1:8)
           
-       ELSEIF ((month .GT. 1.d0) .and. (month .LE. 2.d0)) THEN
+       ELSEIF ((month .GT. 1.0_wp) .and. (month .LE. 2.0_wp)) THEN
           WRITE(*,*)  'spring'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_apr(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_apr(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_apr(1:n_atm_levels,1:8)
           
-       ELSEIF ((month .GT. 2.d0) .and. (month .LE. 3.d0)) THEN
+       ELSEIF ((month .GT. 2.0_wp) .and. (month .LE. 3.0_wp)) THEN
           WRITE(*,*)  'summer'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_jul(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_jul(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_jul(1:n_atm_levels,1:8)
           
-       ELSEIF ((month .GT. 3.d0) .and. (month .LE. 4.d0)) THEN
+       ELSEIF ((month .GT. 3.0_wp) .and. (month .LE. 4.0_wp)) THEN
           WRITE(*,*)  'autumn'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_apr(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_apr(1:n_atm_levels,1:8)
@@ -1265,108 +1265,108 @@ CONTAINS
           
        END IF
 
-       IF ( ( lat .GE. 0.d0 ) .AND. ( lat .LE. 15.d0 ) ) THEN
+       IF ( ( lat .GE. 0.0_wp ) .AND. ( lat .LE. 15.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 0.d0 ) / ( 15.d0 - 0.d0 )
+          coeff_lat = 1.0_wp - ( lat - 0.0_wp ) / ( 15.0_wp - 0.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
-               rho_atm_month(1:n_atm_levels,2) + ( 1.d0 - coeff_lat ) *         &
+               rho_atm_month(1:n_atm_levels,2) + ( 1.0_wp - coeff_lat ) *         &
                rho_atm_month(1:n_atm_levels,3)
 
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               pres_atm_month(1:n_atm_levels,2) + ( 1.d0 - coeff_lat ) *        &
+               pres_atm_month(1:n_atm_levels,2) + ( 1.0_wp - coeff_lat ) *        &
                pres_atm_month(1:n_atm_levels,3)
 
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               temp_atm_month(1:n_atm_levels,2) + ( 1.d0 - coeff_lat ) *        &
+               temp_atm_month(1:n_atm_levels,2) + ( 1.0_wp - coeff_lat ) *        &
                temp_atm_month(1:n_atm_levels,3)
           
-       ELSEIF ( ( lat .GT. 15.d0 ) .AND. ( lat .LE. 30.d0 ) ) THEN
+       ELSEIF ( ( lat .GT. 15.0_wp ) .AND. ( lat .LE. 30.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 15.d0 ) / ( 30.d0 - 15.d0 )
+          coeff_lat = 1.0_wp - ( lat - 15.0_wp ) / ( 30.0_wp - 15.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
-               rho_atm_month(1:n_atm_levels,3) + ( 1.d0 - coeff_lat ) *         &
+               rho_atm_month(1:n_atm_levels,3) + ( 1.0_wp - coeff_lat ) *         &
                rho_atm_month(1:n_atm_levels,4)
           
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               pres_atm_month(1:n_atm_levels,3) + ( 1.d0 - coeff_lat ) *        &
+               pres_atm_month(1:n_atm_levels,3) + ( 1.0_wp - coeff_lat ) *        &
                pres_atm_month(1:n_atm_levels,5)
           
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               temp_atm_month(1:n_atm_levels,3) + ( 1.d0 - coeff_lat ) *        &
+               temp_atm_month(1:n_atm_levels,3) + ( 1.0_wp - coeff_lat ) *        &
                temp_atm_month(1:n_atm_levels,5)
           
-       ELSEIF ( ( lat .GT. 30.d0 ) .AND. ( lat .LE. 45.d0 ) ) THEN
+       ELSEIF ( ( lat .GT. 30.0_wp ) .AND. ( lat .LE. 45.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 30.d0 ) / ( 45.d0 - 30.d0 )
+          coeff_lat = 1.0_wp - ( lat - 30.0_wp ) / ( 45.0_wp - 30.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
-               rho_atm_month(1:n_atm_levels,4) + ( 1.d0 - coeff_lat ) *         &
+               rho_atm_month(1:n_atm_levels,4) + ( 1.0_wp - coeff_lat ) *         &
                rho_atm_month(1:n_atm_levels,5)
           
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               pres_atm_month(1:n_atm_levels,4) + ( 1.d0 - coeff_lat ) *        &
+               pres_atm_month(1:n_atm_levels,4) + ( 1.0_wp - coeff_lat ) *        &
                pres_atm_month(1:n_atm_levels,5)
           
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               temp_atm_month(1:n_atm_levels,4) + ( 1.d0 - coeff_lat ) *        &
+               temp_atm_month(1:n_atm_levels,4) + ( 1.0_wp - coeff_lat ) *        &
                temp_atm_month(1:n_atm_levels,5)
           
-       ELSEIF ( ( lat .GT. 45.d0 ) .AND. ( lat .LE. 60.d0 ) ) THEN
+       ELSEIF ( ( lat .GT. 45.0_wp ) .AND. ( lat .LE. 60.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 45.d0 ) / ( 60.d0 - 45.d0 )
+          coeff_lat = 1.0_wp - ( lat - 45.0_wp ) / ( 60.0_wp - 45.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
-               rho_atm_month(1:n_atm_levels,5) + ( 1.d0 - coeff_lat ) *         &
+               rho_atm_month(1:n_atm_levels,5) + ( 1.0_wp - coeff_lat ) *         &
                rho_atm_month(1:n_atm_levels,6)
           
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               pres_atm_month(1:n_atm_levels,5) + ( 1.d0 - coeff_lat ) *        &
+               pres_atm_month(1:n_atm_levels,5) + ( 1.0_wp - coeff_lat ) *        &
                pres_atm_month(1:n_atm_levels,6)
           
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               temp_atm_month(1:n_atm_levels,5) + ( 1.d0 - coeff_lat ) *        &
+               temp_atm_month(1:n_atm_levels,5) + ( 1.0_wp - coeff_lat ) *        &
                temp_atm_month(1:n_atm_levels,6)
           
-       ELSEIF ( ( lat .GT. 60.d0 ) .AND. ( lat .LE. 75.d0 ) ) THEN
+       ELSEIF ( ( lat .GT. 60.0_wp ) .AND. ( lat .LE. 75.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 60.d0 ) / ( 75.d0 - 60.d0 )
+          coeff_lat = 1.0_wp - ( lat - 60.0_wp ) / ( 75.0_wp - 60.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
-               rho_atm_month(1:n_atm_levels,6) + ( 1.d0 - coeff_lat ) *         &
+               rho_atm_month(1:n_atm_levels,6) + ( 1.0_wp - coeff_lat ) *         &
                rho_atm_month(1:n_atm_levels,7)
           
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               pres_atm_month(1:n_atm_levels,6) + ( 1.d0 - coeff_lat ) *        &
+               pres_atm_month(1:n_atm_levels,6) + ( 1.0_wp - coeff_lat ) *        &
                pres_atm_month(1:n_atm_levels,7)
           
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
-               temp_atm_month(1:n_atm_levels,6) + ( 1.d0 - coeff_lat ) *        &
+               temp_atm_month(1:n_atm_levels,6) + ( 1.0_wp - coeff_lat ) *        &
                temp_atm_month(1:n_atm_levels,7)
           
-       ELSEIF ( ( lat .GT. 75.d0 ) .AND. ( lat .LE. 90.d0 ) ) THEN
+       ELSEIF ( ( lat .GT. 75.0_wp ) .AND. ( lat .LE. 90.0_wp ) ) THEN
           
-          coeff_lat = 1.d0 - ( lat - 75.d0 ) / ( 90.d0 - 75.d0 )
+          coeff_lat = 1.0_wp - ( lat - 75.0_wp ) / ( 90.0_wp - 75.0_wp )
           
           rho_atm_month_lat(1:n_atm_levels) = coeff_lat *                       &
                rho_atm_month(1:n_atm_levels,7)                                  &
-               + ( 1.d0 - coeff_lat ) * rho_atm_month(1:n_atm_levels,8)
+               + ( 1.0_wp - coeff_lat ) * rho_atm_month(1:n_atm_levels,8)
           
           pres_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
                pres_atm_month(1:n_atm_levels,7)                                 &
-               + ( 1.d0 - coeff_lat ) * pres_atm_month(1:n_atm_levels,8)
+               + ( 1.0_wp - coeff_lat ) * pres_atm_month(1:n_atm_levels,8)
           
           temp_atm_month_lat(1:n_atm_levels) = coeff_lat *                      &
                temp_atm_month(1:n_atm_levels,7)                                 &
-               + ( 1.d0 - coeff_lat ) * temp_atm_month(1:n_atm_levels,8)
+               + ( 1.0_wp - coeff_lat ) * temp_atm_month(1:n_atm_levels,8)
           
        END IF
        
        pres_atm_month_lat(1:n_atm_levels) =                                     &
-            100.d0 * pres_atm_month_lat(1:n_atm_levels)
+            100.0_wp * pres_atm_month_lat(1:n_atm_levels)
 
-       h_levels(1:n_atm_levels) = 1000.d0 * temp_atm_month(1:n_atm_levels,1)
+       h_levels(1:n_atm_levels) = 1000.0_wp * temp_atm_month(1:n_atm_levels,1)
 
     ELSEIF ( read_atm_profile .EQ. 'card' ) THEN
 
@@ -1399,10 +1399,10 @@ CONTAINS
           
           atm_profile(1:7,i) = atm_profile0(1:7,i)
           ! convert from km to meters
-          atm_profile(1,i) = atm_profile(1,i) * 1000.D0
+          atm_profile(1,i) = atm_profile(1,i) * 1000.0_wp
 
           ! convert from hPa to Pa
-          atm_profile(3,i) = atm_profile(3,i) * 100.D0
+          atm_profile(3,i) = atm_profile(3,i) * 100.0_wp
 
           atm_profile(6,i) = atm_profile(6,i) * wind_mult_coeff
           atm_profile(7,i) = atm_profile(7,i) * wind_mult_coeff
@@ -1509,9 +1509,9 @@ CONTAINS
        
     ELSE
               
-       ALLOCATE ( rvolcgas(n_gas),cpvolcgas(n_gas),volcgas_mass_fraction(n_gas) ,  &
-            volcgas_mol_wt(n_gas) , rhovolcgas(n_gas) ,                            &
-            volcgas_mass_fraction0(n_gas))
+       ALLOCATE ( rvolcgas(n_gas) , cpvolcgas(n_gas) ,                          &
+            volcgas_mass_fraction(n_gas) , volcgas_mol_wt(n_gas) ,              &
+            rhovolcgas(n_gas) , volcgas_mass_fraction0(n_gas) )
        
        WRITE(bak_unit, initial_values)
        
@@ -1865,8 +1865,8 @@ CONTAINS
           
           hy_z = vent_height + hy_deltaz
           hy_z_old = vent_height
-          hy_x_old = 0.D0
-          hy_y_old = 0.D0
+          hy_x_old = 0.0_wp
+          hy_y_old = 0.0_wp
           
        END IF
 
@@ -1875,16 +1875,16 @@ CONTAINS
        
     ! ---------
     
-    rvolcgas(1:n_gas) = -1.D0
-    cpvolcgas(1:n_gas) = -1.D0
-    volcgas_mol_wt(1:n_gas) = -1.D0
-    volcgas_mass_fraction0(1:n_gas) = -1.D0
+    rvolcgas(1:n_gas) = -1.0_wp
+    cpvolcgas(1:n_gas) = -1.0_wp
+    volcgas_mol_wt(1:n_gas) = -1.0_wp
+    volcgas_mass_fraction0(1:n_gas) = -1.0_wp
     
-    IF ( n_gas .GT. 0.D0 ) THEN
+    IF ( n_gas .GT. 0.0_wp ) THEN
 
        READ(inp_unit, volcgas_parameters) 
 
-       IF ( ANY( rvolcgas(1:n_gas) ==-1.D0 ) ) THEN
+       IF ( ANY( rvolcgas(1:n_gas) ==-1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
           WRITE(*,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
@@ -1892,7 +1892,7 @@ CONTAINS
           
        END IF
        
-       IF ( ANY( cpvolcgas(1:n_gas) ==-1.D0 ) ) THEN
+       IF ( ANY( cpvolcgas(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
           WRITE(*,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
@@ -1900,28 +1900,29 @@ CONTAINS
           
        END IF
        
-       IF ( ANY( volcgas_mol_wt(1:n_gas) ==-1.D0 ) ) THEN
+       IF ( ANY( volcgas_mol_wt(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-          WRITE(*,*) 'Please check the values of rvolcgas',volcgas_mol_wt(1:n_gas)
+          WRITE(*,*) 'Please check the values of rvolcgas' ,                    &
+               volcgas_mol_wt(1:n_gas)
           STOP
           
        END IF
        
-       IF ( ANY( volcgas_mass_fraction0(1:n_gas) ==-1.D0 ) ) THEN
+       IF ( ANY( volcgas_mass_fraction0(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
-          WRITE(*,*) 'Please check the values of rvolcgas',                        &
+          WRITE(*,*) 'Please check the values of rvolcgas',                     &
                volcgas_mass_fraction0(1:n_gas)
           STOP
           
        END IF
        
        
-       IF ( ( SUM( volcgas_mass_fraction0(1:n_gas) ) + water_mass_fraction0 )      &
-            .GE. 1.D0 ) THEN
+       IF ( ( SUM( volcgas_mass_fraction0(1:n_gas) ) + water_mass_fraction0 )   &
+            .GE. 1.0_wp ) THEN
           
-          WRITE(*,*) 'WARNING: Sum of gas mass fractions :',                       &
+          WRITE(*,*) 'WARNING: Sum of gas mass fractions :',                    &
                SUM( volcgas_mass_fraction0(1:n_part) + water_mass_fraction0 )
           
           !READ(*,*)
@@ -1930,9 +1931,9 @@ CONTAINS
        
     END IF
 
-    rvolcgas_mix = 0.D0
-    cpvolcgas_mix = 0.D0
-    Rrhovolcgas_mix = 0.D0
+    rvolcgas_mix = 0.0_wp
+    cpvolcgas_mix = 0.0_wp
+    Rrhovolcgas_mix = 0.0_wp
     
     CALL initialize_meteo
 
@@ -1963,13 +1964,13 @@ CONTAINS
     
     ELSE
 
-       rvolcgas_mix = 0.D0
+       rvolcgas_mix = 0.0_wp
        
-       cpvolcgas_mix = 0.D0
+       cpvolcgas_mix = 0.0_wp
        
-       rhovolcgas_mix =  0.D0
+       rhovolcgas_mix =  0.0_wp
        
-       volcgas_mix_mass_fraction = 0.D0
+       volcgas_mix_mass_fraction = 0.0_wp
     
     END IF
 
@@ -1984,7 +1985,7 @@ CONTAINS
     ! ---- We assume all volcanic H2O at the vent is water vapor 
     water_vapor_mass_fraction = water_mass_fraction0
 
-    liquid_water_mass_fraction = 0.D0
+    liquid_water_mass_fraction = 0.0_wp
 
     gas_mass_fraction = water_vapor_mass_fraction + volcgas_mix_mass_fraction 
 
@@ -2012,7 +2013,7 @@ CONTAINS
     
     IF ( n_gas .GT. 0 ) WRITE(bak_unit, volcgas_parameters) 
 
-    IF ( SUM( solid_partial_mass_fraction(1:n_part) ) .NE. 1.D0 ) THEN
+    IF ( SUM( solid_partial_mass_fraction(1:n_part) ) .NE. 1.0_wp ) THEN
 
        WRITE(*,*) 'WARNING: Sum of solid mass fractions :',                     &
             SUM( solid_partial_mass_fraction(1:n_part) )
@@ -2033,7 +2034,7 @@ CONTAINS
     solid_partial_mass_fraction0 = solid_partial_mass_fraction
 
     ! solid mass fractions in the mixture
-    solid_mass_fraction0(1:n_part) = ( 1.d0 - water_mass_fraction0              &
+    solid_mass_fraction0(1:n_part) = ( 1.0_wp - water_mass_fraction0              &
          - volcgas_mix_mass_fraction ) * solid_partial_mass_fraction(1:n_part)
 
     WRITE(*,*) '---------- INITIALIZATION ------------'
@@ -2094,9 +2095,9 @@ CONTAINS
        ! the density of the particles phases are evaluated here. It is 
        ! independent from the mass fraction of the particles phases, so
        ! it is possible to evaluate them with the "uncorrected" moments
-       rho_solid_avg(i_part) = 1.D0/( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
-            * m_quad(:,:,i_part)/rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)&
-            * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
+       rho_solid_avg(i_part) = 1.0_wp / ( SUM( f_quad(:,:,i_part) *             &
+            w_quad(:,:,i_part) * m_quad(:,:,i_part) / rho_quad(:,:,i_part) ) /  &
+            SUM(f_quad(:,:,i_part) * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
        IF ( verbose_level .GE. 1 ) THEN
 
@@ -2109,7 +2110,7 @@ CONTAINS
 
     ! the average solid density is evaluated through the mass fractions and 
     ! the densities of the particles phases
-    rho_solid_tot_avg = 1.D0 / SUM( solid_partial_mass_fraction(1:n_part) /     &
+    rho_solid_tot_avg = 1.0_wp / SUM( solid_partial_mass_fraction(1:n_part) /   &
          rho_solid_avg(1:n_part) )
 
     IF ( verbose_level .GE. 1 ) THEN
@@ -2129,14 +2130,14 @@ CONTAINS
        solid_tot_volume_fraction0 = ( rho_mix - rho_gas ) /                     &
             ( rho_solid_tot_avg - rho_gas )
 
-       gas_volume_fraction = 1.D0 - solid_tot_volume_fraction0
+       gas_volume_fraction = 1.0_wp - solid_tot_volume_fraction0
 
     ELSE
 
-       gas_volume_fraction = rho_solid_tot_avg / ( rho_gas * ( 1.D0 /           &
-            gas_mass_fraction - 1.D0 ) + rho_solid_tot_avg )
+       gas_volume_fraction = rho_solid_tot_avg / ( rho_gas * ( 1.0_wp /         &
+            gas_mass_fraction - 1.0_wp ) + rho_solid_tot_avg )
 
-       solid_tot_volume_fraction0 = 1.D0 - gas_volume_fraction
+       solid_tot_volume_fraction0 = 1.0_wp - gas_volume_fraction
 
        rho_mix = gas_volume_fraction * rho_gas + solid_tot_volume_fraction0     &
             * rho_solid_tot_avg
@@ -2228,8 +2229,9 @@ CONTAINS
 
        END IF
 
-       IF ( ( solver_scheme .NE. 'LxF' ) .AND. ( solver_scheme .NE. 'KT' ) .AND.   &
-            ( solver_scheme .NE. 'GFORCE' ) .AND. ( solver_scheme .NE. 'UP' ) ) THEN
+       IF ( ( solver_scheme .NE. 'LxF' ) .AND. ( solver_scheme .NE. 'KT' )      &
+            .AND. ( solver_scheme .NE. 'GFORCE' )                               &
+            .AND. ( solver_scheme .NE. 'UP' ) ) THEN
 
           WRITE(*,*) 'WARNING: no correct solver scheme selected',solver_scheme
           WRITE(*,*) 'Chose between: LxF, GFORCE or KT'
@@ -2250,7 +2252,7 @@ CONTAINS
        limiter(n_vars+1) = limiter(2)
        limiter(n_vars+2) = limiter(3)
 
-       IF ( ( MAXVAL(limiter(1:n_vars)) .GT. 3 ) .OR.                              &
+       IF ( ( MAXVAL(limiter(1:n_vars)) .GT. 3 ) .OR.                           &
             ( MINVAL(limiter(1:n_vars)) .LT. 0 ) ) THEN
 
           WRITE(*,*) 'WARNING: wrong limiter ',limiter(1:n_vars)
@@ -2266,7 +2268,8 @@ CONTAINS
 
        END IF
 
-       IF ( ( reconstr_coeff .GT. 1.0_wp ) .OR. ( reconstr_coeff .LT. 0.0_wp ) ) THEN
+       IF ( ( reconstr_coeff .GT. 1.0_wp ) .OR. ( reconstr_coeff .LT. 0.0_wp ) )&
+            THEN
 
           WRITE(*,*) 'WARNING: wrong value of reconstr_coeff ',reconstr_coeff
           WRITE(*,*) 'Change the value between 0.0 and 1.0 in the input file'
@@ -2516,7 +2519,7 @@ CONTAINS
 
     col_lines = col_lines + 1
 
-    WRITE(col_unit,101,advance="no") z , r , x , y , rho_mix , t_mix-273.15D0 , &
+    WRITE(col_unit,101,advance="no") z , r , x , y , rho_mix , t_mix-273.15_wp ,&
          w , mag_u, dry_air_mass_fraction , water_vapor_mass_fraction ,         & 
          liquid_water_mass_fraction , ice_mass_fraction
 
@@ -2699,9 +2702,9 @@ CONTAINS
 
     ALLOCATE( delta_solid(n_tot) )
     
-    delta_solid(1:n_part) = 0.D0
+    delta_solid(1:n_part) = 0.0_wp
    
-    WRITE(hy_unit,110) 0.D0 , 0.D0  , vent_height + 0.5D0 * hy_deltaz ,         &
+    WRITE(hy_unit,110) 0.0_wp , 0.0_wp  , vent_height + 0.50_wp * hy_deltaz ,   &
          delta_solid(1:n_part)
 
     DEALLOCATE( delta_solid )
@@ -2880,7 +2883,7 @@ CONTAINS
 
     n_hy = FLOOR( ( z_max - z_min ) / hy_deltaz )
 
-    solid_tot(1:n_tot) = 0.D0
+    solid_tot(1:n_tot) = 0.0_wp
     
     DO i = 1,n_hy
    
@@ -2915,15 +2918,15 @@ CONTAINS
           
           IF ( verbose_level .GE. 1 ) THEN
              
-             WRITE(*,110) 0.5D0 * ( x_top + x_bot ) , 0.5D0 * ( y_top+y_bot ) , &
-                  0.5D0 * ( z_top + z_bot ) , delta_solid(1:n_part)
+             WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
+                  0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_part)
 
              !READ(*,*)
              
           END IF
           
-          WRITE(hy_unit,110) 0.5D0 * ( x_top+x_bot ) , 0.5D0 * ( y_top+y_bot ) ,&
-               0.5D0 * ( z_top + z_bot ) , delta_solid(1:n_tot)
+          WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
+               0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
           
        ELSE
 
@@ -2931,11 +2934,11 @@ CONTAINS
 
           IF ( u_atm .LT. 1.0D+3 ) THEN
    
-             delta_angle = 2.D0*pi_g/n_cloud
+             delta_angle = 2.0_wp*pi_g/n_cloud
           
           ELSE
 
-             delta_angle = pi_g / ( n_cloud - 1.D0 )
+             delta_angle = pi_g / ( n_cloud - 1.0_wp )
 
           END IF
           
@@ -2943,11 +2946,11 @@ CONTAINS
           DO j=1,n_cloud
              
              start_angle =  ATAN2(sin_theta,cos_theta)
-             angle_release = (j-1) * delta_angle - 0.5D0*pi_g
+             angle_release = (j-1) * delta_angle - 0.5_wp*pi_g
 
-             dx = 0.5D0* ( r_bot + r_top ) * COS(start_angle + angle_release)
-             dy = 0.5D0* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-             dz = 0.D0
+             dx = 0.5_wp* ( r_bot + r_top ) * COS(start_angle + angle_release)
+             dy = 0.5_wp* ( r_bot + r_top ) * SIN(start_angle + angle_release)
+             dz = 0.0_wp
 
              !WRITE(*,*) "dx,dy ",dx,dy
              !WRITE(*,*) "start_angle ",start_angle
@@ -2958,16 +2961,16 @@ CONTAINS
 
              IF ( verbose_level .GE. 1 ) THEN
                 
-                WRITE(*,110)  0.5D0 * ( x_top + x_bot ) + dx ,                  &
-                     0.5D0 * ( y_top + y_bot ) + dy ,                           &
-                     0.5D0 * ( z_top + z_bot ) + dz ,                           &
+                WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
+                     0.5_wp * ( y_top + y_bot ) + dy ,                           &
+                     0.5_wp * ( z_top + z_bot ) + dz ,                           &
                      delta_solid(1:n_tot)/n_cloud
                 
              END IF
              
-             WRITE(hy_unit,110)   0.5D0 * ( x_top + x_bot ) + dx ,              &
-                  0.5D0 * ( y_top + y_bot ) + dy ,                              &
-                  0.5D0 * ( z_top + z_bot ) + dz ,                              &
+             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                  0.5_wp * ( y_top + y_bot ) + dy ,                              &
+                  0.5_wp * ( z_top + z_bot ) + dz ,                              &
                   delta_solid(1:n_tot)/n_cloud
              
           END DO
@@ -3015,23 +3018,23 @@ CONTAINS
    
        IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,110) 0.5D0 * ( x_top + x_bot ) , 0.5D0 * ( y_top + y_bot ) ,  &
-               0.5D0 * ( z_top + z_bot ) , delta_solid(1:n_tot)
+          WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top + y_bot ) ,  &
+               0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
           
        END IF
        
-       WRITE(hy_unit,110) 0.5D0 * ( x_top + x_bot ) , 0.5D0 * ( y_top+y_bot ) , &
-            0.5D0 * ( z_top + z_bot ) , delta_solid(1:n_tot)
+       WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
+            0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
        
     ELSE
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
           
-          delta_angle = 2.D0*pi_g/n_cloud
+          delta_angle = 2.0_wp*pi_g/n_cloud
           
        ELSE
           
-          delta_angle = pi_g / ( n_cloud - 1.D0 )
+          delta_angle = pi_g / ( n_cloud - 1.0_wp )
           
        END IF
        
@@ -3039,25 +3042,25 @@ CONTAINS
        DO i=1,n_cloud
           
           start_angle =  ATAN2(sin_theta,cos_theta)
-          angle_release = (i-1) * delta_angle - 0.5D0*pi_g
+          angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
           
           dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
           dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
 
-          dz = 0.D0
+          dz = 0.0_wp
           
           IF ( verbose_level .GE. 1 ) THEN
              
-             WRITE(*,110)  0.5D0 * ( x_top + x_bot ) + dx ,                  &
-                  0.5D0 * ( y_top + y_bot ) + dy ,                           &
-                  0.5D0 * ( z_top + z_bot ) + dz ,                           &
+             WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
+                  0.5_wp * ( y_top + y_bot ) + dy ,                           &
+                  0.5_wp * ( z_top + z_bot ) + dz ,                           &
                   delta_solid(1:n_tot)/n_cloud
              
           END IF
           
-          WRITE(hy_unit,110)   0.5D0 * ( x_top + x_bot ) + dx ,              &
-               0.5D0 * ( y_top + y_bot ) + dy ,                              &
-               0.5D0 * ( z_top + z_bot ) + dz ,                              &
+          WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+               0.5_wp * ( y_top + y_bot ) + dy ,                              &
+               0.5_wp * ( z_top + z_bot ) + dz ,                              &
                delta_solid(1:n_tot)/n_cloud
                     
        END DO
@@ -3084,22 +3087,22 @@ CONTAINS
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
           
-          delta_angle = 2.D0*pi_g/n_cloud
+          delta_angle = 2.0_wp*pi_g/n_cloud
           
        ELSE
           
-          delta_angle = pi_g / ( n_cloud - 1.D0 )
+          delta_angle = pi_g / ( n_cloud - 1.0_wp )
           
        END IF
               
        DO i=1,n_cloud
           
           start_angle =  ATAN2(sin_theta,cos_theta)
-          angle_release = (i-1) * delta_angle - 0.5D0*pi_g
+          angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
           
           dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
           dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-          dz = 0.D0
+          dz = 0.0_wp
           
           IF ( verbose_level .GE. 1 ) THEN
 
@@ -3201,18 +3204,18 @@ CONTAINS
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
           
-          delta_angle = 2.D0*pi_g/n_cloud
+          delta_angle = 2.0_wp*pi_g/n_cloud
           
        ELSE
           
-          delta_angle = pi_g / ( n_cloud - 1.D0 )
+          delta_angle = pi_g / ( n_cloud - 1.0_wp )
           
        END IF
               
        DO i=1,n_cloud
           
           start_angle =  ATAN2(sin_theta,cos_theta)
-          angle_release = (i-1) * delta_angle - 0.5D0*pi_g
+          angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
           
           dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
           dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
@@ -3281,7 +3284,7 @@ CONTAINS
     REAL(wp) :: normpdf
     REAL(wp), INTENT(IN) :: phi,mu,sigma
 
-    normpdf = 1.D0 / ( sigma * DSQRT( 2.D0 * pi_g ) ) * DEXP( -0.5D0 *          &
+    normpdf = 1.0_wp / ( sigma * SQRT( 2.0_wp * pi_g ) ) * EXP( -0.5_wp *       &
          ( ( phi - mu ) / sigma )**2 )
     
   END FUNCTION normpdf
@@ -3346,24 +3349,24 @@ CONTAINS
     
     INTEGER :: j
     
-    b = 0.D0
+    b = 0.0_wp
 
     DO j=n_sections,1,-1
     
        x1 = MassL(j)
        x2 = MassR(j)
-       a = ( 6.D0 * Mass(j) / ( x2-x1 ) - b * ( x1+2.D0*x2 ) ) / ( 2.D0*x1+x2 )
+       a = ( 6.0_wp * Mass(j) / ( x2-x1 ) - b * ( x1+2.0_wp*x2 ) ) / ( 2.0_wp*x1+x2 )
     
-       IF ( a .GT. 0.D0 ) THEN
+       IF ( a .GT. 0.0_wp ) THEN
                 
        ELSE
         
-          a = 2.D0 * Mass(j) / ( x2**2-x1**2 )
+          a = 2.0_wp * Mass(j) / ( x2**2-x1**2 )
           b = a
         
        END IF
         
-       Number(j) = 0.5D0*(a+b)*(x2-x1)
+       Number(j) = 0.5_wp*(a+b)*(x2-x1)
         
        b = a
    

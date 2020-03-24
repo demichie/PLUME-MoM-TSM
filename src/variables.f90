@@ -24,7 +24,7 @@ MODULE variables
   REAL*8 :: gi          
   
   !> Boltzmann constant
-  REAL*8, PARAMETER :: k_b = 1.3806488D-23 
+  REAL*8, PARAMETER :: k_b = 1.3806488E-23_wp 
 
   !> Greek pi  
   REAL*8 :: pi_g        

@@ -114,7 +114,7 @@ CONTAINS
 
        !$ n_threads = omp_get_max_threads()
        !$ CALL OMP_SET_NUM_THREADS(n_threads)
-       IF ( verbose_level .GE. 0.D0 ) WRITE(*,*) 'Number of threads used', n_threads
+       IF ( verbose_level .GE. 0 ) WRITE(*,*) 'Number of threads used', n_threads
 
     END IF
 
@@ -206,13 +206,13 @@ CONTAINS
     r_new_source = r_source
     r_old_source = r_source
 
-    WRITE(*,*) dx*dy*COUNT(q(1,:,:).GT.1.D-5)
-    IF ( verbose_level .GE. 0.D0 ) THEN
+    WRITE(*,*) dx*dy*COUNT(q(1,:,:).GT.1.E-5_wp)
+    IF ( verbose_level .GE. 0.0_wp ) THEN
 
        WRITE(*,FMT="(A3,F10.4,A5,F9.5,A9,ES11.3E3,A11,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)")   &
             't =',t,'dt =',dt0,                                                   &
             ' volume = ',dx*dy*SUM(qp(1,:,:)) ,                                   &
-            ' area = ',dx*dy*COUNT(q(1,:,:).GT.1.D-5),' xnew =',x_new_source,     &
+            ' area = ',dx*dy*COUNT(q(1,:,:).GT.1.E-5_wp),' xnew =',x_new_source,     &
             ' rnew =',r_new_source
     END IF
 
@@ -331,7 +331,7 @@ CONTAINS
 
           WRITE(*,FMT="(A3,F10.4,A5,F9.5,A9,ES11.3E3,A11,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)")&
                't =' , t , 'dt =' , dt , ' volume = ' , dx*dy*SUM(qp(1,:,:)) ,  &
-               ' area = ' , dx*dy*COUNT(q(1,:,:).GT.1.D-2) , ' xnew =' ,        &
+               ' area = ' , dx*dy*COUNT(q(1,:,:).GT.1.E-2_wp) , ' xnew =' ,        &
                x_new_source , ' ynew =' , y_new_source , ' rnew =' , r_new_source
 
        END IF
@@ -343,7 +343,7 @@ CONTAINS
           CALL cpu_time(t3)
           CALL system_clock(st3)
 
-          IF ( verbose_level .GE. 0.D0 ) THEN
+          IF ( verbose_level .GE. 0.0_wp ) THEN
 
              WRITE(*,*) 'Time taken by iterations is',t3-t2,'seconds'
              WRITE(*,*) 'Elapsed real time = ', DBLE( st3-st2 ) / rate,'seconds'

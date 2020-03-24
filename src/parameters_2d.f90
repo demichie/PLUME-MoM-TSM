@@ -54,8 +54,8 @@ MODULE parameters_2d
   
   INTEGER, PARAMETER :: max_nl_iter = 100
 
-  REAL(wp), PARAMETER :: tol_abs = 1.D-5
-  REAL(wp), PARAMETER :: tol_rel = 1.D-5
+  REAL(wp), PARAMETER :: tol_abs = 1.E-5_wp
+  REAL(wp), PARAMETER :: tol_rel = 1.E-5_wp
 
   !> Limiter for the slope in the linear reconstruction:\n
   !> - 'none'     => no limiter (constant value);

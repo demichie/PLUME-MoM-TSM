@@ -61,8 +61,8 @@ CONTAINS
     z = vent_height
     s = 0.0_wp
     r = r0
-    u = 1.D-5
-    v = 1.D-5
+    u = 1.0E-5_wp
+    v = 1.0E-5_wp
     w = w0
 
     mag_u = SQRT(u*u+v*v+w*w)

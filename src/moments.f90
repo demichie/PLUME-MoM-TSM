@@ -85,35 +85,35 @@ CONTAINS
     cof(2) = -59.5979603554754912
     cof(3) = 14.1360979747417471
     cof(4) = -0.491913816097620199
-    cof(5) = 0.339946499848118887d-4
-    cof(6) = 0.465236289270485756d-4
-    cof(7) = -0.983744753048795646d-4
-    cof(8) = 0.158088703224912494d-3
-    cof(9) = -0.210264441724104883d-3
-    cof(10) = 0.217439618115212643d-3
-    cof(11) = -0.164318106536763890d-3
-    cof(12) = 0.844182239838527433d-4
-    cof(13) = -0.261908384015814087d-4
-    cof(14) = .368991826595316234d-5
+    cof(5) = 0.339946499848118887E-4_wp
+    cof(6) = 0.465236289270485756E-4_wp
+    cof(7) = -0.983744753048795646E-4_wp
+    cof(8) = 0.158088703224912494E-3_wp
+    cof(9) = -0.210264441724104883E-3_wp
+    cof(10) = 0.217439618115212643E-3_wp
+    cof(11) = -0.164318106536763890E-3_wp
+    cof(12) = 0.844182239838527433E-4_wp
+    cof(13) = -0.261908384015814087E-4_wp
+    cof(14) = .368991826595316234E-5_wp
 
     IF (xx .LE. 0) THEN
        
        WRITE(*,*) "bad arg in gammln"
-       gammln = 0.D0
+       gammln = 0.0_wp
 
     ELSE
 
        x = xx
        y = x
        
-       tmp = x + 5.2421875D0
-       tmp = ( x + 0.5D0 ) * log(tmp) - tmp
+       tmp = x + 5.2421875_wp
+       tmp = ( x + 0.5_wp ) * log(tmp) - tmp
        
        ser = 0.999999999999997092
        
        DO j=1,14
           
-          y = y+1.D0
+          y = y+1.0_wp
           ser = ser + cof(j)/y
           
        END DO
@@ -135,35 +135,36 @@ CONTAINS
 
   
   subroutine gaulegf(x1, x2, x, w, n)
+    
     implicit none
     integer, intent(in) :: n
     REAL(wp), intent(in) :: x1, x2
     REAL(wp), dimension(n), intent(out) :: x, w
     integer :: i, j, m
     REAL(wp) :: p1, p2, p3, pp, xl, xm, z, z1
-    REAL(wp), parameter :: eps=3.d-14
+    REAL(wp), parameter :: eps=3.0E-14_wp
     
     m = (n+1)/2
-    xm = 0.5d0*(x2+x1)
-    xl = 0.5d0*(x2-x1)
+    xm = 0.5_wp*(x2+x1)
+    xl = 0.5_wp*(x2-x1)
     do i=1,m
-       z = cos(3.141592654d0*(i-0.25d0)/(n+0.5d0))
-       z1 = 0.0
+       z = cos(3.141592654_wp*(i-0.25_wp)/(n+0.5_wp))
+       z1 = 0.0_wp
        do while(abs(z-z1) .gt. eps)
-          p1 = 1.0d0
-          p2 = 0.0d0
+          p1 = 1.0_wp
+          p2 = 0.0_wp
           do j=1,n
              p3 = p2
              p2 = p1
-             p1 = ((2.0d0*j-1.0d0)*z*p2-(j-1.0d0)*p3)/j
+             p1 = ((2.0_wp*j-1.0_wp)*z*p2-(j-1.0_wp)*p3)/j
           end do
-          pp = n*(z*p1-p2)/(z*z-1.0d0)
+          pp = n*(z*p1-p2)/(z*z-1.0_wp)
           z1 = z
           z = z1 - p1/pp
        end do
        x(i) = xm - xl*z
        x(n+1-i) = xm + xl*z
-       w(i) = (2.0d0*xl)/((1.0d0-z*z)*pp*pp)
+       w(i) = (2.0_wp*xl)/((1.0_wp-z*z)*pp*pp)
        w(n+1-i) = w(i)
     end do
   end subroutine gaulegf
@@ -198,37 +199,37 @@ CONTAINS
     M = mom(1)
     N = mom(0)
 
-    Mmin = ( Mr + 2.D0*Ml ) / 3.D0
-    Mmax = ( 2.D0*Mr + Ml ) / 3.D0
+    Mmin = ( Mr + 2.0_wp*Ml ) / 3.0_wp
+    Mmax = ( 2.0_wp*Mr + Ml ) / 3.0_wp
     
 
     IF ( N*M == 0 ) THEN
     
-       alfa = 0.0
-       beta = 0.0
-       gamma1 = 0.0
-       gamma2 = 0.0
+       alfa = 0.0_wp
+       beta = 0.0_wp
+       gamma1 = 0.0_wp
+       gamma2 = 0.0_wp
 
     ELSEIF ( M/N .LT. Mmin) THEN
 
        alfa = (N*(M - N*Mr))/((Ml - Mr)*(M - N*Ml))
        beta = alfa
        gamma1 = (N*Ml - 2*M + N*Mr)/(M - N*Ml)
-       gamma2 = 0.D0
+       gamma2 = 0.0_wp
 
     ELSEIF ( M/N .GT. Mmax ) THEN
     
-       alfa = 0.0
+       alfa = 0.0_wp
        beta = (N*(M - N*Ml))/((Ml - Mr)*(M - N*Mr))
-       gamma1 = 0.D0
+       gamma1 = 0.0_wp
        gamma2 = (N*Ml - 2*M + N*Mr)/(M - N*Mr)
     
     ELSE
     
-       alfa = (2*(N*Ml - 3*M + 2*N*Mr))/(Ml - Mr)**2
-       beta = -(2*(2*N*Ml - 3*M + N*Mr))/(Ml - Mr)**2
-       gamma1 = 0.D0
-       gamma2 = 1.D0
+       alfa = (2.0_wp*(N*Ml - 3.0_wp*M + 2.0_wp*N*Mr))/(Ml - Mr)**2
+       beta = -(2.0_wp*(2.0_wp*N*Ml - 3.0_wp*M + N*Mr))/(Ml - Mr)**2
+       gamma1 = 0.0_wp
+       gamma2 = 1.0_wp
        
     END IF
 

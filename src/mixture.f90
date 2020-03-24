@@ -224,7 +224,7 @@ CONTAINS
 
     ELSE
 
-       volcgas_mix_mass_fraction = 0.D0
+       volcgas_mix_mass_fraction = 0.0_wp
 
     END IF
 
@@ -234,9 +234,9 @@ CONTAINS
     water_vapor_mass_fraction = water_mass_fraction
 
     ! No air is entrained at the vent             
-    dry_air_mass_fraction = 0.D0
+    dry_air_mass_fraction = 0.0_wp
 
-    solid_tot_mass_fraction = 1.D0 - water_mass_fraction -                      &
+    solid_tot_mass_fraction = 1.0_wp - water_mass_fraction -                      &
          volcgas_mix_mass_fraction - dry_air_mass_fraction
        
     cpsolid = SUM( solid_mass_fraction(1:n_part) * cp_part(1:n_part) )          &
@@ -253,7 +253,7 @@ CONTAINS
 
 
     !------ Corrections of mass fractions and moments for the added water -------
-    erupted_mass_fraction = 1.D0 - added_water_mass_fraction
+    erupted_mass_fraction = 1.0_wp - added_water_mass_fraction
 
     water_mass_fraction = water_mass_fraction * erupted_mass_fraction +         &
          added_water_mass_fraction
@@ -288,14 +288,14 @@ CONTAINS
 
     DO i_part=1,n_part
 
-       rho_solid_avg(i_part) = 1.D0 / ( SUM( f_quad(:,:,i_part)                 &
+       rho_solid_avg(i_part) = 1.0_wp / ( SUM( f_quad(:,:,i_part)                 &
             * w_quad(:,:,i_part) * m_quad(:,:,i_part)                           &
             / rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)                   &
             * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
        
     END DO
 
-    rho_solid_tot_avg = 1.D0 / SUM( solid_partial_mass_fraction(1:n_part) /     &
+    rho_solid_tot_avg = 1.0_wp / SUM( solid_partial_mass_fraction(1:n_part) /     &
          rho_solid_avg(1:n_part) )
 
     ! WRITE(*,*) 'rho_solid_tot_avg',rho_solid_tot_avg
@@ -336,7 +336,7 @@ CONTAINS
 
     gas_mass_fraction = volcgas_mix_mass_fraction + water_vapor_mass_fraction
 
-    IF ( added_water_mass_fraction .GT. 0.D0 ) THEN
+    IF ( added_water_mass_fraction .GT. 0.0_wp ) THEN
 
        WRITE(*,*) 'WARNING: WATER ADDED AT THE VENT'
        WRITE(*,*) 'New mixture enthalpy =', mixt_enth
@@ -361,8 +361,8 @@ CONTAINS
     !--- With the new temperature compute the densities of the gas components ---
 
     ! Compute density of gas species and mixture of gas species
-    rvolcgas_mix = 0.D0
-    cpvolcgas_mix = 0.D0
+    rvolcgas_mix = 0.0_wp
+    cpvolcgas_mix = 0.0_wp
 
     IF ( n_gas .GT. 0 ) THEN
 
@@ -381,12 +381,12 @@ CONTAINS
 
     ELSE
 
-       rvolcgas_mix = 0.D0
-       cpvolcgas_mix = 0.D0
+       rvolcgas_mix = 0.0_wp
+       cpvolcgas_mix = 0.0_wp
 
     END IF
 
-    Rrhovolcgas_mix = 0.D0    
+    Rrhovolcgas_mix = 0.0_wp    
     IF ( n_gas .GT. 0 ) THEN
 
        DO i_gas = 1,n_gas
@@ -400,7 +400,7 @@ CONTAINS
 
     ELSE
 
-       rhovolcgas_mix =  0.D0
+       rhovolcgas_mix =  0.0_wp
 
     END IF
 
@@ -419,7 +419,7 @@ CONTAINS
     END IF
 
     ! Density of the mixture at the vent
-    rho_mix = 1.D0 / ( gas_mass_fraction / rho_gas + solid_tot_mass_fraction /  &
+    rho_mix = 1.0_wp / ( gas_mass_fraction / rho_gas + solid_tot_mass_fraction /  &
          rho_solid_tot_avg + liquid_water_mass_fraction / rho_lw +              &
          ice_mass_fraction / rho_ice )
 
@@ -466,7 +466,7 @@ CONTAINS
 
     IF ( isSet(log10_mfr) ) THEN
 
-       mass_flow_rate = 10.0**log10_mfr
+       mass_flow_rate = 10.0_wp**log10_mfr
 
        IF ( write_flag ) WRITE(*,*) 'Fixed MER [kg/s] =',mass_flow_rate
 
@@ -475,7 +475,7 @@ CONTAINS
           IF ( .NOT.isSet(w) ) THEN
 
              ! Equation 4 from Carazzo et al. 2008
-             w = 138 * SQRT( water_mass_fraction0 * 100.d0 )
+             w = 138 * SQRT( water_mass_fraction0 * 100.0_wp )
              mag_u = SQRT(u*u+w*w)
              phi = ATAN(w/u)
 
@@ -495,7 +495,7 @@ CONTAINS
 
              r = r0
              w = mass_flow_rate / ( pi_g * rho_mix * r0**2 )
-             u = 1.D-5    
+             u = 1.0E-5_wp    
              mag_u = SQRT(u*u+w*w)
              phi = ATAN(w/u)
 
@@ -521,7 +521,7 @@ CONTAINS
        WRITE(*,*) 'rho_mix',rho_mix
        WRITE(*,*) 'mass_flow_rate',mass_flow_rate
        WRITE(*,*) 'solid_mass_flow_rates',mass_flow_rate *                      &
-            ( 1.D0 - gas_mass_fraction ) * solid_partial_mass_fraction(1:n_part)
+            ( 1.0_wp - gas_mass_fraction ) * solid_partial_mass_fraction(1:n_part)
 
        !READ(*,*)
 
@@ -577,7 +577,7 @@ CONTAINS
        ! --- and ice ----------------------------------------------------------- 
 
        SEARCH_TEMP: IF ( ( t_mix .GT. (T_ref-40) ) .AND. ( t_mix .LT. T_ref)   &
-            .AND. ( liquid_water_mass_fraction .GT. 0.D0 ) ) THEN
+            .AND. ( liquid_water_mass_fraction .GT. 0.0_wp ) ) THEN
 
           CALL eval_temp_wv_lw_ice(enth,pa,cpsolid)
 
@@ -585,11 +585,11 @@ CONTAINS
           ! --- for exit status = 1: no equilibrium between vapour - liquid --- 
           ! --- and ice, skip to CASE 3 (vapour and ice) ----------------------
 
-          IF (exit_status .EQ. 1.D0) CALL eval_temp_wv_ice(enth,pa,cpsolid)
+          IF (exit_status .EQ. 1.0_wp) CALL eval_temp_wv_ice(enth,pa,cpsolid)
 
           ! --- CASE3: for t_mix < T_ref - 40: water vapour and ice ---------------
 
-       ELSEIF ( t_mix .LT. (T_ref - 40.D0) ) THEN
+       ELSEIF ( t_mix .LT. (T_ref - 40.0_wp) ) THEN
 
           CALL eval_temp_wv_ice(enth,pa,cpsolid)
 
@@ -696,12 +696,12 @@ CONTAINS
 
     ! --------- All water is liquid and/or vapour ----------------------------
 
-    ice_mass_fraction = 0.D0    
+    ice_mass_fraction = 0.0_wp    
 
 
     ! CASE1: all water is liquid   
     
-    water_vapor_mass_fraction = 1.D-10
+    water_vapor_mass_fraction = 1.0E-10_wp
 
     liquid_water_mass_fraction = water_mass_fraction-water_vapor_mass_fraction  &
          - ice_mass_fraction
@@ -752,22 +752,22 @@ CONTAINS
          + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
          +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
 
-    IF ( temp0 .GT. 29.65D0 ) THEN
+    IF ( temp0 .GT. 29.65_wp ) THEN
 
-       el = 611.2D0*DEXP( 17.67D0 * ( temp0 - 273.16D0 ) / ( temp0 - 29.65D0 ) )
+       el = 611.2_wp * EXP( 17.67_wp * ( temp0 - 273.16_wp ) / ( temp0 - 29.65_wp ) )
        f0 = ( pres - el ) * wv_mol_fract - el * ( da_mol_fract                  &
             + volcgas_mix_mol_fract )
 
     ELSE
 
-       el = 0.D0
+       el = 0.0_wp
 
     END IF
 
     ! --------- All water is vapor -------------------------------------------
 
     ! CASE1: all water is vapour (no liquid and ice)      
-    lw_mf2 = 0.D0
+    lw_mf2 = 0.0_wp
 
     liquid_water_mass_fraction = lw_mf2
     water_vapor_mass_fraction = water_mass_fraction-liquid_water_mass_fraction  &
@@ -796,7 +796,7 @@ CONTAINS
             ( water_vapor_mass_fraction / wv_mol_wt                             &
             + dry_air_mass_fraction / da_mol_wt )
 
-       volcgas_mix_mol_fract = 0.d0
+       volcgas_mix_mol_fract = 0.0_wp
 
        da_mol_fract = ( dry_air_mass_fraction / da_mol_wt ) /                   &
             ( water_vapor_mass_fraction / wv_mol_wt                             &
@@ -810,26 +810,26 @@ CONTAINS
          + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
          +  volcgas_mix_mass_fraction*cpvolcgas_mix  + c_ice*ice_mass_fraction )
 
-    IF ( temp2 .GT. 29.65D0 ) THEN
+    IF ( temp2 .GT. 29.65_wp ) THEN
 
-       el = 611.2D0 * DEXP( 17.67D0 * ( temp2-273.16D0 ) / ( temp2 - 29.65D0 ) )
+       el = 611.2_wp * EXP( 17.67_wp * ( temp2-273.16_wp ) / ( temp2 - 29.65_wp ) )
        f2 = ( pres - el ) * wv_mol_fract - el * da_mol_fract                    &
             - el * volcgas_mix_mol_fract
 
     ELSE
 
-       el = 0.D0
+       el = 0.0_wp
 
     END IF
 
 
     ! --------- Options: all vapour, all liquid, vapour+liquid ---------------
-    temp1 = 0.D0
+    temp1 = 0.0_wp
 
-    vapour_liquid_case:IF ( ( f0 .LT. 0.D0 ) .AND. ( f2 .LT. 0.D0 ) ) THEN
+    vapour_liquid_case:IF ( ( f0 .LT. 0.0_wp ) .AND. ( f2 .LT. 0.0_wp ) ) THEN
 
        ! ---------  All water is vapour -------------------------------------
-       liquid_water_mass_fraction = 0.D0
+       liquid_water_mass_fraction = 0.0_wp
 
        water_vapor_mass_fraction = water_mass_fraction -                        &
             liquid_water_mass_fraction - ice_mass_fraction
@@ -842,7 +842,7 @@ CONTAINS
 
        IF ( t_mix .GT. T_ref ) RETURN
 
-    ELSEIF ( ( f0 .GT. 0.D0 ) .AND. ( f2 .GT. 0.D0 ) ) THEN
+    ELSEIF ( ( f0 .GT. 0.0_wp ) .AND. ( f2 .GT. 0.0_wp ) ) THEN
 
        ! --------- All water is liquid --------------------------------------
        liquid_water_mass_fraction = water_mass_fraction
@@ -861,7 +861,7 @@ CONTAINS
        find_temp1:DO
 
           ! ---------- Water is vapour+liquid ------------------------------
-          lw_mf1 = 0.5D0 * ( lw_mf0 + lw_mf2 )
+          lw_mf1 = 0.5_wp * ( lw_mf0 + lw_mf2 )
 
           liquid_water_mass_fraction = lw_mf1
           water_vapor_mass_fraction = water_mass_fraction -                     &
@@ -906,16 +906,16 @@ CONTAINS
                water_vapor_mass_fraction * c_wv +  volcgas_mix_mass_fraction *  &
                cpvolcgas_mix + c_ice * ice_mass_fraction )
 
-          IF ( temp1 .GT. 29.65D0 ) THEN
+          IF ( temp1 .GT. 29.65_wp ) THEN
 
-             el = 611.2D0 * DEXP( 17.67D0 * ( temp1 - 273.16D0 )                &
-                  / ( temp1 - 29.65D0 ) )
+             el = 611.2_wp * EXP( 17.67_wp * ( temp1 - 273.16_wp )                &
+                  / ( temp1 - 29.65_wp ) )
              f1 = ( pres - el ) * wv_mol_fract - el * da_mol_fract - el *       &
                   volcgas_mix_mol_fract
 
           END IF
 
-          IF (  f1 * f0 .LT. 0.D0 ) THEN
+          IF (  f1 * f0 .LT. 0.0_wp ) THEN
 
              lw_mf2 = lw_mf1
              f2 = f1
@@ -929,7 +929,7 @@ CONTAINS
 
           END IF
 
-          IF ( ABS(temp2-temp0) .LT. 1.D-5 ) THEN
+          IF ( ABS(temp2-temp0) .LT. 1.0E-5_wp ) THEN
 
              t_mix = temp1
 
@@ -937,7 +937,7 @@ CONTAINS
 
              EXIT find_temp1
 
-          ELSEIF ( ABS(lw_mf2 - lw_mf0) .LT. 1.D-7 ) THEN
+          ELSEIF ( ABS(lw_mf2 - lw_mf0) .LT. 1.0E-7_wp ) THEN
 
              t_mix = temp1
 
@@ -1001,7 +1001,7 @@ CONTAINS
 
     REAL(wp) :: enth0 , enth1 , enth2
 
-    exit_status = 0.D0
+    exit_status = 0.0_wp
 
     !REAL(wp) :: exit_status
 
@@ -1010,13 +1010,13 @@ CONTAINS
     ! between 0 and equilibrium value at t=T_ref (if positive)
 
     ! CASE 0: only ice and water vapour at t=T_ref-40
-    temp0 = T_ref - 40.D0
+    temp0 = T_ref - 40.0_wp
 
 
-    es = -9.097D0 * ( (273.16D0 / temp0 ) - 1.D0 ) - 3.566D0 * log10(273.16D0 / temp0) &
-         + 0.876D0 * ( 1.D0 - (temp0 / 273.16D0))
+    es = -9.097_wp * ( (273.16_wp / temp0 ) - 1.0_wp ) - 3.566_wp * log10(273.16_wp / temp0) &
+         + 0.876_wp * ( 1.0_wp - (temp0 / 273.16_wp))
 
-    es = 611.22D0 * ( 10.D0**es ) 
+    es = 611.22_wp * ( 10.0_wp**es ) 
 
     wv_mol_fract = es / pres 
 
@@ -1024,17 +1024,17 @@ CONTAINS
        
        wv_mf0 = - ( (dry_air_mass_fraction / da_mol_wt +                        &
             volcgas_mix_mass_fraction / volcgas_mix_mol_wt) *                   &
-            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
 
     ELSE
 
        wv_mf0 = - ( (dry_air_mass_fraction / da_mol_wt) * &
             
-            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
 
     END IF
 
-    lw_mf0 = 0.D0
+    lw_mf0 = 0.0_wp
 
     ice_mf0 = water_mass_fraction - wv_mf0
 
@@ -1053,7 +1053,7 @@ CONTAINS
     ! CASE 0: only liquid and water vapour at t=T_ref       
     temp2 = T_ref
 
-    el = 611.2D0 * DEXP( 17.67D0 * ( temp2 - 273.16D0 ) / ( temp2 - 29.65D0 ) )
+    el = 611.2_wp * EXP( 17.67_wp * ( temp2 - 273.16_wp ) / ( temp2 - 29.65_wp ) )
 
     wv_mol_fract = el / pres 
 
@@ -1061,18 +1061,18 @@ CONTAINS
 
        wv_mf2 = - ( (dry_air_mass_fraction / da_mol_wt +                        &
             volcgas_mix_mass_fraction / volcgas_mix_mol_wt) *                   &
-            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
 
     ELSE
 
        wv_mf2 = - ( (dry_air_mass_fraction / da_mol_wt) * &
             
-            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+            wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
 
     END IF
 
     lw_mf2 = water_mass_fraction - wv_mf2
-    ice_mf2 = 0.D0
+    ice_mf2 = 0.0_wp
 
     !WRITE(*,*) 'CASE2'
     !WRITE(*,*) 'wv_mol_fract',wv_mol_fract
@@ -1094,7 +1094,7 @@ CONTAINS
     !READ(*,*)
 
 
-    IF ((f0*f2 .GT. 0.D0)) THEN
+    IF ((f0*f2 .GT. 0.0_wp)) THEN
 
        exit_status = 1.0
 
@@ -1103,7 +1103,7 @@ CONTAINS
     END IF
 
 
-    IF ( ( lw_mf2 .GT. 0.D0 ) .AND. (lw_mf2 .LT. 1.D0 ) ) THEN
+    IF ( ( lw_mf2 .GT. 0.0_wp ) .AND. (lw_mf2 .LT. 1.0_wp ) ) THEN
 
        ! --- We enter here if there is liquid water at t=Tref, otherwise
        ! --- there are only ice and water vapour
@@ -1112,15 +1112,15 @@ CONTAINS
           ! search for (T_ref-40) <= T <= T_ref and for mass fractions giving
           ! the correct enthalpy
 
-          temp1 = (temp0 + temp2) * 0.5D0
+          temp1 = (temp0 + temp2) * 0.5_wp
 
-          lw_mf1 = lw_mf2 * ( temp1 - ( T_ref - 40) ) / 40.D0 
+          lw_mf1 = lw_mf2 * ( temp1 - ( T_ref - 40) ) / 40.0_wp 
 
-          es = -9.097D0 * ( (273.16D0 / temp1 ) - 1.D0 ) -                      &
-               3.566D0 * log10(273.16D0 / temp1)                                &
-               + 0.876D0 * ( 1.D0 - (temp1 / 273.16D0) )
+          es = -9.097_wp * ( (273.16_wp / temp1 ) - 1.0_wp ) -                      &
+               3.566_wp * log10(273.16_wp / temp1)                                &
+               + 0.876_wp * ( 1.0_wp - (temp1 / 273.16_wp) )
 
-          es = 611.22D0 * ( 10.D0**es ) 
+          es = 611.22_wp * ( 10.0_wp**es ) 
 
           wv_mol_fract = es / pres 
 
@@ -1128,12 +1128,12 @@ CONTAINS
              
              wv_mf1 = - ( (dry_air_mass_fraction / da_mol_wt +                  &
                   volcgas_mix_mass_fraction / volcgas_mix_mol_wt) *             &
-                  wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+                  wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
              
           ELSE
              
              wv_mf1 = - ( (dry_air_mass_fraction / da_mol_wt) *                 &
-                  wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.D0)
+                  wv_mol_wt * wv_mol_fract ) / (wv_mol_fract - 1.0_wp)
              
           END IF
 
@@ -1155,7 +1155,7 @@ CONTAINS
           !WRITE(*,*) 'lw_mf1,ice_mf1,wv_mf1',lw_mf1,ice_mf1,wv_mf1
 
 
-          IF (f1 * f0 .LT. 0.D0) THEN
+          IF (f1 * f0 .LT. 0.0_wp) THEN
 
              temp2 = temp1
              f2 = f1
@@ -1168,9 +1168,9 @@ CONTAINS
           END IF
 
 
-          IF (ABS(temp2-temp0) .LT. 1.0D-5) THEN
+          IF (ABS(temp2-temp0) .LT. 1.0E-5_wp ) THEN
 
-             IF ( ( wv_mf1 .LT. 0.D0 ) .OR. ( ice_mf1 .LT. 0.D0 ) ) THEN
+             IF ( ( wv_mf1 .LT. 0.0_wp ) .OR. ( ice_mf1 .LT. 0.0_wp ) ) THEN
 
                 WRITE(*,*) 'WARNING: negative mass fraction'
                 WRITE(*,*) 'water_vapor_mass_fraction =', wv_mf1
@@ -1195,9 +1195,9 @@ CONTAINS
        END DO find_temp
 
 
-    ELSEIF (lw_mf2 .LT. 0.D0) THEN
+    ELSEIF (lw_mf2 .LT. 0.0_wp) THEN
 
-       exit_status = 1.D0
+       exit_status = 1.0_wp
 
        RETURN
 
@@ -1262,10 +1262,10 @@ CONTAINS
     !WRITE(*,*) '! ---- CHECK ice/vapour'
 
 
-    liquid_water_mass_fraction = 0.D0
+    liquid_water_mass_fraction = 0.0_wp
 
 
-    ice_mf0 = 0.D0  
+    ice_mf0 = 0.0_wp  
 
     ice_mass_fraction = ice_mf0
 
@@ -1305,7 +1305,7 @@ CONTAINS
             ( water_vapor_mass_fraction / wv_mol_wt                             &
             + dry_air_mass_fraction / da_mol_wt )
 
-       volcgas_mix_mol_fract = 0.d0
+       volcgas_mix_mol_fract = 0.0_wp
 
        da_mol_fract = ( dry_air_mass_fraction / da_mol_wt ) /                   &
             ( water_vapor_mass_fraction / wv_mol_wt                             &
@@ -1325,12 +1325,12 @@ CONTAINS
     !WRITE(*,*) 'volcgas_mix_mol_fract',volcgas_mix_mol_fract
     !READ(*,*)
 
-    IF ( temp0 .GT. 29.65D0 ) THEN
+    IF ( temp0 .GT. 29.65_wp ) THEN
 
-       es = -9.097D0 * ( (273.16D0 / temp0 ) - 1.D0 ) - 3.566D0 * log10(273.16D0 / temp0) &
-            + 0.876D0 * ( 1.D0 - (temp0 / 273.16D0))
+       es = -9.097_wp * ( (273.16_wp / temp0 ) - 1.0_wp ) - 3.566_wp * log10(273.16_wp / temp0) &
+            + 0.876_wp * ( 1.0_wp - (temp0 / 273.16_wp))
 
-       es = 611.22D0 * ( 10.D0**es )
+       es = 611.22_wp * ( 10.0_wp**es )
 
        f0 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
 
@@ -1379,7 +1379,7 @@ CONTAINS
             ( water_vapor_mass_fraction / wv_mol_wt                             &
             + dry_air_mass_fraction / da_mol_wt )
 
-       volcgas_mix_mol_fract = 0.d0
+       volcgas_mix_mol_fract = 0.0_wp
 
        da_mol_fract = ( dry_air_mass_fraction / da_mol_wt ) /                   &
             ( water_vapor_mass_fraction / wv_mol_wt                             &
@@ -1398,12 +1398,12 @@ CONTAINS
     !WRITE(*,*) 'da_mol_fract',da_mol_fract
     !WRITE(*,*) 'volcgas_mix_mol_fract',volcgas_mix_mol_fract
 
-    IF ( temp2 .GT. 29.65D0 ) THEN
+    IF ( temp2 .GT. 29.65_wp ) THEN
 
-       es = -9.097D0 * ( (273.16D0 / temp2) - 1.D0 ) - 3.566D0 * log10(273.16D0 / temp2) &
-            + 0.876D0 * ( 1.D0 - (temp2 / 273.16D0))
+       es = -9.097_wp * ( (273.16_wp / temp2) - 1.0_wp ) - 3.566_wp * log10(273.16_wp / temp2) &
+            + 0.876_wp * ( 1.0_wp - (temp2 / 273.16_wp))
 
-       es = 611.22D0 * ( 10.D0**es )
+       es = 611.22_wp * ( 10.0_wp**es )
 
        f2 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
 
@@ -1413,9 +1413,9 @@ CONTAINS
     !WRITE(*,*) 'all ice, t_mix:',temp2
 
 
-    IF ( ( f0 .LT. 0.D0 ) .AND. ( f2 .LT. 0.D0 ) ) THEN !All water is vapour
+    IF ( ( f0 .LT. 0.0_wp ) .AND. ( f2 .LT. 0.0_wp ) ) THEN !All water is vapour
 
-       ice_mass_fraction = 0.D0
+       ice_mass_fraction = 0.0_wp
        water_vapor_mass_fraction = water_mass_fraction - liquid_water_mass_fraction - ice_mass_fraction
 
        t_mix = temp0
@@ -1425,7 +1425,7 @@ CONTAINS
        !READ(*,*)
        RETURN
 
-    ELSEIF ( ( f0 .GT. 0.D0 ) .AND. ( f2 .GT. 0.D0 ) ) THEN !All water is ice
+    ELSEIF ( ( f0 .GT. 0.0_wp ) .AND. ( f2 .GT. 0.0_wp ) ) THEN !All water is ice
 
        ice_mass_fraction = water_mass_fraction
        water_vapor_mass_fraction = water_mass_fraction - liquid_water_mass_fraction - ice_mass_fraction
@@ -1440,7 +1440,7 @@ CONTAINS
 
        find_temp2:DO  
 
-          ice_mf1 = 0.5D0 * ( ice_mf0 + ice_mf2 )
+          ice_mf1 = 0.5_wp * ( ice_mf0 + ice_mf2 )
 
           ice_mass_fraction = ice_mf1
 
@@ -1496,10 +1496,10 @@ CONTAINS
                water_vapor_mass_fraction * c_wv +  volcgas_mix_mass_fraction *  &
                cpvolcgas_mix + c_ice * ice_mass_fraction )
 
-          es = -9.097D0 * ( 273.16D0 / temp1 -1.D0 ) - 3.566D0 * log10(273.16D0 / temp1) &
-               + 0.876D0 * (1.D0 - (temp1 / 273.16D0))
+          es = -9.097_wp * ( 273.16_wp / temp1 -1.0_wp ) - 3.566_wp * log10(273.16_wp / temp1) &
+               + 0.876_wp * (1.0_wp - (temp1 / 273.16_wp))
 
-          es = 611.22D0 * (10.0D0**es)
+          es = 611.22_wp * (10.0_wp**es)
 
           f1 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
 
@@ -1513,7 +1513,7 @@ CONTAINS
           !WRITE(*,*) 'f0,f1,f2',f0,f1,f2
           !READ(*,*)
 
-          IF (  f1 * f2 .LT. 0.D0 ) THEN
+          IF (  f1 * f2 .LT. 0.0_wp ) THEN
 
              ice_mf0 = ice_mf1
              f0 = f1
@@ -1527,7 +1527,7 @@ CONTAINS
 
           END IF
 
-          IF ( ABS(temp2-temp0) .LT. 1.D-3 ) THEN
+          IF ( ABS(temp2-temp0) .LT. 1.0E-3_wp ) THEN
 
              t_mix = temp1
 
@@ -1539,7 +1539,7 @@ CONTAINS
              ! WRITE(*,*)'t_mix 1',t_mix
              EXIT find_temp2
 
-          ELSEIF ( ABS(ice_mf2 - ice_mf0) .LT. 1.D-7 ) THEN
+          ELSEIF ( ABS(ice_mf2 - ice_mf0) .LT. 1.0E-7_wp ) THEN
 
              t_mix = temp1
 
@@ -1579,9 +1579,9 @@ CONTAINS
 
     REAL(wp), INTENT(IN) :: cpsolid
 
-    liquid_water_mass_fraction = 0.D0
+    liquid_water_mass_fraction = 0.0_wp
 
-    ice_mass_fraction = 0.D0
+    ice_mass_fraction = 0.0_wp
 
     water_vapor_mass_fraction = water_mass_fraction 
 

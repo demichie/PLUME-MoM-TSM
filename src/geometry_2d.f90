@@ -157,17 +157,17 @@ CONTAINS
     xN = x0 + comp_cells_x * dx
     yN = y0 + comp_cells_y * dy
 
-    dx2 = dx / 2.d0
-    dy2 = dy / 2.d0
+    dx2 = dx / 2.0_wp
+    dy2 = dy / 2.0_wp
 
 
     IF ( wp .EQ. sp ) THEN
 
-       eps_sing=MIN(MIN( dx ** 4.0_wp,dy ** 4.0_wp ),1.d-6)
+       eps_sing=MIN(MIN( dx ** 4.0_wp,dy ** 4.0_wp ),1.0E-6_wp)
 
     ELSE
 
-       eps_sing=MIN(MIN( dx ** 4.0_wp,dy ** 4.0_wp ),1.d-10)
+       eps_sing=MIN(MIN( dx ** 4.0_wp,dy ** 4.0_wp ),1.0E-10_wp)
 
     END IF
 
@@ -828,7 +828,7 @@ CONTAINS
 
     IF ( a*b .EQ. 0.0_wp ) THEN
 
-       minmod = 0.d0
+       minmod = 0.0_wp
 
     ELSE
 
@@ -847,9 +847,9 @@ CONTAINS
 
     REAL(wp) :: a , b , sa , sb 
 
-    IF ( a*b .EQ. 0.d0 ) THEN
+    IF ( a*b .EQ. 0.0_wp ) THEN
 
-       maxmod = 0.d0
+       maxmod = 0.0_wp
 
     ELSE
 

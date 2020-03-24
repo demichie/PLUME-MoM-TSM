@@ -270,9 +270,9 @@ CONTAINS
           r_u = qp(n_vars+1)
           r_v = qp(n_vars+2)
 
-          IF ( ABS( r_h ) .LT. 1d-99) r_h = 0.0_wp
-          IF ( ABS( r_u ) .LT. 1d-99) r_u = 0.0_wp
-          IF ( ABS( r_v ) .LT. 1d-99) r_v = 0.0_wp
+          IF ( ABS( r_h ) .LT. 1E-20_wp) r_h = 0.0_wp
+          IF ( ABS( r_u ) .LT. 1E-20_wp) r_u = 0.0_wp
+          IF ( ABS( r_v ) .LT. 1E-20_wp) r_v = 0.0_wp
 
           WRITE(output_unit_2d,1010) x_comp(j), y_comp(k), r_h , r_u , r_v
 

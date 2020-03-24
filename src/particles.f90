@@ -376,53 +376,53 @@ CONTAINS
 
        ! Textor et al. 2006
 
-       IF ( diam .LE. 1.D-4 ) THEN
+       IF ( diam .LE. 1.E-4_wp ) THEN
 
           k1 = 1.19D5   ! (m^2 kg^-1 s^-1 )
           
           particles_settling_velocity = k1 * rhop * SQRT( rho_atm0 / rho_atm ) &
-               * ( 0.5D0 * diam )**2
+               * ( 0.5_wp * diam )**2
 
-       ELSEIF ( diam .LE. 1.D-3 ) THEN
+       ELSEIF ( diam .LE. 1.E-3_wp ) THEN
 
-          k2 = 8.D0    ! (m^3 kg^-1 s^-1 )
+          k2 = 8.0_wp    ! (m^3 kg^-1 s^-1 )
 
           particles_settling_velocity = k2 * rhop * SQRT( rho_atm0 / rho_atm ) &
-               * ( 0.5D0 * diam )
+               * ( 0.5_wp * diam )
 
        ELSE 
 
-          k3 = 4.833D0 ! (m^2 kg^-0.5 s^-1 )
-          CD = 0.75D0
+          k3 = 4.833_wp ! (m^2 kg^-0.5 s^-1 )
+          CD = 0.75_wp
 
           particles_settling_velocity = k3 * SQRT( rhop / CD )                 &
-               * SQRT(  rho_atm0 / rho_atm ) * SQRT( 0.5D0 * diam )
+               * SQRT(  rho_atm0 / rho_atm ) * SQRT( 0.5_wp * diam )
 
        END IF
 
     ELSEIF ( settling_model .EQ. 'ganser' ) THEN 
 
-       Vinit = diam**2 * gi * ( rhop - rho_atm ) / (18.D0*visc_atm)
+       Vinit = diam**2 * gi * ( rhop - rho_atm ) / (18.0_wp*visc_atm)
 
        DO i=1,10
 
           IF (i.EQ.1) REYNOLDS = rho_atm * Vinit * diam / visc_atm
 
-          K1 = 3.0/(1.0+2.0*(shape_fact**(-0.5)))
+          K1 = 3.0_wp / (1.0_wp + 2.0_wp * ( shape_fact**(-0.5_wp)))
 
-          K2 = 10.0**(1.8148*((-1.0*log10(shape_fact))**0.5743))
+          K2 = 10.0_wp**(1.8148_wp * ((-1.0_wp*log10(shape_fact))**0.5743_wp))
 
           REYNOLDSK1K2 = REYNOLDS * K1 * K2
 
-          CD1 = K2 * 24.0 / REYNOLDSK1K2  *                                     &
-               ( 1.D0 + 0.1118 * REYNOLDSK1K2**0.6567 )
+          CD1 = K2 * 24.0_wp / REYNOLDSK1K2  *                                     &
+               ( 1.0_wp + 0.1118_wp * REYNOLDSK1K2**0.6567_wp )
 
-          CD2 = 0.4305 * K2 / ( 1.0 + 3305.0 / REYNOLDSK1K2 )
+          CD2 = 0.4305_wp * K2 / ( 1.0_wp + 3305.0_wp / REYNOLDSK1K2 )
 
           CD = CD1 + CD2
 
-          VG_GANSER = ( ( 4.0 * gi * diam * ( rhop - rho_atm ) )                &
-               / ( 3.D0 * CD * rho_atm) )**0.5
+          VG_GANSER = ( ( 4.0_wp * gi * diam * ( rhop - rho_atm ) )                &
+               / ( 3.0_wp * CD * rho_atm) )**0.5_wp
 
           REYNOLDS = rho_atm * VG_GANSER * diam / visc_atm
 
@@ -430,7 +430,7 @@ CONTAINS
 
        particles_settling_velocity = Vg_Ganser
 
-       IF ( Vg_Ganser .LE. 0.D0 ) THEN
+       IF ( Vg_Ganser .LE. 0.0_wp ) THEN
 
           WRITE(*,*) 'diam',diam
           WRITE(*,*) 'NEGATIVE VALUE', Vinit,Vg_Ganser
@@ -440,28 +440,28 @@ CONTAINS
 
     ELSEIF ( settling_model .EQ. 'pfeiffer' ) THEN
 
-       k1 = shape_fact**(-0.828)
-       k2 = 2.D0 * SQRT( 1.07 - shape_fact )
+       k1 = shape_fact**(-0.828_wp)
+       k2 = 2.0_wp * SQRT( 1.07_wp - shape_fact )
 
-       mass = rhop * 4.D0/3.D0 * pi_g * ( 0.5*diam )**3
+       mass = rhop * 4.0_wp/3.0_wp * pi_g * ( 0.5_wp * diam )**3
 
-       A_cs = pi_g * ( 0.5*diam )**2
+       A_cs = pi_g * ( 0.5_wp * diam )**2
 
-       c0 = -2.D0 * diam * mass * gi
-       c1 = 24.D0 * visc_atm * k1 * A_cs
+       c0 = -2.0_wp * diam * mass * gi
+       c1 = 24.0_wp * visc_atm * k1 * A_cs
        c2 = rho_atm * diam * k2 * A_cs
 
-       sqrt_delta = sqrt( c1**2 - 4 * c0*c2 )
+       sqrt_delta = sqrt( c1**2 - 4.0_wp * c0*c2 )
 
-       Us_1 = ( - c1 + sqrt_delta ) / ( 2 * c2 )
-       Us_2 = ( - c1 - sqrt_delta ) / ( 2 * c2 )
+       Us_1 = ( - c1 + sqrt_delta ) / ( 2.0_wp * c2 )
+       Us_2 = ( - c1 - sqrt_delta ) / ( 2.0_wp * c2 )
 
 
-       Cd_100 = 24.D0/100.D0 * k1 + k2
-       Us_100 = sqrt( 2 * mass * gi / ( Cd_100*rho_atm * A_cs ) )
+       Cd_100 = 24.0_wp/100.0_wp * k1 + k2
+       Us_100 = SQRT( 2.0_wp * mass * gi / ( Cd_100*rho_atm * A_cs ) )
 
-       Cd_1000 = 1.D0
-       Us_1000 = sqrt( 2 * mass * gi / ( Cd_1000*rho_atm * A_cs ) )
+       Cd_1000 = 1.0_wp
+       Us_1000 = SQRT( 2.0_wp * mass * gi / ( Cd_1000*rho_atm * A_cs ) )
 
        Rey1 = rho_atm * diam * Us_1 / visc_atm
        Rey2 = rho_atm * diam * Us_2 / visc_atm
@@ -478,23 +478,23 @@ CONTAINS
        ! Initialization only
        Us = Us_1000
 
-       IF ( ( Rey1 .GT. 0.D0 ) .AND. ( Rey1 .LE. 100.D0 ) ) THEN
+       IF ( ( Rey1 .GT. 0.0_wp ) .AND. ( Rey1 .LE. 100.0_wp ) ) THEN
 
           ! For small Reynolds numbers the drag coefficient is given by Eq.8
           ! of Pfeiffer et al. 2005 and the settling velocity is Us_1
 
           Us = Us_1  
 
-       ELSEIF ( ( Rey1 .GT. 100.D0 ) .AND. ( Rey1 .LE. 1000.D0 ) ) THEN
+       ELSEIF ( ( Rey1 .GT. 100.0_wp ) .AND. ( Rey1 .LE. 1000.0_wp ) ) THEN
 
           ! For intermediate Reyonlds numbers, 100<Re<1000, the drag coefficient 
           ! is linearly interpolated between Cd_100 and Cd_1000
 
-          Cd_interp = Cd_100 + ( Rey1 - 100 ) / ( 1000 - 100 ) *                &
+          Cd_interp = Cd_100 + ( Rey1 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp ) *                &
                ( Cd_1000 - Cd_100)
-          Us = sqrt( 2 * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
+          Us = SQRT( 2.0_wp * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
 
-       ELSEIF ( Rey1 .GT. 1000.D0 ) THEN
+       ELSEIF ( Rey1 .GT. 1000.0_wp ) THEN
 
           ! For large Reynolds numbers the drag coefficient is taken as Cd=1,
           ! as in Pfeiffer et al. 2005 with the settling velocity is Us_1000
@@ -503,18 +503,18 @@ CONTAINS
 
        END IF
 
-       IF ( ( Rey2 .GT. 0.D0 ) .AND. ( Rey2 .LE. 100.D0 ) ) THEN 
+       IF ( ( Rey2 .GT. 0.0_wp ) .AND. ( Rey2 .LE. 100.0_wp ) ) THEN 
 
           Us = Us_2
 
-       ELSEIF ( ( Rey2 .GT. 100.D0 ) .AND. ( Rey2 .LE. 1000.D0 ) ) THEN 
+       ELSEIF ( ( Rey2 .GT. 100.0_wp ) .AND. ( Rey2 .LE. 1000.0_wp ) ) THEN 
 
-          Cd_interp = Cd_100 + ( Rey2 - 100 ) / ( 1000 - 100 )                  &
-               * ( Cd_1000 - Cd_100)
+          Cd_interp = Cd_100 + ( Rey2 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp )                  &
+               * ( Cd_1000 - Cd_100 )
 
-          Us = SQRT( 2.D0 * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
+          Us = SQRT( 2.0_wp * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
 
-       ELSEIF ( Rey2 .GT. 1000.D0 ) THEN
+       ELSEIF ( Rey2 .GT. 1000.0_wp ) THEN
 
           Us = Us_1000
 
@@ -663,7 +663,7 @@ CONTAINS
        
     CASE DEFAULT
 
-       particles_beta = 0.D0
+       particles_beta = 0.0_wp
 
     CASE ( 'constant' )
 
@@ -671,7 +671,7 @@ CONTAINS
 
     CASE ( 'brownian' )
 
-       particles_beta = ( 2.D0 * k_b * temp ) / ( 3.D0 * visc ) *               &
+       particles_beta = ( 2.0_wp * k_b * temp ) / ( 3.0_wp * visc ) *               &
             ( diam_i + diam_j ) ** 2 / ( diam_i * diam_j ) 
 
     CASE ( 'sum' )
@@ -844,18 +844,18 @@ CONTAINS
     END IF
 
     ! Eq. 3, first term Costa et al. JGR 2010
-    beta_B = 2.D0 / 3.D0 * k_b * temp / visc * ( diam_i + diam_j )**2           &
+    beta_B = 2.0_wp / 3.0_wp * k_b * temp / visc * ( diam_i + diam_j )**2           &
          / ( diam_i*diam_j ) 
 
     !WRITE(*,*) 'beta_B',beta_B
 
-    ! Gamma_s = SQRT( 1.3D0 * epsilon * air_kin_viscosity )
+    ! Gamma_s = SQRT( 1.3_wp * epsilon * air_kin_viscosity )
 
     ! Value from Table 1 (Costa 2010)
-    Gamma_s = 0.0045D0 
+    Gamma_s = 0.0045_wp 
 
     ! Eq. 3, second term Costa et al. JGR 2010
-    beta_S = 1.D0 / 6.D0 * Gamma_s * ( diam_i + diam_j )**3
+    beta_S = 1.0_wp / 6.0_wp * Gamma_s * ( diam_i + diam_j )**3
 
     !WRITE(*,*) 'beta_S',beta_S
 
@@ -863,7 +863,7 @@ CONTAINS
     !WRITE(*,*) Vs_j , Vs_i
     
     ! Eq. 3, third term Costa et al. JGR 2010
-    beta_DS = pi_g / 4.D0 * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
+    beta_DS = pi_g / 4.0_wp * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
 
     !WRITE(*,*) 'beta_DS',beta_DS
 
@@ -942,24 +942,24 @@ CONTAINS
     END IF
 
     ! Eq. 5 Costa et al. JGR 2010
-    coalescence_efficiency_ice = 0.09D0
+    coalescence_efficiency_ice = 0.09_wp
             
-    mu_liq = 5.43D-4
+    mu_liq = 5.43E-4_wp
     
     ! Eq. 6 Costa et al. JGR 2010 (CHECK DENSITY!)
-    Stokes = 8.d0 * ( 0.5D0 * ( rho_i + rho_j ) ) * ABS( Vs_i - Vs_j ) /       &
-         ( 9.d0 * mu_liq ) * diam_i * diam_j / ( diam_i + diam_j )
+    Stokes = 8.0_wp * ( 0.5_wp * ( rho_i + rho_j ) ) * ABS( Vs_i - Vs_j ) /       &
+         ( 9.0_wp * mu_liq ) * diam_i * diam_j / ( diam_i + diam_j )
     
-    Stokes_cr = 1.3D0
+    Stokes_cr = 1.3_wp
     
-    q = 0.8D0
+    q = 0.8_wp
     
     ! Eq. 8 Costa et al. JGR 2010
-    coalescence_efficiency_water = 1.D0 / ( 1.D0 + ( Stokes / Stokes_cr ) )**q 
+    coalescence_efficiency_water = 1.0_wp / ( 1.0_wp + ( Stokes / Stokes_cr ) )**q 
 
-    IF ( lw_mf .GT. 0.D0 ) THEN
+    IF ( lw_mf .GT. 0.0_wp ) THEN
 
-       IF ( ice_mf .GT. 0.D0 ) THEN
+       IF ( ice_mf .GT. 0.0_wp ) THEN
 
           coalescence_efficiency = ( lw_mf * coalescence_efficiency_water       &
                + ice_mf * coalescence_efficiency_ice ) / ( lw_mf + ice_mf )
@@ -970,13 +970,13 @@ CONTAINS
 
        END IF
           
-    ELSEIF ( ice_mf .GT. 0.D0 ) THEN
+    ELSEIF ( ice_mf .GT. 0.0_wp ) THEN
 
        coalescence_efficiency = coalescence_efficiency_ice
           
     ELSE
 
-       coalescence_efficiency = 0.D0
+       coalescence_efficiency = 0.0_wp
 
     END IF
           
@@ -1088,7 +1088,7 @@ CONTAINS
 
     INTEGER :: condition1(n_nodes) , condition2(n_nodes)
 
-    IF ( MINVAL(mom) .LT. 0.D0 ) THEN
+    IF ( MINVAL(mom) .LT. 0.0_wp ) THEN
 
        WRITE(*,*) 'mom'
        WRITE(*,*) mom
@@ -1161,8 +1161,8 @@ CONTAINS
           Mr = M(i_sect+1,i_part)
 
           ! https://en.wikipedia.org/wiki/Gaussian_quadrature#Change_of_interval
-          m_quad(:,i_sect,i_part) = 0.5D0 * ( ( Mr - Ml ) * x + ( Mr + Ml ) )
-          w_quad(:,i_sect,i_part) = 0.5D0 * ( Mr - Ml ) * w
+          m_quad(:,i_sect,i_part) = 0.5_wp * ( ( Mr - Ml ) * x + ( Mr + Ml ) )
+          w_quad(:,i_sect,i_part) = 0.5_wp * ( Mr - Ml ) * w
 
           IF ( verbose_level .GE. 1 ) THEN
 
@@ -1219,14 +1219,14 @@ CONTAINS
     DO i_part=1,n_part
 
        ! convert from Krumbein scale to meters
-       diam1 = 1.D-3 * 2.D0**( - phi2(i_part) )
+       diam1 = 1.E-3_wp * 2.0_wp**( - phi2(i_part) )
        ! compute the volume from diameter and shape factor
        Vol1 = shape_factor(i_part) * diam1**3
        ! compute the mass from volume and density
        M1 = Vol1 * rho2(i_part)
 
        ! convert from Krumbein scale to meters
-       diam2 = 1.D-3 * 2.D0**( - phi1(i_part) )
+       diam2 = 1.E-3_wp * 2.0_wp**( - phi1(i_part) )
        ! compute the volume from diameter and shape factor
        Vol2 = shape_factor(i_part) * diam2**3
        ! compute the mass from volume and density
@@ -1269,8 +1269,8 @@ CONTAINS
        
        DO iter=1,30
           
-          phi  = 0.5 * (phiL+phiR)
-          diam = 1.D-3 * 2.D0**( - phi )
+          phi  = 0.5_wp * (phiL+phiR)
+          diam = 1.E-3_wp * 2.0_wp**( - phi )
           Vol = shape_factor(i_part) * diam**3
           rho_p = rho1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -      &
                phi1(i_part) ) * ( rho2(i_part) - rho1(i_part) )
@@ -1280,21 +1280,21 @@ CONTAINS
           
           ! The phi-rho relationship is linear-piecewise, so we need some
           ! condition defining in which part we are
-          cond1 = merge( 1.D0 , 0.D0 , f1*f2 .LT. 0.D0 )
-          cond2 = merge( 1.D0 , 0.D0 , f*f1 .LT. 0.D0 )
-          cond3 = merge( 1.D0 , 0.D0 , f1 .GT. 0.D0 )
+          cond1 = merge( 1.0_wp , 0.0_wp , f1*f2 .LT. 0.0_wp )
+          cond2 = merge( 1.0_wp , 0.0_wp , f*f1 .LT. 0.0_wp )
+          cond3 = merge( 1.0_wp , 0.0_wp , f1 .GT. 0.0_wp )
           
-          phiR = cond1 * ( cond2 * phi + (1.D0-cond2) * phiR ) +                &
-               (1.D0-cond1) * ( cond3*phiR + (1.D0-cond3)*phi )
+          phiR = cond1 * ( cond2 * phi + (1.0_wp-cond2) * phiR ) +                &
+               (1.0_wp-cond1) * ( cond3*phiR + (1.0_wp-cond3)*phi )
 
-          f2 = cond1 * ( cond2 * f + (1.D0-cond2) * f2 ) +                      &
-               (1.D0-cond1) * ( cond3 * f2 + (1.D0-cond3) * f )
+          f2 = cond1 * ( cond2 * f + (1.0_wp-cond2) * f2 ) +                      &
+               (1.0_wp-cond1) * ( cond3 * f2 + (1.0_wp-cond3) * f )
           
-          phiL = cond1 * ( (1.D0-cond2) * phi + cond2 * phiL ) +                &
-               (1.D0-cond1) * ( (1.D0-cond3) * phiL + cond3 * phi )
+          phiL = cond1 * ( (1.0_wp-cond2) * phi + cond2 * phiL ) +                &
+               (1.0_wp-cond1) * ( (1.0_wp-cond3) * phiL + cond3 * phi )
 
-          f1 = cond1 * ( (1.D0-cond2) * f + cond2 * f1 ) +                      &
-               (1.D0-cond1) * ( (1.D0-cond3) * f1 + cond3 * f )
+          f1 = cond1 * ( (1.0_wp-cond2) * f + cond2 * f1 ) +                      &
+               (1.0_wp-cond1) * ( (1.0_wp-cond3) * f1 + cond3 * f )
           
        END DO
 
@@ -1306,11 +1306,11 @@ CONTAINS
 
        ! the diameter in m is computed from volume and shapefactor
        diam_quad(1:n_nodes,1:n_sections,i_part) = ( vol_quad(:,:,i_part)        &
-            / shape_factor(i_part) )**( 1.D0/3.D0 )
+            / shape_factor(i_part) )**( 1.0_wp/3.0_wp )
 
        ! the diameter in m is converted to phi
        phi_quad(1:n_nodes,1:n_sections,i_part) =                                &
-            - DLOG(1.D3 * diam_quad(1:n_nodes,1:n_sections,i_part)) / DLOG(2.D0)
+            - LOG(1.E3_wp * diam_quad(1:n_nodes,1:n_sections,i_part)) / LOG(2.0_wp)
 
        DO i_sect=1,n_sections
        
@@ -1417,8 +1417,8 @@ CONTAINS
     END DO
 
     !--- Birth and death terms due to aggregation
-    birth_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.D0
-    death_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.D0
+    birth_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.0_wp
+    death_mom(0:n_mom-1,1:n_sections,1:n_part) = 0.0_wp
 
     ! loop over all particles which aggregate i_part
     DO i_part=1,n_part 
@@ -1467,7 +1467,7 @@ CONTAINS
                       ! k_sect because of aggregation of i_part-particles in
                       ! section i_sect with j_part-particles in section j_sect
                       birth_mom(0,k_sect,n_part) = birth_mom(0,k_sect,n_part)   &
-                           + 0.5D0 * integrand_ijkm
+                           + 0.5_wp * integrand_ijkm
                       
                       integrand_ijkm = SUM(                                     &
                            A(:,:,k_sect,j_sect,j_part,i_sect,i_part)            &

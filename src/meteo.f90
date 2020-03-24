@@ -82,28 +82,28 @@ MODULE meteo_module
   REAL(wp) :: cpair
   
   !> reference temperature (K)
-  REAL(wp), PARAMETER :: T_ref = 273.15D0
+  REAL(wp), PARAMETER :: T_ref = 273.15_wp
   
   !> enthalpy of water vapor at reference temperature (J kg-1)
   REAL(wp), PARAMETER :: h_wv0 = 2.501D6
   
   !> specifc heat of water vapor (J K-1 kg-1)
-  REAL(wp), PARAMETER :: c_wv = 1996.D0
+  REAL(wp), PARAMETER :: c_wv = 1996.0_wp
   
   !> enthalpy of liquid water at reference temperature (J kg-1)
   REAL(wp), PARAMETER :: h_lw0 = 3.337D5
   
   !> specific heat of liquid water (J K-1 kg-1)
-  REAL(wp), PARAMETER :: c_lw = 4187.0D0
+  REAL(wp), PARAMETER :: c_lw = 4187.0_wp
 
   !> specific heat of ice (J K-1 kg-1)
-  REAL(wp), PARAMETER :: c_ice = 2108.0D0
+  REAL(wp), PARAMETER :: c_ice = 2108.0_wp
   
   !> molecular weight of dry air
-  REAL(wp), PARAMETER :: da_mol_wt = 0.029D0
+  REAL(wp), PARAMETER :: da_mol_wt = 0.029_wp
   
   !> molecular weight of water vapor
-  REAL(wp), PARAMETER :: wv_mol_wt = 0.018D0
+  REAL(wp), PARAMETER :: wv_mol_wt = 0.018_wp
    
   !> gas constant for water vapor ( J/(kg K) )
   REAL(wp), PARAMETER :: rwv = 462
@@ -217,10 +217,10 @@ CONTAINS
        u_wind = WE_wind
        v_wind = -NS_wind
        
-       IF ( ( WE_wind .EQ. 0.D0 ) .AND. ( NS_wind .EQ. 0.D0 ) ) THEN
+       IF ( ( WE_wind .EQ. 0.0_wp ) .AND. ( NS_wind .EQ. 0.0_wp ) ) THEN
 
-          WE_wind = 1.D-15
-          NS_wind = 1.D-15
+          WE_wind = 1.E-15_wp
+          NS_wind = 1.E-15_wp
           
        END IF
        
@@ -229,7 +229,7 @@ CONTAINS
        cos_theta = WE_wind / u_atm
        sin_theta = NS_wind / u_atm
 
-       eps_z = 1.D-5
+       eps_z = 1.E-5_wp
        z_eps = z + eps_z
 
        ! interp pressure profile
@@ -261,26 +261,26 @@ CONTAINS
           u_atm = u_r * ( ( z - vent_height ) / z_r )**exp_wind
 
           duatm_dz =  ( exp_wind * u_r * ( ( z - vent_height ) / z_r )         &
-               ** ( exp_wind - 1.D0 ) ) * ( 1.D0 / z_r )
+               ** ( exp_wind - 1.0_wp ) ) * ( 1.0_wp / z_r )
 
        ELSE
 
           u_atm = u_r
 
-          duatm_dz = 0.D0
+          duatm_dz = 0.0_wp
 
        END IF
        
-       cos_theta = 1.D0
-       sin_theta = 0.D0
+       cos_theta = 1.0_wp
+       sin_theta = 0.0_wp
 
 
     ELSEIF ( read_atm_profile .EQ. 'standard' ) THEN
 
-       IF ( ( z_r .LE. 0.D0 ) .OR. ( exp_wind .LE. 0.D0 ) ) THEN
+       IF ( ( z_r .LE. 0.0_wp ) .OR. ( exp_wind .LE. 0.0_wp ) ) THEN
 
           u_atm = u_r
-          duatm_dz = 0.D0
+          duatm_dz = 0.0_wp
 
        ELSE
           IF ( ( z - vent_height ) .LT. z_r ) THEN
@@ -288,12 +288,12 @@ CONTAINS
              u_atm = u_r * ( ( z - vent_height ) / z_r )**exp_wind
              
              duatm_dz =  ( exp_wind * u_r * ( ( z - vent_height ) / z_r )       &
-                  ** ( exp_wind - 1.D0 ) ) * ( 1.D0 / z_r )
+                  ** ( exp_wind - 1.0_wp ) ) * ( 1.0_wp / z_r )
              
           ELSE
              
              u_atm = u_r            
-             duatm_dz = 0.D0
+             duatm_dz = 0.0_wp
              
           END IF
 
@@ -301,17 +301,17 @@ CONTAINS
        
 
        u_wind = u_r  
-       v_wind = 0.D0
+       v_wind = 0.0_wp
 
-       IF ( u_r .GT. 0.D0 ) THEN
+       IF ( u_r .GT. 0.0_wp ) THEN
 
            cos_theta = u_wind/u_r 
            sin_theta = v_wind/u_r
 
        ELSE
 
-           cos_theta = 1.D0
-           sin_theta = 0.D0
+           cos_theta = 1.0_wp
+           sin_theta = 0.0_wp
 
        END IF
 
@@ -351,20 +351,20 @@ CONTAINS
 
        ENDIF
 
-       es = EXP( 21.4D0 - ( 5351.D0 / ta) )
+       es = EXP( 21.4_wp - ( 5351.0_wp / ta) )
 
-       sphu_atm = MIN( 1.D0 , rh * ( 0.622D0 * es ) / ( pa / 100.D0 ) )
+       sphu_atm = MIN( 1.0_wp , rh * ( 0.622_wp * es ) / ( pa / 100.0_wp ) )
 
        !WRITE(*,*) 'z,ta,pa',z,ta,pa
-       !WRITE(*,*) 'es',100.D0*es
+       !WRITE(*,*) 'es',100.0_wp*es
        !WRITE(*,*) 'sphu_atm',sphu_atm
        !READ(*,*)
        
     END IF
 
     ! ... Air viscosity ( Armienti et al. 1988)
-    Cs = 120.D0
-    visc_atm = visc_atm0 * ( 288.15D0 + Cs ) / ( ta + Cs ) * ( ta / 288.15D0 )**1.5D0
+    Cs = 120.0_wp
+    visc_atm = visc_atm0 * ( 288.15_wp + Cs ) / ( ta + Cs ) * ( ta / 288.15_wp )**1.5_wp
 
     IF ( verbose_level .GE. 2 ) THEN
 
