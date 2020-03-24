@@ -248,8 +248,8 @@ CONTAINS
        max_up_dist = r_source
        x1 = x_source - r_source*u_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
        y1 = x_source - r_source*v_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
-       max_cw_distL = r_source
-       max_cw_distR = r_source
+       max_cw_distL = 0.0_wp
+       max_cw_distR = 0.0_wp
 
        DO l = 1,solve_cells
 
@@ -283,7 +283,7 @@ CONTAINS
 
                 IF ( ABS(upwind_dist(j,k)) .LE. cell_size ) THEN
 
-                   IF ( crosswind_dist(j,k) .GE. max_cw_distL ) THEN
+                   IF ( crosswind_dist(j,k) .GT. max_cw_distL ) THEN
 
                       max_cw_distL = crosswind_dist(j,k)
                       x2 = x_comp(j)
@@ -291,7 +291,7 @@ CONTAINS
 
                    END IF
 
-                   IF ( crosswind_dist(j,k) .LE. max_cw_distR ) THEN
+                   IF ( crosswind_dist(j,k) .LT. max_cw_distR ) THEN
 
                       max_cw_distR = crosswind_dist(j,k)
                       x3 = x_comp(j)
