@@ -88,8 +88,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_PLUMEMoM_OBJECTS = moments.$(OBJEXT) plume.$(OBJEXT) \
-	variables.$(OBJEXT) parameters_2d.$(OBJEXT) complexify.$(OBJEXT) \
+am_PLUMEMoM_OBJECTS = variables.$(OBJEXT) moments.$(OBJEXT) plume.$(OBJEXT) \
+	parameters_2d.$(OBJEXT) complexify.$(OBJEXT) \
         geometry_2d.$(OBJEXT) constitutive_2d.$(OBJEXT) \
         solver_2d.$(OBJEXT) \
         meteo.$(OBJEXT) particles.$(OBJEXT) \
@@ -233,9 +233,9 @@ AUTOMAKE_OPTIONS = foreign
 
 # list of sources for the binary
 PLUMEMoM_SOURCES = \
-		moments.f90 \
+		variables.f90 \
+                moments.f90 \
 		plume.f90 \
-                variables.f90 \
                 parameters_2d.f90 \
                 complexify.f90 \
                 geometry_2d.f90 \
