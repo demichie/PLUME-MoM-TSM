@@ -2326,8 +2326,7 @@ CONTAINS
     USE variables, ONLY : dakota_flag , hysplit_flag
 
     IMPLICIT NONE
-    
-    
+        
     col_file = TRIM(run_name)//'.col'
     sed_file = TRIM(run_name)//'.sed'
     mom_file = TRIM(run_name)//'.mom'

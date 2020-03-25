@@ -701,7 +701,7 @@ CONTAINS
        IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'i_part',i_part
-          WRITE(*,*) 'rhoB_solid_w__r2',idx1,rhoB_solid_w_r2(i_part)
+          WRITE(*,*) 'rhoB_solid_w_r2',idx1,rhoB_solid_w_r2(i_part)
           WRITE(*,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
           WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
           WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)

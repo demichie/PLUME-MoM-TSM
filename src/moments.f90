@@ -132,8 +132,7 @@ CONTAINS
 ! Quadrature. Computes the Legendre-Gauss nodes and weights  on an interval
 ! [a,b] with truncation order N
 !
-
-  
+ 
   subroutine gaulegf(x1, x2, x, w, n)
     
     implicit none
@@ -168,12 +167,7 @@ CONTAINS
        w(n+1-i) = w(i)
     end do
   end subroutine gaulegf
-  
-
-
-
-    
-
+      
 !linear_reconstruction Linear reconstruction from the moments mom
 !   This function computes the coefficients of the linear reconstruction of
 !   the ndf on the interval [Ml;Mr] from the moments mom. Only the first
@@ -232,8 +226,6 @@ CONTAINS
        gamma2 = 1.0_wp
        
     END IF
-
-
 
     RETURN
 

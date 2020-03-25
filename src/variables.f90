@@ -18,7 +18,7 @@ MODULE variables
   INTEGER, PARAMETER :: dp = Selected_Real_Kind (P=15,R=300)
 
   !> working precision
-  INTEGER, PARAMETER :: wp = sp
+  INTEGER, PARAMETER :: wp = dp
   
   !> Gravity acceleration 
   REAL*8 :: gi          
