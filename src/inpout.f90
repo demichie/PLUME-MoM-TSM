@@ -2202,8 +2202,9 @@ CONTAINS
        IF ( ios .NE. 0 ) THEN
 
           WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist RUN_PARAMETERS'
+          WRITE(*,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
           WRITE(*,*) 'Please check the input file'
+          WRITE(*,umbrella_run_parameters)
           STOP
 
        ELSE
@@ -2214,13 +2215,14 @@ CONTAINS
 
        ! ------- READ numeric_parameters NAMELIST ----------------------------------
 
-       READ(inp_unit,numeric_parameters)
+       READ(inp_unit,numeric_parameters,IOSTAT=ios )
 
        IF ( ios .NE. 0 ) THEN
 
           WRITE(*,*) 'IOSTAT=',ios
           WRITE(*,*) 'ERROR: problem with namelist NUMERIC_PARAMETERS'
           WRITE(*,*) 'Please check the input file'
+          WRITE(*,numeric_parameters) 
           STOP
 
        ELSE
