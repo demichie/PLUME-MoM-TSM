@@ -1,0 +1,28 @@
+This folder contains the input file for a simulation with the option for the umbrella cloud spreading activated.
+Two additional namelists are needed for this kind of simulation.
+
+&UMBRELLA_RUN_PARAMETERS
+ T_END=  14400.000000000000001E-00,
+ DT_OUTPUT=  600.00000000000000E-00,
+ /
+
+&NUMERIC_PARAMETERS
+ RSOURCE_CELLS = 5, 
+ SOLVER_SCHEME="KT",
+ DT0 = 1.0E-1 ,
+ MAX_DT=  50.0000000000000000E-000,
+ CFL= 0.2490000000000000000     ,
+ LIMITER= 1 1 1 1 1          ,
+ THETA=  1.300000000000000     ,
+ RECONSTR_COEFF=  1.0000000000000000     ,
+ N_RK= 2,
+ /
+
+The simmulation of the umbrella cloud is done with a transient model, running until the time T_END is reached or until the upwind spreading reaches a steady condition.
+
+A python script is provided to plot the output of the model:
+
+> python plot_3D.py column_and_umbrella.col
+
+
+

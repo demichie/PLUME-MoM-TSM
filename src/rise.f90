@@ -513,7 +513,7 @@ CONTAINS
 
        ! used to define the neutral buoyancy level 
        deltarho =  rho_mix - rho_atm
-
+       
        IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
 
           rho_nbl = rho_mix

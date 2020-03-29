@@ -404,7 +404,7 @@ CONTAINS
     f_(2) = f_(1) * u
     f_(3) = f_(1) * v
     f_(4) = f_(1) * w
-
+    
     !WRITE(*,*) 'dry_air_mass_fraction',dry_air_mass_fraction
 
     mixture_enthalpy = dry_air_mass_fraction * cpair * t_mix                    &
