@@ -410,8 +410,7 @@ fig.savefig(str(filename)+'_profiles.pdf')   # save the figure to file
 # plot plume 3d
 
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
+ax = fig.add_subplot(111, projection='3d', proj_type = 'ortho')
 ax.scatter(x, y,z)
 
 angle = np.linspace(0, 2*np.pi, num=50)
