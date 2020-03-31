@@ -4,6 +4,7 @@ matplotlib.use("TkAgg")
 import sys
 import os
 import re
+import pkg_resources
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm 
@@ -14,19 +15,30 @@ fig_size = plt.rcParams["figure.figsize"]
 fig_size[0] *= 1.5 
 plt.rcParams["figure.figsize"] = fig_size
 
+if len(sys.argv)==2:
 
-#option 1
-# import easygui
-#filename = easygui.fileopenbox( filetypes=['*.col'])
+    filename = sys.argv[1] 
+    file_name, file_extension = os.path.splitext(filename)
+    print(file_extension)
+    if ( file_extension != '.col' ):
+        sys.exit()
 
-#option 2 (in case option 1 doesn't work)
+else:
 
-from  tkinter import *
-root = Tk()
-root.filename =  filedialog.askopenfilename(title = "choose your file",filetypes=[("col files", "*.col")])
-filename = root.filename
+    required = {'easygui','tkinter'}
+    installed = {pkg.key for pkg in pkg_resources.working_set}
 
-root.destroy()
+    if ( 'easygui' in installed ):
+        import easygui
+        filename = easygui.fileopenbox( filetypes=['*.col'])
+    elif ( 'tkinter' in installed ):
+
+        from  tkinter import *
+        root = Tk()
+        root.filename =  filedialog.askopenfilename(title = "choose your file",filetypes=[("col files", "*.col")])
+        filename = root.filename
+        root.destroy()
+
 
 bakfile = filename.replace('col','bak')
 
@@ -200,7 +212,6 @@ solid_tot_mass_fraction = np.zeros((results.shape[0],1))
 solid_tot_mass_fraction[:,0] = np.sum(solid_mass_fraction,axis=1)
 
 
-
 rho_atm = results[:,12+n_part_sect+n_gas+1]
 rho_atm = rho_atm.reshape((-1,1))
 
@@ -315,7 +326,7 @@ solid_mass_loss_cum = np.zeros((results.shape[0],n_part_sect))
 
 for i in range(n_part_sect):
 
-    solid_mass_flux[:,i] = rhoBsolid[:,i] * np.pi * r_mt[:,0]**2 * mag_u[:,0] 
+    solid_mass_flux[:,i] = rhoBsolid[:,i] * np.pi * r_mt[:,0]**2 * w[:,0] 
 
     solid_mass_loss_cum[:,i] =  1.0 - solid_mass_flux[:,i]/solid_mass_flux[0,i]
 
@@ -438,48 +449,13 @@ for i in range(n_sect):
     ind0 = ind0.reshape((-1,1))
     ind = min(ind0[:,0])
     
-    vect = np.zeros((1,3))  
-   
-    vect[0,0] = x[ind,0] - x[ind-1,0]
-    vect[0,1] = y[ind,0] - y[ind-1,0]
-    vect[0,2] = z[ind,0] - z[ind-1,0]
-
-    vect = vect / float(np.linalg.norm(vect, ord=2)) 
-    
-    vect0 = np.zeros((1,3))  
-
-    vect0[0,0] = 0
-    vect0[0,1] = 0
-    vect0[0,2] = 1
-
-    v = np.cross(vect0,vect)
-
-    s = np.linalg.norm(v, ord=2)
-
-    c = np.vdot(vect0,vect)
-
-   
-    mat_v = np.zeros((3,3))
-
-    mat_v[1,0] = v[0,2]
-    mat_v[0,1] = -v[0,2]
-   
-    mat_v[2,0] = -v[0,1]
-    mat_v[0,2] = v[0,1]
-   
-    mat_v[1,2] = -v[0,0]
-    mat_v[2,1] = v[0,0]
-
-    R = np.eye(3) + mat_v + np.dot(mat_v,mat_v) * (1 - c) / s**2
-
     plume = np.zeros((3,x_plume.shape[0]))
 
     plume[0,:] = r[ind,0]*x_plume[:,0] 
     plume[1,:] = r[ind,0]*y_plume[:,0] 
+    plume[2,:] = 0.0
 
-    plume_rotated = np.dot(R, plume)
-
-    ax.scatter(x[ind,0]+plume_rotated[0,:], y[ind,0]+plume_rotated[1,:],z[ind,0]+plume_rotated[2,:])
+    ax.scatter(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:])
 
 ax.set_xlabel('x (km)')
 ax.set_ylabel('y (km)')
@@ -669,10 +645,6 @@ def animate(i):
 
 anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=n_frames,
                              interval=100)
-
-#anim=animation.FuncAnimation(fig,animate,repeat=False,blit=False,frames=3,
-#                             interval=100)
-
 
 
 anim.save(str(filename)+'_anim.mp4',writer=animation.FFMpegWriter(fps=10))
