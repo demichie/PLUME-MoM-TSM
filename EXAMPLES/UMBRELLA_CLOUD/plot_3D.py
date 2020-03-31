@@ -3,13 +3,17 @@
 % This function 
 
 """
-import numpy as np                      
+import numpy as np    
+import matplotlib
+matplotlib.use("TkAgg")
+                  
 from mpl_toolkits.mplot3d import Axes3D                      
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import time
 import sys
 import os.path
+import pkg_resources
 from matplotlib import cm
 
 
@@ -41,24 +45,42 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_limits[0], z_limits[0] + 2.0*plot_radius])
 
-if len(sys.argv)==2: 
- 
-    column_file = sys.argv[1]
+
+if len(sys.argv)==2:
+
+    column_file = sys.argv[1] 
+    file_name, file_extension = os.path.splitext(column_file)
+    print(file_extension)
+    if ( file_extension != '.col' ):
+        print('Please provide the following argument:\n')
+        print('1) File name (.col)\n')
+        sys.exit()
 
 else:
 
-    print('Please provide the following argument:\n')
-    print('1) File name (.col)\n')
-    sys.exit()
+    required = {'easygui','tkinter'}
+    installed = {pkg.key for pkg in pkg_resources.working_set}
 
+    if ( 'easygui' in installed ):
+        import easygui
+        column_file = easygui.fileopenbox( filetypes=['*.col'])
+    elif ( 'tkinter' in installed ):
+
+        from  tkinter import *
+        root = Tk()
+        root.filename =  filedialog.askopenfilename(title = "choose your file",filetypes=[("col files", "*.col")])
+        column_file = root.filename
+        root.destroy()
+
+file_name, file_extension = os.path.splitext(column_file)
 umbrella_file = column_file.replace('.col','_std.p_2d')
 
 print('umbrella file',umbrella_file)
 data = np.loadtxt(umbrella_file,skiprows=0)
 
-x = data[:,0]
-y = data[:,1]
-h = data[:,2]
+x = data[:,0] / 1000.0
+y = data[:,1] / 1000.0
+h = data[:,2] / 1000.0
 u = data[:,3]
 v = data[:,4]
 
@@ -97,14 +119,14 @@ X_stag, Y_stag = np.meshgrid(X_uni,Y_uni)
 
 # create a figure for the plot
 fig2 = plt.figure()
-ax2 = fig2.add_subplot(111, projection='3d')
+ax2 = fig2.add_subplot(111, projection='3d', proj_type = 'ortho')
 
 
 col = np.loadtxt(column_file,skiprows=1)
-zc = col[:,0]
-rc = col[:,1]
-xc = col[:,2]
-yc = col[:,3]
+zc = col[:,0] / 1000.0
+rc = col[:,1] / 1000.0
+xc = col[:,2] / 1000.0
+yc = col[:,3] / 1000.0
 rhom = col[:,4]
 
 f = open(column_file)
@@ -139,7 +161,7 @@ for i in vidx:
     ax2.plot(x,y,z,'b')
 
 
-levels = zc[ncol]+np.linspace(10.0,H_cent.max(),20)
+levels = zc[ncol]+np.linspace(0.01,H_cent.max(),20)
 cset = ax2.contour(X_cent, Y_cent, H_cent+zc[ncol],levels=levels, cmap=cm.coolwarm)
 
 dat0 = cset.allsegs[0][0]
@@ -161,6 +183,13 @@ ax2.set_zlim(0, 2.0*max_range)
 """
 
 set_axes_equal(ax2)
+
+ax2.set_xlabel('x (km)')
+ax2.set_ylabel('y (km)')
+ax2.set_zlabel('z (km)')
+fig2.tight_layout()   
+fig2.savefig(file_name+'_umbrella.pdf')   # save the figure to file
+
 
 plt.show()    
 
