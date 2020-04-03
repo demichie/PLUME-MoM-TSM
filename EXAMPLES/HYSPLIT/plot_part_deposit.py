@@ -8,18 +8,15 @@ import numpy as np
 import sys
 from haversine import haversine
 import os
-
-from input_file import *
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 import matplotlib.ticker as ticker
-
 import pandas as pd
 import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
-
 import easygui
-# import utm
+
+from input_file import *
 
 
 def fmt(x, pos):
@@ -50,16 +47,13 @@ for filename in lines:
 from tkFileDialog import askopenfilename
 filename = askopenfilename(filetypes=[("gnd files", "*.gnd")])
 
-
 GROUND=[]
-AIR=[]
 
-#print npart, n_levels, H_LEVELS
 print ' '
-print '*** MASS ON THE GROUND ***'
+print '*** PARTICLE MASS ON THE GROUND ***'
 print ' '
-# Check mass deposited on the ground
-print filename
+print "Run name :",runname
+print ' '          
 
 f = open(filename)
 
@@ -69,8 +63,9 @@ dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 
 time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
-           
+ 
 print ' ---> day and time ',day,' ',time,' '
+print ' '
 
 data = f.read()
 first_line = data.split('\n', 1)[0]
@@ -97,7 +92,6 @@ for j in range(99):
 
             h_new.append(int(line_split[i][4:]))
 
-
     if occurrence > 0 :
 
         h_old=np.asarray(h_new)
@@ -121,14 +115,15 @@ npart = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-#print 'Number of particle classes :'npart
-#print 'Heights :',H_LEVELS
+print 'Number of particle classes :',npart
+print 'Number of atmospheric levels :',n_levels - 1
+print ' '
 
 a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
-    print 'No mass deposited at ',time
+    print 'No particles on the ground at time ',time
         
 else:
 
@@ -254,10 +249,10 @@ else:
             loading_i = loading2D[:,:,column]
             loading2D_sum += loading_i
 
-            print 'Deposit class CL',str(i+1).zfill(2),' mass ','%.1e'%mass_on_the_ground,' kg'
+            print 'CL',str(i+1).zfill(2),': ','%.1e'%mass_on_the_ground,' kg'
 
             # Save the deposit for the single classes on a ESRI rater ascii file
-            output_file = runname+'_'+'CL'+str(i+1)+'_'+day+'_'+time+'.asc'
+            output_file = runname+'_'+'CL'+str(i+1).zfill(2)+'_'+day+'_'+time+'.asc'
 
             np.savetxt(output_file, np.flipud(loading_i), \
                        header=header, fmt='%.3E',comments='')
@@ -285,11 +280,11 @@ else:
             plt.ylim(bottom=np.amax(y))
             plt.ylim(top=np.amin(y))
             plt.grid()
-            plt.title('Class CL'+str(i+1).zfill(2)+' mass '+'%.1e'%mass_on_the_ground+' kg' )
+            plt.title('CL'+str(i+1).zfill(2)+' : '+'%.1e'%mass_on_the_ground+' kg' )
             clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-            clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
+            clb.set_label('Loading (kg/m$^2$)', labelpad=-40, y=1.05, rotation=0)
 
-            f.savefig(runname+'_'+'CL'+str(i+1)+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
+            f.savefig(runname+'_'+'CL'+str(i+1).zfill(2)+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
             plt.close()
             column = column + n_levels
 
@@ -319,7 +314,7 @@ sm = Map(g.grid, factor=1, countries=False)
 sm.set_rgb(ggl_img)  # add the background rgb image
 sm.visualize()
 
-output_file = runname+'_'+'CL_sum'+'_'+day+'_'+time+'.asc'
+output_file = runname+'_'+'CL_sum'+'_'+day+'_'+time+'_DEPOSIT.asc'
 
 np.savetxt(output_file, np.flipud(loading2D_sum), \
                        header=header, fmt='%.3E',comments='')
@@ -341,7 +336,7 @@ plt.ylim(bottom=np.amax(y))
 plt.ylim(top=np.amin(y))
 plt.title('Total deposit')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-clb.set_label('Loading (kg/m^2)', labelpad=-40, y=1.05, rotation=0)
+clb.set_label('Loading (kg/m$^2$)', labelpad=-40, y=1.05, rotation=0)
 f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
 plt.close()
 # plt.show()        

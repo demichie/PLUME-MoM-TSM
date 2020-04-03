@@ -115,6 +115,14 @@ else:
     filedata = filedata.replace("{added_water_mass_fraction}", str(0) )
      
 
+if umbrella_flag == str("T"):
+
+    filedata = filedata.replace("{umbrella_flag}", 'T' )
+
+else:
+
+    filedata = filedata.replace("{umbrella_flag}", 'F' )
+
 time_format = "%y %m %d %H %M"
 
 #starttime_hhmm = datetime.datetime.strptime(starttime,time_format)

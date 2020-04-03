@@ -88,12 +88,6 @@ MODULE inpout
 
   !> Name of output file for the inversion variables
   CHARACTER(LEN=30) :: inversion_file
-  
-  !> Name of output file for the parameters of the beta distribution
-  CHARACTER(LEN=30) :: mat_file
-
-  !> Name of output file for the parameters of the beta distribution
-  CHARACTER(LEN=30) :: py_file
 
   !> Name of file for the parameters of the atmosphere
   CHARACTER(LEN=50) :: atm_file
@@ -104,12 +98,6 @@ MODULE inpout
 
   !> Backup input unit
   INTEGER :: bak_unit
-
-  !> Beta distribution parameters file unit
-  INTEGER :: mat_unit
-
-  !> Beta distribution parameters file unit
-  INTEGER :: py_unit
 
   !> Input data unit
   INTEGER :: inp_unit
@@ -240,6 +228,7 @@ CONTAINS
     inversion_flag = .FALSE.
     aggregation_flag = .FALSE.
     water_flag = .FALSE.
+    umbrella_flag = .FALSE.
 
     !------- default parameters of the ENTRAINMENT_PARAMETERS namelist ----------
     alpha_inp = notSet
@@ -1893,7 +1882,7 @@ CONTAINS
 
        IF ( ANY( rvolcgas(1:n_gas) ==-1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
           WRITE(*,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
           STOP
           
@@ -1901,7 +1890,7 @@ CONTAINS
        
        IF ( ANY( cpvolcgas(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
           WRITE(*,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
           STOP
           
@@ -1909,7 +1898,7 @@ CONTAINS
        
        IF ( ANY( volcgas_mol_wt(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
           WRITE(*,*) 'Please check the values of rvolcgas' ,                    &
                volcgas_mol_wt(1:n_gas)
           STOP
@@ -1918,7 +1907,7 @@ CONTAINS
        
        IF ( ANY( volcgas_mass_fraction0(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist MIXTURE PARAMETERS'
+          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
           WRITE(*,*) 'Please check the values of rvolcgas',                     &
                volcgas_mass_fraction0(1:n_gas)
           STOP
@@ -2853,7 +2842,7 @@ CONTAINS
 
     END DO
 
-112    FORMAT(200(1x,es15.8))
+112    FORMAT(200(1x,es16.9))
 
     CLOSE(read_sed_unit)  
 
@@ -3076,56 +3065,71 @@ CONTAINS
     END IF
 
     ! WRITE THE RELEASE AT THE TOP OF THE COLUMN (OR NBL.)
-    
-    IF ( n_cloud .EQ. 1 ) THEN
+
+    IF ( umbrella_flag ) THEN
 
        IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
-          
-       END IF
-       
-       WRITE(hy_unit,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
-       ! Write data for umbrella cloud initialization
-       !OPEN(112, file = 'NBL.hy', status = 'replace')  
-       !WRITE(112,*) x_top , y_top , z_top , cloud_solid(1:n_tot)       
-       !CLOSE(112)
+          WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                   &
+                   cloud_solid(1:n_tot)
+ 
+      END IF
+
+        WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
+                   cloud_solid(1:n_tot)
 
     ELSE
-       
-       IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-          delta_angle = 2.0_wp*pi_g/n_cloud
-          
-       ELSE
-          
-          delta_angle = pi_g / ( n_cloud - 1.0_wp )
-          
-       END IF
-              
-       DO i=1,n_cloud
-          
-          start_angle =  ATAN2(sin_theta,cos_theta)
-          angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-          
-          dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-          dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-          dz = 0.0_wp
-          
-          IF ( verbose_level .GE. 1 ) THEN
+    
+       IF ( n_cloud .EQ. 1 ) THEN
 
-             WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                      &
-                  cloud_solid(1:n_tot)/n_cloud
-             
+          IF ( verbose_level .GE. 1 ) THEN
+          
+             WRITE(*,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
+          
           END IF
+       
+          WRITE(hy_unit,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
+          ! Write data for umbrella cloud initialization
+          !OPEN(112, file = 'NBL.hy', status = 'replace')  
+          !WRITE(112,*) x_top , y_top , z_top , cloud_solid(1:n_tot)       
+          !CLOSE(112)
+
+       ELSE
+       
+          IF ( u_atm .LT. 1.0D+3 ) THEN
           
-          WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
-               cloud_solid(1:n_tot)/n_cloud
+             delta_angle = 2.0_wp*pi_g/n_cloud
           
-       END DO
+          ELSE
+          
+             delta_angle = pi_g / ( n_cloud - 1.0_wp )
+          
+          END IF
+              
+          DO i=1,n_cloud
+          
+             start_angle =  ATAN2(sin_theta,cos_theta)
+             angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
+          
+             dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
+             dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
+             dz = 0.0_wp
+          
+             IF ( verbose_level .GE. 1 ) THEN
+
+                WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                      &
+                   cloud_solid(1:n_tot)/n_cloud
+             
+             END IF
+          
+             WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
+                  cloud_solid(1:n_tot)/n_cloud
+          
+          END DO
+
+       END IF
 
     END IF
-
 
     ! WRITE(*,*) 'z_max',z_max
     WRITE(*,*) 'Solid mass released in the atmosphere (kg/s): ',SUM(solid_tot)
@@ -3197,52 +3201,65 @@ CONTAINS
     !WRITE(*,*) 'cloud_gas(j) : ',gas_top
     !WRITE(*,*) 'cloud_gas(1:n_gas) : ',cloud_gas(1:n_gas)
 
-
-    IF ( n_cloud .EQ. 1 ) THEN
+    IF ( umbrella_flag ) THEN
 
        IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
-          
+          WRITE(*,210) x_top+dx , y_top+dy , z_top+dz ,                   &
+                   cloud_gas(1:n_gas)
+ 
        END IF
-       
-       WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
-       
-    ELSE
-       
-       IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-          delta_angle = 2.0_wp*pi_g/n_cloud
-          
-       ELSE
-          
-          delta_angle = pi_g / ( n_cloud - 1.0_wp )
-          
-       END IF
-              
-       DO i=1,n_cloud
-          
-          start_angle =  ATAN2(sin_theta,cos_theta)
-          angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-          
-          dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-          dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-          
-          
-          IF ( verbose_level .GE. 1 ) THEN
 
-             WRITE(*,210) x_top+dx , y_top+dy , z_top , cloud_gas(1:n_gas)      &
-                  / n_cloud
-             
-          END IF
+       WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top+dz ,                   &
+                   cloud_gas(1:n_gas)
+    ELSE
+
+       IF ( n_cloud .EQ. 1 ) THEN
+
+          IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top ,              &
+             WRITE(*,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
+          
+          END IF
+       
+          WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
+       
+       ELSE
+       
+          IF ( u_atm .LT. 1.0D+3 ) THEN
+          
+             delta_angle = 2.0_wp*pi_g/n_cloud
+           
+          ELSE
+          
+             delta_angle = pi_g / ( n_cloud - 1.0_wp )
+          
+          END IF
+              
+          DO i=1,n_cloud
+          
+             start_angle =  ATAN2(sin_theta,cos_theta)
+             angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
+          
+             dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
+             dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
+          
+          
+             IF ( verbose_level .GE. 1 ) THEN
+ 
+                WRITE(*,210) x_top+dx , y_top+dy , z_top , cloud_gas(1:n_gas)      &
+                     / n_cloud
+             
+             END IF
+          
+             WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top ,              &
                cloud_gas(1:n_gas)/n_cloud
           
-       END DO
+          END DO
+
+       END IF
 
     END IF
-
 
 207 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ')
     

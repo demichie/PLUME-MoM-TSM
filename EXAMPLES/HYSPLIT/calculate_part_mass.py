@@ -177,14 +177,13 @@ with open(fname) as f:
                      #print 'class CL',str(i+1).zfill(2),' mass ','%.1e'%mass_on_the_ground,' kg'                  
                      #file.writelines('class CL'+str(i+1).zfill(2)+' mass ','%.1e'%mass_on_the_ground,' kg \n')
 
-                     file.writelines("class CL %d mass %.1e kg\n"%(i+1,mass_on_the_ground))
+                     file.writelines("CL %d mass %.1e kg\n"%(i+1,mass_on_the_ground))
                      column = column + n_levels
 
          #print 'Total mass deposited ','%.1e'%total_mass,' kg'
          file.writelines('Total mass deposited %.1e kg \n'%(total_mass))
 
          GROUND.append([int(time),int(day),total_mass])
-
          os.remove(filename)
          
          #print ' '
@@ -309,7 +308,7 @@ with open(fname) as f:
 
                          #print 'class CL',str(i+1).zfill(2),'  mass ','%.1e'%mass_in_the_air,' kg'   
                          #file.writelines('class CL',str(i+1).zfill(2),'  mass ','%.1e'%mass_in_the_air,' kg \n')
-                     file.writelines('class CL %d mass %.1e kg \n'%(i+1,mass_part))    
+                     file.writelines('CL %d mass %.1e kg \n'%(i+1,mass_part))    
 
                      column = column + n_levels
 
@@ -319,7 +318,7 @@ with open(fname) as f:
          #print ' '
           
          AIR.append([total_mass])
-         #os.remove(filename)
+         os.remove(filename)
 
 file.close()
 

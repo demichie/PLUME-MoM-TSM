@@ -1,6 +1,6 @@
 hysplit_dir = "/home/federica/hysplit/trunk"
 plumemom_dir = "/home/federica/Scrivania/Codes/PLUME-MoM-TSM"
-runname = 'Etna_default'
+runname = 'Etna_test'
 starttime="18 12 24 11 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 12 00"
 endruntime = "18 12 24 17 00"
@@ -23,9 +23,12 @@ vent_height = 3300    # vent height above sea level (it can be different from gr
 vent_velocity = 200.0
 log10_mfr = 6.3 # options: log10_mfr or plume_height (plume height above the vent)
 
+#umbrella cloud parameters
+
+umbrella_flag = "T"
 
 # volcanic gas parameters
-ngas = 0   # in addition to H2O
+ngas = 1   # in addition to H2O
 rvolcgas = [189] # CO2 and SO2 R constant [J/kgK]
 cpvolcgas = [844]
 volcgas_mol_wt = [0.044]
@@ -96,5 +99,6 @@ sigma = 1
 P01=[36.00, 18.00, 11]
 P02=[36.01, 18.01, 11]
 P03=[35.99, 18.00, 11]
+P04=[37.73, 15.00, 11]
 
 

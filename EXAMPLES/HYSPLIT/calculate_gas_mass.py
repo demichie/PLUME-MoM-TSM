@@ -47,7 +47,7 @@ with open(fname) as f:
 
              h_new = []
 
-             to_find = 'CL'+str(int(j)).zfill(2)
+             to_find = 'GS'+str(int(j)).zfill(2)
 
              occurrence = 0
              
@@ -169,7 +169,7 @@ with open(fname) as f:
                          #print 'class CL',str(i+1).zfill(2),' level ',H_LEVELS[j+1,0],'  mass ',mass_in_the_air,' kg'   
 
                      #print 'class CL',str(i+1).zfill(2),'  mass ','%.1e'%mass_in_the_air,' kg'   
-                     file.writelines("component G %d mass %.1e kg\n"%(i+1,mass_in_the_air))
+                     file.writelines("GS %d mass %.1e kg\n"%(i+1,mass_in_the_air))
                          
 
                      column = column + n_levels

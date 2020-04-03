@@ -39,7 +39,7 @@ ${MDL}/exec/con2asc -i$DUMP_ACC_PART -t -x -z
 
 mv CON2ASC.OUT CON2ASC.GROUND
 
-python calculate_solid_mass.py
+python calculate_part_mass.py
 
 rm CON2ASC.GROUND
 rm CON2ASC.AIR

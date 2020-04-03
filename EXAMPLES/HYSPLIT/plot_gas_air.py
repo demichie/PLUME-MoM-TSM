@@ -7,7 +7,6 @@ import numpy as np
 import sys
 from haversine import haversine
 import os
-from input_file import *
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 import matplotlib.ticker as ticker
@@ -17,6 +16,8 @@ from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
 import easygui
 # import utm
 
+from input_file import *
+
 def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
     b = int(b)
@@ -25,7 +26,7 @@ def fmt(x, pos):
 
 # Read the list of air concentration files created by Hysplit
 # utility con2asc
-fname = 'CON2ASC.AIR'
+fname = 'CON2ASC.GAS'
 with open(fname) as f:
     lines = f.read().splitlines()
 
@@ -34,26 +35,26 @@ for filename in lines:
     if exists:
         
         # Add .air extension to distinguish the files from other types 
-        os.rename(filename.strip(),filename.strip()+'.air')
+        os.rename(filename.strip(),filename.strip()+'.gas')
 
 # choose the file to plot with a GUI
 
 #option 1
-#filename = easygui.fileopenbox( filetypes=['*.air'])
+#filename = easygui.fileopenbox( filetypes=['*.gas'])
 
 #option 2 (in case option 1 doesn't work)
 from tkFileDialog import askopenfilename
-filename = askopenfilename(filetypes=[("air files", "*.air")])
+filename = askopenfilename(filetypes=[("gas files", "*.gas")])
 
 
 AIR=[]
 
 #print npart, n_levels, H_LEVELS
 print ' '
-print '*** MASS ON THE AIR ***'
+print '*** VOLCGAS MASS IN THE AIR ***'
 print ' '
-# Check mass deposited on the ground
-print filename
+print "Run name: ",runname
+print ' '
 
 f = open(filename)
 
@@ -65,6 +66,7 @@ time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
            
 print ' ---> day and time ',day,' ',time,' '
+print ' '
 
 data = f.read()
 first_line = data.split('\n', 1)[0]
@@ -79,7 +81,7 @@ for j in range(99):
 
     h_new = []
 
-    to_find = 'CL'+str(int(j)).zfill(2)
+    to_find = 'GS'+str(int(j)).zfill(2)
 
     occurrence = 0
              
@@ -111,24 +113,24 @@ for j in range(99):
 m = np.asarray(m)
 m=m.reshape((-1,2))
         
-npart = m.shape[0]
+ngas = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-print 'Number of particle classes :',npart
-print 'Heights :',H_LEVELS
+print 'Number of volcanic gasses : ',ngas
+print 'Number of atmospheric levels :',n_levels - 1
 
 a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
-    print 'No mass into the air at ',time
+    print 'No volcanic gasses in the air at time ',time
         
 else:
 
     a = np.asarray(a) 
 
-    a = a.reshape((-1,(npart * n_levels + 4)))
+    a = a.reshape((-1,(ngas * n_levels + 4)))
 
     # extract and reshape grid latitude values (at pixel centers)
     lat = a[:,2]
@@ -165,7 +167,7 @@ else:
     dist = []
 
     # allocate leading array for all the classes
-    loading3D = np.zeros((lat_unique.shape[0],lon_unique.shape[0],npart * n_levels))
+    loading3D = np.zeros((lat_unique.shape[0],lon_unique.shape[0],ngas * n_levels))
 
     # allocate leading array for total loading
     loading3D_sum_kg = np.zeros((lat_unique.shape[0],lon_unique.shape[0]))
@@ -199,7 +201,7 @@ else:
 
     a = a[:,4:]
 
-    a = a.reshape((-1,(npart * n_levels)))
+    a = a.reshape((-1,(ngas * n_levels)))
 
     min_x = np.amin(lon_stag)
     max_x = np.amax(lon_stag)
@@ -222,11 +224,9 @@ else:
     header += "cellsize " + str(spacing_lat) +"\n"
     header += "NODATA_value 0"
     
-    for i in range(npart):
+    for i in range(ngas):
 
         for j in range(n_levels-1):
-
-            print H_LEVELS[j+1,0],H_LEVELS[j,0]
 
             conc = a[:, column + j + 1]
 
@@ -234,7 +234,7 @@ else:
 
             if np.sum(conc) == 0:
 
-                print 'No particles of CL_'+str(i+1).zfill(2)+' from height '+str(H_LEVELS[j,0])+' m to height '+str(H_LEVELS[j+1,0])+' m'
+                print 'No volcanic gases of VG_'+str(i+1).zfill(2)+' H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m'
                 pass
 
             else:       
@@ -261,12 +261,12 @@ else:
                 loading_i = loading3D[:,:,column + j + 1]
                 loading3D_sum_kg += loading_i * pixel_area * (int(H_LEVELS[j+1,0])-int(H_LEVELS[j,0]))
 
-                print 'Class CL',str(i+1).zfill(2),', mass ','%.1e'%mass_in_the_air,' kg, from height '+str(H_LEVELS[j,0])+' m to height '+str(H_LEVELS[j+1,0])+' m'
+                print 'VG ',str(i+1).zfill(2),': ','%.1e'%mass_in_the_air,' kg, H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m'
 
             
 
                 # Save the deposit for the single classes on a ESRI rater ascii file
-                output_file = runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'.asc'
+                output_file = runname+'_VG'+str(i+1).zfill(2)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'.asc'
 
                 np.savetxt(output_file, np.flipud(loading_i), \
                        header=header, fmt='%.3E',comments='')
@@ -274,7 +274,7 @@ else:
                 # Create a new figure
                 f = plt.figure(i)
                 plt.rcParams["font.size"] = 8.0
-                cmap = plt.get_cmap('rainbow')
+                cmap = plt.get_cmap('YlGnBu')
                 norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
             
                 sm = Map(g.grid, factor=1, countries=False)
@@ -297,11 +297,11 @@ else:
                 plt.ylim(bottom=np.amax(y))
                 plt.ylim(top=np.amin(y))
                 plt.grid()
-                plt.title('Class CL'+str(i+1).zfill(2)+' - H from '+str(H_LEVELS[j,0])+'  to '+str(H_LEVELS[j+1,0])+'\n Mass '+'%.1e'%mass_in_the_air+' kg')
+                plt.title('VG'+str(i+1).zfill(2)+'\nH: '+str(H_LEVELS[j,0])+' - '+str(H_LEVELS[j+1,0])+' m\n'+'%.1e'%mass_in_the_air+' kg')
                 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-                clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
+                clb.set_label('conc. (kg/m$^3$)', labelpad=-40, y=1.05, rotation=0)
 
-                f.savefig(runname+'_CL'+str(i+1)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+                f.savefig(runname+'_VG'+str(i+1).zfill(2)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_AIR.pdf', bbox_inches='tight')
                 plt.close()
             
 
@@ -328,14 +328,14 @@ lin_scale = np.linspace(half_conc, max_conc, num=8)
 levels = np.append(log_scale,lin_scale)
 levels = np.append(base_scale,levels)
 
-cmap = plt.get_cmap('rainbow')
+cmap = plt.get_cmap('YlGnBu')
 norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
                      
 sm = Map(g.grid, factor=1, countries=False)
 sm.set_rgb(ggl_img)  # add the background rgb image
 sm.visualize()
 
-output_file = runname+'_'+'CL_sum'+'_'+day+'_'+time+'.asc'
+output_file = runname+'_'+'VG_sum'+'_'+day+'_'+time+'.asc'
 
 np.savetxt(output_file, np.flipud(loading3D_sum), \
                        header=header, fmt='%.3E',comments='')
@@ -360,7 +360,7 @@ plt.ylim(bottom=np.amax(y))
 plt.ylim(top=np.amin(y))
 plt.title('Total atmospheric loading')
 clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-clb.set_label('Loading (kg/m^3)', labelpad=-40, y=1.05, rotation=0)
-f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_CONC.pdf', bbox_inches='tight')
+clb.set_label('conc. (kg/m$^3$)', labelpad=-40, y=1.05, rotation=0)
+f.savefig(runname+'_'+'VG_sum'+'_'+day+'_'+time+'_AIR.pdf', bbox_inches='tight')
 plt.close()
 # plt.show()        

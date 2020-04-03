@@ -51,6 +51,8 @@ CONTAINS
     USE solver_2d, ONLY : solve_mask , solve_cells
     USE solver_2d, ONLY : j_cent , k_cent
 
+    USE inpout, ONLY : run_name
+
     USE OMP_LIB
 
     IMPLICIT NONE
@@ -94,6 +96,12 @@ CONTAINS
     LOGICAL :: use_openmp = .false.
 
     INTEGER :: i_multigrid
+
+    !> Name of output file for the parameters of the umbrella 
+    CHARACTER(LEN=30) :: swu_file
+
+    INTEGER, PARAMETER :: swu_unit = 19      !< swu data unit
+
 
     !  ALLOCATE( j_min(comp_cells_x) )
 
@@ -424,6 +432,22 @@ CONTAINS
     
     WRITE(*,*) 'Total time taken by the code is',t3-t1,'seconds'
     WRITE(*,*) 'Total elapsed real time is', DBLE( st3 - st1 ) / rate,'seconds'
+
+    ! Write x_new_soure, y_new_source , r_new_source on a file
+
+    swu_file = TRIM(run_name)//'.swu'    
+
+    OPEN(swu_unit,FILE=swu_file,status='unknown',form='formatted')
+
+    WRITE(swu_unit,307)
+
+    WRITE(swu_unit,308)  x_new_source , y_new_source , r_new_source
+
+307 FORMAT( 1x,'x_new_source (m)', 10x,'y_new_source (m)',10x, 'r_new_source (m)')
+
+308 FORMAT((7x,f10.4,16x,f10.4,16x,f10.4)) 
+
+    CLOSE(swu_unit)
 
   END SUBROUTINE solve_umbrella
 
