@@ -231,6 +231,16 @@ rho_rel = rho_mix - rho_atm
 rho_rel = rho_rel.reshape((-1,1))
 
 
+change_sign = np.argwhere(rho_rel[:-1]*rho_rel[1:]<0)
+
+if ( len(change_sign ) > 0 ):
+    last_change = change_sign[-1][0]
+    change = True
+else:
+    last_change = -1
+    change = False
+
+
 # PLOT FIGURES
 
 cm_subsection = np.linspace(0.0,1.0,n_bin) 
@@ -308,10 +318,12 @@ fig.savefig(str(filename)+'_mass_fraction.pdf')   # save the figure to file
 
 fig = plt.figure()
 
+plt.plot(temp[:last_change]+273,z[:last_change])
+if change:
+    plt.plot(temp[last_change:]+273,z[last_change:])
 
-plt.plot(temp+273,z)
-plt.axvline(273, c = 'r')
-plt.axvline(233, c = 'r')
+plt.axvline(273, c = 'r',ls='--')
+plt.axvline(233, c = 'r',ls='--')
 #plt.plot(temp_atm,z,'.r')
 plt.xlabel('Temp [K]')
 plt.ylabel('Height (km)')
@@ -352,15 +364,6 @@ solid_mass_tot_loss_cum =  1.0 - solid_mass_flux_tot/solid_mass_flux_tot[0]
 
 
 # VARIABLES
-
-change_sign = np.argwhere(rho_rel[:-1]*rho_rel[1:]<0)
-
-if ( len(change_sign ) > 0 ):
-    last_change = change_sign[-1][0]
-    change = True
-else:
-    last_change = -1
-    change = False
 
 # two different colors are used below and above neutral buoyancy level
 fig = plt.figure()
@@ -411,7 +414,14 @@ fig.savefig(str(filename)+'_profiles.pdf')   # save the figure to file
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d', proj_type = 'ortho')
-ax.scatter(x, y,z)
+prop_cycle = plt.rcParams['axes.prop_cycle']
+colors = prop_cycle.by_key()['color']
+
+ax.plot(x[:last_change,0],y[:last_change,0],z[:last_change,0])
+if change:
+    ax.plot(x[last_change:,0],y[last_change:,0],z[last_change:,0])
+
+# ax.scatter(x, y,z)
 
 angle = np.linspace(0, 2*np.pi, num=50)
 angle = angle.reshape((-1,1))
@@ -422,7 +432,8 @@ y_plume = np.sin(angle)
 z_max = max(z)
 z_min = min(z)
 
-n_sect = 50
+# n_sect = 50
+n_sect = 20
 
 zeta_grid = np.linspace(z_min,z_max*0.99,num = n_sect)
 
@@ -454,7 +465,12 @@ for i in range(n_sect):
     plume[1,:] = r[ind,0]*y_plume[:,0] 
     plume[2,:] = 0.0
 
-    ax.scatter(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:])
+    # ax.scatter(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:])
+    if (ind<=last_change):
+        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color=colors[0])
+    else:
+        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color=colors[1])
+
 
 ax.set_xlabel('x (km)')
 ax.set_ylabel('y (km)')
@@ -545,45 +561,45 @@ with open("%s.sed" % filename, "r") as file1:
 
             sed1["smf{0}".format(n_part_sect)].column_org = i
 
-sed_results = np.loadtxt("%s.sed" % filename, skiprows = 1)
+# read cumulative (over z) values of sedimentation rates
+sed_cum_results = np.loadtxt("%s.sed" % filename, skiprows = 1)
 
-sed_results = sed_results.reshape((z_levels,-1))
+sed_cum_results = sed_cum_results.reshape((z_levels,-1))
 
-# the values read from file are cumulative. We want the diff
-sed_results[1:,:] = np.diff(sed_results,axis=0)
+# the values read from file are cumulative. 
+# We want the rate of release between z[i-1] and z[i]
+sed_results = np.zeros_like(sed_cum_results)
+sed_results[1:,:] = np.diff(sed_cum_results,axis=0)
 
-sed_solid_partial_mass_fraction = np.zeros((sed_results.shape[0],n_part_sect))
+# sed_solid contains only sed rates (without first columns for z,x,y,r) 
 sed_solid = np.zeros((sed_results.shape[0],n_part_sect))
 
-
+# copy from sed_results to sed_solid
 for i in range(n_part_sect):
 
     sed_solid[:,i] = sed_results[:,sed1["smf"+str(i+1)].column_org]
 
+# normalize to have sum of fractions=1
+for i in range(1,z_levels):
 
-sed_solidTot = np.sum(sed_solid, axis=1)
-sed_solidTot = sed_solidTot.reshape((-1,1))
+    sed_solid[i,:] /= np.sum(sed_solid[i,:])
 
-sed_solid_partial_mass_fraction[0,:] = sed_solid[0,:] 
-
-for i in range(1,n_levels):
-
-    sed_solid_partial_mass_fraction[i,:] = sed_solid[i,:] / sed_solidTot[i]
-
-sed_solid_pmf_bot = np.zeros((n_part_sect))
+sed_solid_bot = np.zeros((n_part_sect))
 
 for i in range(1,n_part):
 
-    sed_solid_pmf_bot[i*n_bin:(i+1)*n_bin] += sed_solid_partial_mass_fraction[0,(i-1)*n_bin:i*n_bin]
+    sed_solid_bot[i*n_bin:(i+1)*n_bin] += sed_solid[0,(i-1)*n_bin:i*n_bin]
 
 
-barcollection2 = ax2.bar(x_bin, sed_solid_partial_mass_fraction[0,:], width=0.9*delta_phi, bottom=sed_solid_pmf_bot)
+barcollection2 = ax2.bar(x_bin, sed_solid[0,:], width=0.9*delta_phi, bottom=sed_solid_bot)
 
-sed_solid_pmf = np.sum(sed_solid_partial_mass_fraction.reshape((n_levels,n_part,n_bin)),axis=1)
+# sum over different part belonging to the same bin (because of stacked bar)
+sed_solid_pmf = np.sum(sed_solid.reshape((n_levels,n_part,n_bin)),axis=1)
+# find the maximum over bins and levels of stacked bars
 max_sed_solid_pmf = np.nanmax(sed_solid_pmf)
 ax2.set_ylim(0.0, 1.1*max_sed_solid_pmf)
 ax2.set_xlim(phi_min-1,phi_max+1)
-ax2.title.set_text('Sedimentation GSD')
+ax2.title.set_text('Sedimentation Rate')
 ax2.set_xlabel('phi')
 
 
@@ -624,17 +640,17 @@ def animate(i):
         b.set_color(bar_colors[j])
 
 
-    y2 = sed_solid_partial_mass_fraction[idx_steps[i],:]
+    y2 = sed_solid[idx_steps[i],:]
 
-    sed_solid_pmf_bot[0:n_part_sect] = 0.0
+    sed_solid_bot[0:n_part_sect] = 0.0
 
     for i_part in range(1,n_part):
 
-        sed_solid_pmf_bot[i_part*n_bin:(i_part+1)*n_bin] += sed_solid_partial_mass_fraction[idx_steps[i],(i_part-1)*n_bin:i_part*n_bin]
+        sed_solid_bot[i_part*n_bin:(i_part+1)*n_bin] += sed_solid[idx_steps[i],(i_part-1)*n_bin:i_part*n_bin]
    
     for j, b in enumerate(barcollection2):
         b.set_height(y2[j])
-        b.set_y(sed_solid_pmf_bot[j])
+        b.set_y(sed_solid_bot[j])
         b.set_color(bar_colors[j])
 
     mark_pos.set_xdata(solid_mass_tot_loss_cum[idx_steps[i]])  
