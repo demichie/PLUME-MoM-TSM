@@ -20,6 +20,17 @@ Two additional namelists are needed for this kind of simulation.
 
 The simmulation of the umbrella cloud is done with a transient model, running until the time T_END is reached or until the upwind spreading reaches a steady condition.
 
+
+For this simulation the initial TGSD is not provided through values of mu and sigma, but giving the initial mass fractions associated to the bins with a namelist. This is obtained by setting the parameter DISTRIBUTION="BIN" in the namelist PARTICLES_PARAMETERS.
+Then a new namelist is needed:
+
+&BIN_PARAMETERS
+ BIN_PARTIAL_MASS_FRACTION = 1.9E-03 , 1.1E-02, 4.3E-02 ,1.1E-01 ,2.1E-01, 2.5E-01, 2.1E-01 ,1.1E-01, 4.3E-02, 1.1E-02, 1.9E-03, 2.2E-04, 1.7E-05, 9.3E-07, 3.4E-08, 8.2E-10, 1.4E-11, 1.5E-13, 3.4E-08, 9.3E-07, 1.7E-05, 2.2E-04, 1.9E-03, 1.1E-02, 4.3E-02, 1.1E-01, 2.1E-01, 2.5E-01, 2.1E-01, 1.1E-01, 4.3E-02, 1.1E-02, 1.9E-03, 2.2E-04, 1.7E-05, 9.3E-07
+ /
+
+Here there are 36 values, the first 18 are the mass fractions for the first family of particles (from the phi bin [-6;-5] to the phi bin [11;12]). The second 18 are for the second family of particles.
+
+
 A python script is provided to plot the output of the model:
 
 > python plot_3D.py column_and_umbrella.col
