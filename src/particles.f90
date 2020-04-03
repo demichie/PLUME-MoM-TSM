@@ -196,7 +196,7 @@ CONTAINS
     ALLOCATE ( solid_mass_fraction0(1:n_part) )
     ALLOCATE ( solid_volume_fraction(1:n_part) )
 
-    ALLOCATE ( bin_partial_mass_fraction(1:n_part,1:n_sections) )
+    ALLOCATE ( bin_partial_mass_fraction(1:n_sections,1:n_part) )
 
     ALLOCATE ( particle_loss_rate(1:n_part,1:n_sections) )
     ALLOCATE ( cum_particle_loss_rate(1:n_part,1:n_sections) )

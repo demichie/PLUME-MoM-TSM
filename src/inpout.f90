@@ -749,6 +749,13 @@ CONTAINS
           IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read bin_parameters: done'
           REWIND(inp_unit)
 
+          DO i_part=1,n_part
+             bin_partial_mass_fraction(1:n_sections,i_part) =                   &
+                  bin_partial_mass_fraction(1:n_sections,i_part) /              &
+                  SUM(bin_partial_mass_fraction(1:n_sections,i_part))
+             
+          END DO
+             
        ELSE
           
           WRITE(*,*) 'Problem reading namelist BIN_PARAMETERS'
@@ -2060,7 +2067,7 @@ CONTAINS
              
              ! assign the moments of order 1 (mass) from the values read in
              ! input
-             mom0(1,i_sect,i_part) = bin_partial_mass_fraction(i_part,i_sect)
+             mom0(1,i_sect,i_part) = bin_partial_mass_fraction(n_sections-i_sect+1,i_part)
              
           END IF
           
