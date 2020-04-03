@@ -2526,8 +2526,8 @@ CONTAINS
 
     WRITE(sed_unit,141,advance="no") z , r , x , y
 
-101 FORMAT(12(1x,es15.8))
-141 FORMAT(4(1x,es15.8))
+101 FORMAT(12(1x,es16.9))
+141 FORMAT(4(1x,es16.9))
     
     DO i_part=1,n_part
 
@@ -2540,7 +2540,7 @@ CONTAINS
 
     END DO
        
-102 FORMAT(1(1x,es15.8))
+102 FORMAT(1(1x,es16.9))
 
     
     WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
@@ -2549,7 +2549,7 @@ CONTAINS
     WRITE(sed_unit,*) ''
 
     
-103 FORMAT(20(1x,es15.8))
+103 FORMAT(20(1x,es16.9))
 
     WRITE(mom_unit,104,advance="no") z
 
@@ -2569,7 +2569,7 @@ CONTAINS
 
    END DO
 
-105 FORMAT(1(1x,es15.8))
+105 FORMAT(1(1x,es16.9))
 
     WRITE(mom_unit,*) " "
     
@@ -2828,7 +2828,7 @@ CONTAINS
 
     END DO
 
-111 FORMAT(90(1x,es15.8))
+111 FORMAT(90(1x,es16.9))
 
     CLOSE(read_col_unit)    
   

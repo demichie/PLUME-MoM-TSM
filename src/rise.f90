@@ -563,7 +563,7 @@ CONTAINS
 
        ! ----- Exit condition ---------------------------------------------------
 
-       IF ( w .LE. 1.0E-5_wp ) THEN
+       IF ( ( w .LE. 1.0E-4_wp ) .OR. ( dz .LE. 1.0E-4_wp ) ) THEN
 
           EXIT main_loop
 
