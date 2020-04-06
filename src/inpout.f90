@@ -2333,27 +2333,25 @@ CONTAINS
     hy_file_volcgas = TRIM(run_name)//'_volcgas.hy'
     inversion_file = TRIM(run_name)//'.inv'
     
-    IF ( .NOT.dakota_flag ) THEN
 
-       n_unit = n_unit + 1
-       col_unit = n_unit
-       
-       OPEN(col_unit,FILE=col_file)
-
-       n_unit = n_unit + 1
-       sed_unit = n_unit
-       
-       OPEN(sed_unit,FILE=sed_file)
-
-       n_unit = n_unit + 1
-       mom_unit = n_unit
-       
-       OPEN(mom_unit,FILE=mom_file)
-       
-       WRITE(mom_unit,*) n_part
-       WRITE(mom_unit,*) n_mom
-
-    END IF
+    n_unit = n_unit + 1
+    col_unit = n_unit
+    
+    OPEN(col_unit,FILE=col_file)
+    
+    n_unit = n_unit + 1
+    sed_unit = n_unit
+    
+    OPEN(sed_unit,FILE=sed_file)
+    
+    n_unit = n_unit + 1
+    mom_unit = n_unit
+    
+    OPEN(mom_unit,FILE=mom_file)
+    
+    WRITE(mom_unit,*) n_part
+    WRITE(mom_unit,*) n_mom
+    
 
     n_unit = n_unit + 1
     hy_unit = n_unit
@@ -2401,17 +2399,13 @@ CONTAINS
 
     IMPLICIT  NONE
 
-    IF ( .not.dakota_flag ) THEN
-
-       CLOSE(col_unit)
-       CLOSE(sed_unit)
-       CLOSE(mom_unit)
-
-    END IF
+    CLOSE(col_unit)
+    CLOSE(sed_unit)
+    CLOSE(mom_unit)
 
     IF ( hysplit_flag ) CLOSE ( hy_unit )
 
-    CLOSE(dak_unit)
+    IF ( .NOT. umbrella_flag ) CLOSE(dak_unit)
 
     IF ( inversion_flag ) CLOSE ( inversion_unit )
     

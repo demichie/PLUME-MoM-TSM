@@ -161,10 +161,14 @@ CONTAINS
 
     IF ( aggregation_flag ) CALL init_aggregation
 
-    description = 'Initial MFR'
+    IF ( dakota_flag ) THEN
+    
+       description = 'Initial MFR'
 
-    CALL WRITE_DAKOTA(description,mass_flow_rate)
+       CALL WRITE_DAKOTA(description,mass_flow_rate)
 
+    END IF
+       
     w_old = w
     w_oldold = w
 
@@ -206,22 +210,26 @@ CONTAINS
           sigma_phi = SQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
                SUM( mom(1,:,i_part) ) )
 
-          description = 'Init Avg Diam '//trim(x1)
+          IF ( dakota_flag ) THEN
+          
+             description = 'Init Avg Diam '//trim(x1)
+             
+             CALL write_dakota(description,mu_phi)
+             
+             description = 'Init Var Diam '//trim(x1)
+             
+             CALL write_dakota(description,sigma_phi)
 
-          CALL write_dakota(description,mu_phi)
+             description = 'Init Mass Fract '//trim(x1)
+             
+             CALL write_dakota(description,mass_fract(i_part))
+             
+             description = 'Init Solid Flux '//trim(x1)
+             
+             CALL write_dakota(description,solid_mass_flux0)
 
-          description = 'Init Var Diam '//trim(x1)
-
-          CALL write_dakota(description,sigma_phi)
-
-          description = 'Init Mass Fract '//trim(x1)
-
-          CALL write_dakota(description,SUM(mass_fract))
-
-          description = 'Init Solid Flux '//trim(x1)
-
-          CALL write_dakota(description,solid_mass_flux0)
-
+          END IF
+             
        END IF
 
     END DO
@@ -638,7 +646,7 @@ CONTAINS
 
     plume_height = z - vent_height
 
-    IF ( write_flag ) THEN
+    IF ( dakota_flag ) THEN
 
        description = 'Column regime'
 
@@ -667,7 +675,7 @@ CONTAINS
        solid_mass_flux_change = 1.0_wp - solid_mass_flux / solid_mass_flux0
 
 
-       IF ( write_flag ) THEN
+       IF ( dakota_flag ) THEN
 
           mu_phi = SUM( phiR(:)*mom(1,:,i_part) ) / SUM( mom(1,:,i_part) )
           sigma_phi = SQRT( SUM( (phiR(:)-mu_phi)**2 *mom(1,:,i_part) ) /      &
@@ -683,7 +691,7 @@ CONTAINS
 
           description = 'Final Mass Fract '//trim(x1)
 
-          CALL write_dakota(description,SUM(mass_fract))
+          CALL write_dakota(description,mass_fract(i_part))
 
           description = 'Final Mass Flux '//trim(x1)
 

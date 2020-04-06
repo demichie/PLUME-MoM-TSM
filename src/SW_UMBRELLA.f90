@@ -32,7 +32,8 @@ CONTAINS
     USE solver_2d, ONLY : check_solve
 
     USE variables, ONLY : wp
-
+    USE variables, ONLY : hysplit_flag , dakota_flag
+    
     USE parameters_2d, ONLY : x_source , y_source , r_source
 
     USE parameters_2d, ONLY : t_start
@@ -51,7 +52,9 @@ CONTAINS
     USE solver_2d, ONLY : solve_mask , solve_cells
     USE solver_2d, ONLY : j_cent , k_cent
 
-    USE inpout, ONLY : run_name
+    USE inpout, ONLY : run_name , dak_unit
+
+    USE inpout, ONLY : write_dakota
 
     USE OMP_LIB
 
@@ -91,6 +94,9 @@ CONTAINS
     REAL(wp) :: h_tot , h_avg
     INTEGER :: n_tot
 
+    REAL(wp) :: x_upw , y_upw
+    REAL(wp) :: d_upw_nbl , d_upw_umb
+    
     integer, allocatable :: positive_values(:)
 
     LOGICAL :: use_openmp = .false.
@@ -102,7 +108,8 @@ CONTAINS
 
     INTEGER, PARAMETER :: swu_unit = 19      !< swu data unit
 
-
+    CHARACTER(LEN=20) :: description
+    
     !  ALLOCATE( j_min(comp_cells_x) )
 
 
@@ -425,11 +432,47 @@ CONTAINS
     WRITE(*,FMT="(A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)") ' xold =', x_source,   &
          ' yold =',y_source, ' rold =',r_source
 
+    x_upw = x_source - r_source * u_atm_nbl / SQRT( u_atm_nbl**2 +      &
+         v_atm_nbl**2 )
+    y_upw = y_source - r_source * v_atm_nbl / SQRT( u_atm_nbl**2 +      &
+         v_atm_nbl**2 )
+
+    d_upw_nbl = SQRT(x_upw**2 + y_upw**2) 
+    
+    WRITE(*,*) 'Upwind plume point',x_upw,y_upw
+    WRITE(*,*) 'Upwind plume distance',d_upw_nbl
+
+    
     WRITE(*,FMT="(A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)") ' xnew =', &
          x_new_source, ' ynew =',y_new_source, ' rnew =',r_new_source,' havg =',&
          h_avg
 
+    x_upw = x_new_source - r_new_source * u_atm_nbl / SQRT( u_atm_nbl**2 +      &
+         v_atm_nbl**2 )
+    y_upw = y_new_source - r_new_source * v_atm_nbl / SQRT( u_atm_nbl**2 +      &
+         v_atm_nbl**2 )
+
+    d_upw_umb = SQRT(x_upw**2 + y_upw**2) 
+
+    WRITE(*,*) 'Upwind umbrella point',x_upw,y_upw
+    WRITE(*,*) 'Upwind umbrella distance',d_upw_umb
+    WRITE(*,*) 
+    WRITE(*,*) 'Radius increase', r_new_source/r_source - 1.0_wp
+    WRITE(*,*) 'Upwind spreading increase', d_upw_umb/d_upw_nbl - 1.0_wp
+
+    IF ( dakota_flag ) THEN
     
+       description = 'Radius increase'
+       CALL write_dakota(description,r_new_source/r_source - 1.0_wp)
+       description = 'Upwind increase'
+       CALL write_dakota(description,d_upw_umb/d_upw_nbl - 1.0_wp)
+
+       CLOSE(dak_unit)
+
+    END IF
+
+    
+    WRITE(*,*)
     WRITE(*,*) 'Total time taken by the code is',t3-t1,'seconds'
     WRITE(*,*) 'Total elapsed real time is', DBLE( st3 - st1 ) / rate,'seconds'
 
