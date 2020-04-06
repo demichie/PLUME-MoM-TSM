@@ -22,5 +22,5 @@ A Phyton script (plot_solution.m) is provided to plot the results.
 
 M. de' Michieli Vitturi, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
 
-F. Pardini, School of Earth, Atmospheric and Environmental Sciences, The University of Manchester, UK.
+F. Pardini, School of Earth, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
 
