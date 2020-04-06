@@ -464,6 +464,8 @@ CONTAINS
     
        description = 'Radius increase'
        CALL write_dakota(description,r_new_source/r_source - 1.0_wp)
+       description = 'Upwind distance'
+       CALL write_dakota(description,d_upw_umb)
        description = 'Upwind increase'
        CALL write_dakota(description,d_upw_umb/d_upw_nbl - 1.0_wp)
 
