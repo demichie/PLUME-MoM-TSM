@@ -23,27 +23,6 @@ def round_minutes(dt, direction, resolution):
 
     return rounded_time
 
-def umbrella_cloud(index):
-
-    cos = U_NBL / float(U_ATM)
-    sin = V_NBL / float(U_ATM)
-
-    X = X_NBL + xnew * cos
-    Y = Y_NBL + xnew * sin      
-
-    # displacement in deg from the vent
-    Xdeg = X * 0.001 * 0.01 
-    Ydeg = Y * 0.001 * 0.01 
-   
-    # lat, lon coordinates of the centre of the umbrella
-    lon_new = vent_lon + Xdeg
-    lat_new = vent_lat + Ydeg
-
-    emission_area = np.pi * rnew**(2)
-
-    return(lat_new,lon_new,emission_area)
-
-
 time_format = "%y %m %d %H %M"
 
 starttime_hhmm = datetime.datetime.strptime(starttime,time_format)
@@ -137,7 +116,7 @@ diam = 2.0**(-np.asarray(diam_phi))
 
 # density in g/cc (calc density compute it in kg/m^3)
 # the function calc_density convert internally from mm to m
-density = calc_density(diam)/1000
+density = calc_density(diam_phi)/1000
 
 # we assume that all the particles have the same shapefactor
 shapefactor = np.ones(npart)*shapefactor

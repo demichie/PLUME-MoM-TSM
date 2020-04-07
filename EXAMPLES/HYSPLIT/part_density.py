@@ -25,7 +25,7 @@ def calc_density(diam_phi):
 
         for j in range(n_sections):
 
-            if ( diam_phi[j] < phi1[i] ):
+            if ( diam_phi[j] <= phi1[i] ):
 
                 density[i,j] = rho1[i]
 
@@ -33,7 +33,7 @@ def calc_density(diam_phi):
  
                 density[i,j] = rho1[i] + ( diam_phi[j] - phi1[i] ) / ( phi2[i] - phi1[i] ) * ( rho2[i] - rho1[i] )
        
-            else:
+            elif ( diam_phi[j] >= phi2[i] ):
 
                 density[i,j] = rho2[i]
 
