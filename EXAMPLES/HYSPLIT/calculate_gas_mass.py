@@ -17,9 +17,9 @@ file=open(filename,'w')
 AIR=[]
 
 #print ngas, n_levels, H_LEVELS
-print ' '
-print '*** MASS IN THE AIR ***'
-print ' '
+print ( ' ' )
+print ( '*** MASS IN THE AIR ***' )
+print ( ' ' )
 # Check mass deposited on the ground
 
 fname = 'CON2ASC.AIR'
@@ -190,7 +190,7 @@ file_mass=open('total_mass.gas','w')
 
 file_mass.writelines("Day    Time    Mass in the Air[kg]\n")
 
-print "--> Gas mass from HYSPLIT"
+print ( "--> Gas mass from HYSPLIT" )
 
 for i in range(AIR.shape[0]):
 
@@ -198,12 +198,12 @@ for i in range(AIR.shape[0]):
     #print 'Mass deposited ', '%.1e'%GROUND[i,2]
     #print 'Mass in the air ',AIR[i,0]
     #print 'Mass in the domain ',GROUND[i,2] + AIR[i,0]
-    print ' - day %d time %d : %.1e'%(int(AIR[i,0]),int(AIR[i,1]),float(AIR[i,2]))    
+    print ( ' - day %d time %d : %.1e'%(int(AIR[i,0]),int(AIR[i,1]),float(AIR[i,2])) )    
     
     file_mass.writelines("%d    %04d    %.1e\n"%(int(AIR[i,0]),int(AIR[i,1]),float(AIR[i,2])))
     
 file_mass.close()
-print "***------***"
+print ( "***------***" )
           
 
 

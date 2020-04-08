@@ -1,8 +1,3 @@
-from sys import platform as sys_pf
-if sys_pf == 'darwin':
-    import matplotlib
-    matplotlib.use("TkAgg")
-import Tkinter, tkFileDialog
 import numpy as np
 import sys
 from haversine import haversine
@@ -13,8 +8,8 @@ import matplotlib.ticker as ticker
 import pandas as pd
 import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
-import easygui
-# import utm
+import warnings
+warnings.simplefilter(action='ignore')
 
 from input_file import *
 
@@ -39,22 +34,26 @@ for filename in lines:
 
 # choose the file to plot with a GUI
 
-#option 1
-#filename = easygui.fileopenbox( filetypes=['*.gas'])
+try:
 
-#option 2 (in case option 1 doesn't work)
-from tkFileDialog import askopenfilename
-filename = askopenfilename(filetypes=[("gas files", "*.gas")])
+    from tkFileDialog import askopenfilename
+    filename = askopenfilename(filetypes=[("gas files", "*.gas")])
+
+except:
+
+    import tkinter
+    import tkinter.filedialog
+    filename =  tkinter.filedialog.askopenfilename(title = "choose your file",filetypes=[("gas files", "*.gas")])
 
 
 AIR=[]
 
-#print npart, n_levels, H_LEVELS
-print ' '
-print '*** VOLCGAS MASS IN THE AIR ***'
-print ' '
-print "Run name: ",runname
-print ' '
+#print ( npart, n_levels, H_LEVELS
+print ( ' ' )
+print ( '*** VOLCGAS MASS IN THE AIR ***' )
+print ( ' ' )
+print ( "Run name: ",runname )
+print ( ' ' )
 
 f = open(filename)
 
@@ -65,8 +64,8 @@ dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
            
-print ' ---> day and time ',day,' ',time,' '
-print ' '
+print ( ' ---> day and time ',day,' ',time,' ' )
+print ( ' ' )
 
 data = f.read()
 first_line = data.split('\n', 1)[0]
@@ -117,14 +116,14 @@ ngas = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-print 'Number of volcanic gasses : ',ngas
-print 'Number of atmospheric levels :',n_levels - 1
+print ( 'Number of volcanic gasses : ',ngas )
+print ( 'Number of atmospheric levels :',n_levels - 1 )
 
 a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
-    print 'No volcanic gasses in the air at time ',time
+    print ( 'No volcanic gasses in the air at time ',time )
         
 else:
 
@@ -234,7 +233,7 @@ else:
 
             if np.sum(conc) == 0:
 
-                print 'No volcanic gases of VG_'+str(i+1).zfill(2)+' H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m'
+                print ( 'No volcanic gases of VG_'+str(i+1).zfill(2)+' H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m' )
                 pass
 
             else:       
@@ -261,7 +260,7 @@ else:
                 loading_i = loading3D[:,:,column + j + 1]
                 loading3D_sum_kg += loading_i * pixel_area * (int(H_LEVELS[j+1,0])-int(H_LEVELS[j,0]))
 
-                print 'VG ',str(i+1).zfill(2),': ','%.1e'%mass_in_the_air,' kg, H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m'
+                print ( 'VG ',str(i+1).zfill(2),': ','%.1e'%mass_in_the_air,' kg, H: '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m' )
 
             
 

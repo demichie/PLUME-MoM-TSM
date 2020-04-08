@@ -4,8 +4,8 @@ import datetime
 import os,sys
 import re
 import shutil
-from extract_wind import write_atm
 
+from extract_wind import write_atm
 from input_file import *
 
 
@@ -155,17 +155,17 @@ else:
 runtime=endemittime_round-starttime_round
 
 
-print endemittime_round, starttime_round
-print runtime,deltat_plumemom
+print ( endemittime_round, starttime_round )
+print ( runtime,deltat_plumemom )
 
 #runtime=endemittime_round-starttime_round # numero ore arrotondate tra inizio e fine emissione 
 #n_runs = np.int(np.floor( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 
 
-print 'runtime.total_seconds() ',runtime.total_seconds()
+print ( 'runtime.total_seconds() ',runtime.total_seconds() )
 
-print 'n_runs ', n_runs
+print ( 'n_runs ', n_runs )
 
 if 'plume_height' in locals():
 
@@ -173,7 +173,7 @@ if 'plume_height' in locals():
 
         if ( len(plume_height) != n_runs ):
 
-            print 'WARNING: check numbers of values of plume_height',len(plume_height),n_runs
+            print ( 'WARNING: check numbers of values of plume_height',len(plume_height),n_runs )
             sys.exit()
 
     else:
@@ -184,7 +184,7 @@ if 'plume_height' in locals():
 
     if 'log10_mfr' in locals():
 
-        print 'WARNING: not possible to fix both log10_mfr and plume_height'
+        print ( 'WARNING: not possible to fix both log10_mfr and plume_height' )
         sys.exit()
 
 
@@ -194,7 +194,7 @@ if 'log10_mfr' in locals():
 
         if ( len(log10_mfr) != n_runs ):
 
-            print 'WARNING: check numbers of values of log10_mfr',len(log10_mfr),n_runs
+            print ( 'WARNING: check numbers of values of log10_mfr',len(log10_mfr),n_runs )
             sys.exit()
 
     else:
@@ -210,7 +210,7 @@ if 'vent_velocity' in locals():
 
         if ( len(vent_velocity) != n_runs ):
 
-            print 'WARNING: check numbers of values of log10_mfr',len(log10_mfr),n_runs
+            print ( 'WARNING: check numbers of values of log10_mfr',len(log10_mfr),n_runs )
             sys.exit()
 
     else:
@@ -229,7 +229,7 @@ col=[]
 for i in range(n_runs):
 
     runnamenew = runname + '_{0:03}'.format(i+1)
-    print '------------>runname',runnamenew
+    print ( '------------>runname',runnamenew )
 
     f = open('plume_model.temp1','r')
     filedata = f.read()
@@ -247,7 +247,7 @@ for i in range(n_runs):
         
         if plume_height[i] == 0:
 
-            print "*** EMISSION STOP ***"
+            print ( "*** EMISSION STOP ***" )
 
             run_flag = 0
 
@@ -260,7 +260,7 @@ for i in range(n_runs):
 
         if log10_mfr[i] == 0:
     
-            print "*** EMISSION STOP ***"
+            print ( "*** EMISSION STOP ***" )
 
             run_flag = 0
     
@@ -288,7 +288,7 @@ for i in range(n_runs):
 	
         timei_str = timei.strftime("%y %m %d %H %M")
 
-        print 'Time',timei_str
+        print ( 'Time',timei_str )
 
         write_atm(timei_str)
 

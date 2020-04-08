@@ -38,7 +38,7 @@ if [ $ngas -gt 0 ]
 
   mv CON2ASC.OUT CON2ASC.AIR
 
-  python calculate_gas_mass.py
+  python3 calculate_gas_mass.py
 
   rm CON2ASC.AIR
 

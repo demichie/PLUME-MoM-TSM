@@ -1,9 +1,3 @@
-from sys import platform as sys_pf
-if sys_pf == 'darwin':
-    import matplotlib
-    matplotlib.use("TkAgg")
-
-import Tkinter, tkFileDialog
 import numpy as np
 import sys
 from haversine import haversine
@@ -15,6 +9,8 @@ import pandas as pd
 import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
 import easygui
+import warnings
+warnings.simplefilter(action='ignore')
 
 from input_file import *
 
@@ -40,20 +36,25 @@ for filename in lines:
 
 # choose the file to plot with a GUI
 
-#option 1
-#filename = easygui.fileopenbox( filetypes=['*.gnd'])
+try:
 
-#option 2 (in case option 1 doesn't work)
-from tkFileDialog import askopenfilename
-filename = askopenfilename(filetypes=[("gnd files", "*.gnd")])
+    from tkFileDialog import askopenfilename
+    filename = askopenfilename(filetypes=[("gnd files", "*.gnd")])
+
+except:
+
+    import tkinter
+    import tkinter.filedialog
+    filename =  tkinter.filedialog.askopenfilename(title = "choose your file",filetypes=[("gnd files", "*.gnd")])
+
 
 GROUND=[]
 
-print ' '
-print '*** PARTICLE MASS ON THE GROUND ***'
-print ' '
-print "Run name :",runname
-print ' '          
+print ( ' ' )
+print ( '*** PARTICLE MASS ON THE GROUND ***' )
+print ( ' ' )
+print ( "Run name :",runname )
+print ( ' ' )          
 
 f = open(filename)
 
@@ -64,8 +65,8 @@ dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
  
-print ' ---> day and time ',day,' ',time,' '
-print ' '
+print ( ' ---> day and time ',day,' ',time,' ' )
+print ( ' ' )
 
 data = f.read()
 first_line = data.split('\n', 1)[0]
@@ -115,15 +116,15 @@ npart = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-print 'Number of particle classes :',npart
-print 'Number of atmospheric levels :',n_levels - 1
-print ' '
+print ( 'Number of particle classes :',npart )
+print ( 'Number of atmospheric levels :',n_levels - 1 )
+print ( ' ' )
 
 a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
-    print 'No particles on the ground at time ',time
+    print ( 'No particles on the ground at time ',time )
         
 else:
 
@@ -249,7 +250,7 @@ else:
             loading_i = loading2D[:,:,column]
             loading2D_sum += loading_i
 
-            print 'CL',str(i+1).zfill(2),': ','%.1e'%mass_on_the_ground,' kg'
+            print ( 'CL',str(i+1).zfill(2),': ','%.1e'%mass_on_the_ground,' kg' )
 
             # Save the deposit for the single classes on a ESRI rater ascii file
             output_file = runname+'_'+'CL'+str(i+1).zfill(2)+'_'+day+'_'+time+'.asc'

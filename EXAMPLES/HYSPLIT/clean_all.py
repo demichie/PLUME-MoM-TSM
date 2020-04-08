@@ -87,6 +87,9 @@ for f in filelist:
         os.remove(f)
     except OSError:
         pass
-                       
-     
 
+try:                       
+    import shutil
+    shutil.rmtree('__pycache__')     
+except:
+    pass

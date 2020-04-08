@@ -329,14 +329,14 @@ file_mass=open('total_mass.part','w')
 
 file_mass.writelines("Day    Time    Mass Deposited[kg]    Mass in the Air[kg]        Tot Mass[kg]\n")
 
-print "***------***"
+print ( "***------***" )
 
-print "--> Solid particle mass from HYSPLIT"
+print ( "--> Solid particle mass from HYSPLIT" )
 
 for i in range(GROUND.shape[0]):
 
     tot = GROUND[i,2] + AIR[i,0]
-    print ' - day %d time %d : %.1e'%(int(GROUND[i,1]),int(GROUND[i,0]),tot)
+    print ( ' - day %d time %d : %.1e'%(int(GROUND[i,1]),int(GROUND[i,0]),tot) )
     #print 'Mass deposited ', '%.1e'%GROUND[i,2]
     #print 'Mass in the air ',AIR[i,0]
     #TOT = GROUND[i,2] + AIR[i,0]
@@ -348,6 +348,6 @@ for i in range(GROUND.shape[0]):
     
 file_mass.close()
 
-print "***------***"
+print ( "***------***" )
 
 

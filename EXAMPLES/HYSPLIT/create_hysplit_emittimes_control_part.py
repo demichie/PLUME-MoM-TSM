@@ -6,6 +6,7 @@ import re
 import shutil
 import math as math
 from collections import Counter
+
 from part_density import calc_density
 from input_file import *
 
@@ -36,9 +37,9 @@ runtime=endruntime_round-starttime_round
 d = datetime.datetime(2000,1,1) + runtime
 runtime_hh = '{0:02}'.format( int(runtime.total_seconds()//3600) )
 
-print 'Start time:',starttime
-print 'End run time:',endruntime
-print 'Total runtime',runtime_hh,'hrs'
+print ( 'Start time:',starttime )
+print ( 'End run time:',endruntime )
+print ( 'Total runtime',runtime_hh,'hrs' )
 
 # to work with deltat_plumemom < 3600 
 
@@ -91,7 +92,7 @@ duration_hhhh = '{0:04}'.format(int(str(d2.strftime("%H"))))
 hours = []
 
 startime_count_0 = starttime_hhmm
-print starttime_hhmm
+print ( starttime_hhmm )
 hours.append(startime_count_0.hour)
 
 for i in range(n_runs-1):
@@ -104,9 +105,6 @@ for i in range(n_runs-1):
 dict_h = Counter(hours)
 maximum = max(dict_h, key=dict_h.get)  
 num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within each hour
-
-print "num_occurrence ",num_occurrence
-
 
 # particle diameters phi scale
 diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True)
@@ -136,11 +134,11 @@ for i in range(npart):
         k1 = shapefactor[i]**(-0.828)
         k2 = 2.0 * np.sqrt( 1.07 - shapefactor[i] )
 
-        # print 'k1,k2',k1,k2
+        # print ( 'k1,k2',k1,k2 )
 
         mass = density[i,j]*1000.0 * 4.0/3.0 * np.pi * ( 0.5*diam_mt )**3
 
-        # print 'mass',i,diam_mt,mass
+        # print ( 'mass',i,diam_mt,mass )
 
         A_cs = np.pi * ( 0.5*diam_mt )**2
 
@@ -163,8 +161,8 @@ for i in range(npart):
         Rey1 = rho_atm * diam_mt * Us_1 / visc_atm
         Rey2 = rho_atm * diam_mt * Us_2 / visc_atm
 
-        #print 'rho_atm , diam_mt , Us_1 , visc_atm',rho_atm , diam_mt , Us_1 , visc_atm
-        #print 'Rey1,Rey2',Rey1,Rey2
+        #print ( 'rho_atm , diam_mt , Us_1 , visc_atm',rho_atm , diam_mt , Us_1 , visc_atm )
+        #print ( 'Rey1,Rey2',Rey1,Rey2 )
         
         # Initialization only
         Us = Us_1000
@@ -207,7 +205,7 @@ for i in range(npart):
 
 
         particles_settling_velocity.append(Us)
-        print diam_mt,Us
+        print ( diam_mt,Us )
 
 released_mass=0
 
@@ -216,8 +214,8 @@ with open('meteo_ground_elev.txt', 'r') as f:
     for line in f:
         z_ground = float(line)     
 
-
-print 'EMITTIMES: z_ground',z_ground
+ 
+print ( 'EMITTIMES: z_ground',z_ground )
 
 #***************CREATE EMITTIMES and CONTROL FOR PARTICLES DISPERSION************************
 
@@ -271,7 +269,7 @@ else:
 
 timei_old = timei
 
-print 'Block 1',duration_hhmm
+print ( 'Block 1',duration_hhmm )
 
 timei_str = timei.strftime("%Y %m %d %H")
 timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -307,8 +305,6 @@ if os.path.isfile(str(plume_hy)):
     if umbrella_flag == str("T") :
 
         umbrella_file = runname + '_{0:03}'.format(1)+'.swu'
- 
-        print umbrella_file
  
         a = np.loadtxt(umbrella_file,skiprows=1)
         a = np.asarray(a)
@@ -411,7 +407,7 @@ for i in range(2,n_runs,1):
 
     duration_hhmm = str(d.strftime("%H%M"))
 
-    print 'Block',i,duration_hhmm
+    print ( 'Block',i,duration_hhmm )
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -422,12 +418,12 @@ for i in range(2,n_runs,1):
 
         # read the whole plumemom .hy file
         with open(plume_hy, 'r') as fin:
-	    data = fin.read().splitlines(True)
+            data = fin.read().splitlines(True)
         fin.close()
 
         # delete the header line and save to temp.hy
         with open('temp.hy', 'w') as fout:
-	    fout.writelines(data[1:])
+            fout.writelines(data[1:])
         fout.close()
 
         # load the data from temp.hy
@@ -466,9 +462,7 @@ for i in range(2,n_runs,1):
 
         if umbrella_flag == str("T") :
 
-            umbrella_file = runname + '_{0:03}'.format(i)+'.swu'
- 
-            print umbrella_file
+            umbrella_file = runname + '_{0:03}'.format(i)+'.swu' 
  
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
@@ -557,7 +551,7 @@ for i in range(2,n_runs,1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -598,7 +592,7 @@ for i in range(2,n_runs,1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -640,7 +634,7 @@ if ( n_runs > 1):
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
-    print 'Block',n_runs,duration_hhmm
+    print ( 'Block',n_runs,duration_hhmm )
 
     # name of the .hy file
     plume_hy = runname + '_{0:03}'.format(n_runs)+'.hy'
@@ -676,8 +670,6 @@ if ( n_runs > 1):
         if umbrella_flag == str("T") :
 
             umbrella_file = runname + '_{0:03}'.format(n_runs)+'.swu'
- 
-            print umbrella_file
  
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
@@ -759,7 +751,7 @@ if ( n_runs > 1):
                                            str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -799,7 +791,7 @@ if ( n_runs > 1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:

@@ -9,7 +9,7 @@ def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list):
     """create atmosperic profile for plumemom """
     nlev=len(profile[:,0])
 
-    print 'nlev',nlev
+    print ( 'nlev',nlev )
 
     grav = 9.81
 
@@ -146,7 +146,7 @@ def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list):
 
         z[m+1:] = z[m] + np.cumsum(deltaz)
 
-    print 'z',z
+    print ( 'z',z )
 
     # W->E component of horizontal velocity (m/s)
     U_idx = fields_list.index("UWND") + 1
@@ -186,17 +186,17 @@ def write_atm(time_input):
 
     for i in range(len(line)):
         if ( '2D Fields' in line[i] ):
-            print 'search for 2D fields: success',i
+            print ( 'search for 2D fields: success',i )
             idx_2d_fields_line = i+1
             fields_list = line[idx_2d_fields_line].split()
 
     if 'SHGT' in fields_list:
   
         zground_idx = fields_list.index("SHGT") + 1
-        print 'zground_idx',zground_idx
+        print ( 'zground_idx',zground_idx )
         values_list = line[idx_2d_fields_line+2].split()
         z_ground = float(values_list[zground_idx])
-        print 'z_ground',z_ground
+        print ( 'z_ground',z_ground )
 
     else:
 
@@ -205,10 +205,10 @@ def write_atm(time_input):
     if 'TMPS' in fields_list:
   
         TMPS_idx = fields_list.index("TMPS") + 1
-        print 'tmps_idx',TMPS_idx
+        print ( 'tmps_idx',TMPS_idx )
         values_list = line[idx_2d_fields_line+2].split()
         TMPS = float(values_list[TMPS_idx])
-        print 'tmps',TMPS
+        print ( 'tmps',TMPS )
 
     else:
 
@@ -218,10 +218,10 @@ def write_atm(time_input):
     if 'RH2M' in fields_list:
   
         RH2M_idx = fields_list.index("RH2M") + 1
-        print 'RH2M_idx',RH2M_idx
+        print ( 'RH2M_idx',RH2M_idx )
         values_list = line[idx_2d_fields_line+2].split()
         RH2M = float(values_list[RH2M_idx])
-        print 'RH2M',RH2M
+        print ( 'RH2M',RH2M )
 
     else:
 
@@ -231,10 +231,10 @@ def write_atm(time_input):
     if 'PRSS' in fields_list:
   
         prss_idx = fields_list.index("PRSS") + 1
-        print 'prss_idx',prss_idx
+        print ( 'prss_idx',prss_idx )
         values_list = line[idx_2d_fields_line+2].split()
         prss = float(values_list[prss_idx])
-        print 'prss',prss
+        print ( 'prss',prss )
 
     else:
 
@@ -243,7 +243,7 @@ def write_atm(time_input):
 
     for i in range(len(line)):
         if ( '3D Field' in line[i] ):
-            print 'search for 3D fields: success',i
+            print ( 'search for 3D fields: success',i )
             idx_fields_line = i+1
             fields_list = line[idx_fields_line].split()
 
@@ -271,7 +271,7 @@ def write_atm(time_input):
     
 
     # read the file 'atm_profile.txt'
-    arrays = [np.array(map(float, line.split())) for line in open('atm_profile.txt')]
+    arrays = [np.array(list(map(float, line.split()))) for line in open('atm_profile.txt')]
 
     # compute the number of values in the first level
     n0 = len(arrays[0])
@@ -295,15 +295,15 @@ def write_atm(time_input):
 
         f = interpolate.interp1d(a[2,:],1000*a[0,:])
         z_ground = f(prss)
-        print 'z_ground',z_ground
+        print ( 'z_ground',z_ground )
 
     nrows = a.shape[1]
 
     f=open('atm.txt','w')
     f.write(str(nrows)+'\n')
     f.close()
-    
-    f=open('atm.txt','a')
+
+    f=open('atm.txt','ab')
     np.savetxt(f,a.transpose(),fmt='%.4e')    
     f.close()
 

@@ -19,7 +19,7 @@ sampled_deposit = np.zeros((100,1))
 for i in range(0,100):
     checkP = 'P'+'{:02d}'.format(i)
     if (checkP in vars()):
-        print '{:03d}'.format(i),'{:15.10f}'.format(eval(checkP)[0]),'{:15.10f}'.format(eval(checkP)[1])
+        print ( '{:03d}'.format(i),'{:15.10f}'.format(eval(checkP)[0]),'{:15.10f}'.format(eval(checkP)[1]) )
 
         f1.write('{:03d}'.format(i)+'{:15.10f}'.format(eval(checkP)[0])+'{:15.10f}'.format(eval(checkP)[1]))
         f1.write("\n")
@@ -48,7 +48,7 @@ else:
 
 block_length = nsampl * n_sections
 
-print 'nsampl',nsampl,'block_length',block_length
+print ( 'nsampl',nsampl,'block_length',block_length )
 
 sampling_cmd = hysplit_dir+'/exec/con2stn -i'+'cdumpcum_part_'+runname+' -scon2stn.inp -d0 -p0 -xi -z1 -r0 -ocon2stn.txt'
 
@@ -67,7 +67,7 @@ Value = con2stn[:,-1]
 
 con2std_len = len(JDAY)
 
-nblocks = con2std_len/block_length
+nblocks = int(con2std_len/block_length)
 
 loading = np.zeros((nblocks,nsampl,n_sections))
 
@@ -92,7 +92,7 @@ deposit_file = 'sample_deposit'
 
 
 deposit_file_total = deposit_file+'_total.txt'
-ftot = open(deposit_file_total,'wb')
+ftot = open(deposit_file_total,'w')
 
 chi_squared = 0.0
 chi_squared_j = 0.0
@@ -129,7 +129,7 @@ for j in range(nsampl):
         legend_strings.append(stringj)
 
         deposit_file_j = deposit_file+'{:03d}'.format(j)+'.txt'
-        f = open(deposit_file_j,'wb')
+        f = open(deposit_file_j,'w')
 
         out_data = np.vstack((np.array(diam_phi), loading[nblocks-1,j,:]/np.sum(loading[nblocks-1,j,:])*100))
       	
@@ -143,7 +143,7 @@ ftot.close()
 
 deposit_file_chi = deposit_file+'_chi_squared.txt'
 
-fchi = open(deposit_file_chi,'wb')
+fchi = open(deposit_file_chi,'w')
 fchi.write('{:20.10f}'.format(chi_squared[0]))
 fchi.close()
 

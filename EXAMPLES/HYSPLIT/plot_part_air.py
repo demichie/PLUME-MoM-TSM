@@ -1,22 +1,17 @@
-from sys import platform as sys_pf
-if sys_pf == 'darwin':
-    import matplotlib
-    matplotlib.use("TkAgg")
-import Tkinter, tkFileDialog
 import numpy as np
-import sys
+import sys, os
 from haversine import haversine
-import os
 import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 import matplotlib.ticker as ticker
 import pandas as pd
 import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
-import easygui
+import warnings
+warnings.simplefilter(action='ignore')
+
 
 from input_file import *
-# import utm
 
 def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
@@ -37,22 +32,24 @@ for filename in lines:
         # Add .air extension to distinguish the files from other types 
         os.rename(filename.strip(),filename.strip()+'.air')
 
-# choose the file to plot with a GUI
+try:
 
-#option 1
-#filename = easygui.fileopenbox( filetypes=['*.air'])
+    from tkFileDialog import askopenfilename
+    filename = askopenfilename(filetypes=[("air files", "*.air")])
 
-#option 2 (in case option 1 doesn't work)
-from tkFileDialog import askopenfilename
-filename = askopenfilename(filetypes=[("air files", "*.air")])
- 
+except:
+
+    import tkinter
+    import tkinter.filedialog
+    filename =  tkinter.filedialog.askopenfilename(title = "choose your file",filetypes=[("air files", "*.air")])
+
 AIR=[]
 
-print ' '
-print '*** PARTICLE MASS IN THE AIR ***'
-print ' '
-print "Run name :",runname
-print ' '          
+print ( ' ' )
+print ( '*** PARTICLE MASS IN THE AIR ***' )
+print ( ' ' )
+print ( "Run name :",runname )
+print ( ' ' )         
 
 f = open(filename)
 
@@ -63,9 +60,9 @@ dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 time = filename[und_where[-1]+1:dot_where[0]]
 day = filename[und_where[-2]+1:und_where[-1]]
 
-print ' '           
-print ' ---> day and time ',day,' ',time,' '
-print ' '
+print ( ' ' )           
+print ( ' ---> day and time ',day,' ',time,' ' )
+print ( ' ' )
 
 data = f.read()
 first_line = data.split('\n', 1)[0]
@@ -114,15 +111,15 @@ npart = m.shape[0]
 n_levels = h.shape[0]
 H_LEVELS = h
 
-print 'Number of particle classes :',npart
-print 'Number of atmospheric levels :',n_levels - 1
-print ' '
+print ( 'Number of particle classes :',npart )
+print ( 'Number of atmospheric levels :',n_levels - 1 )
+print ( ' ' )
 
 a = np.loadtxt(filename, skiprows = 1)
          
 if a.shape[0] == 0 :
          
-    print 'No particles in the air at time ',time
+    print ( 'No particles in the air at time ',time )
         
 else:
 
@@ -234,7 +231,7 @@ else:
 
             if np.sum(conc) == 0:
 
-                print 'No particles of CL '+str(i+1).zfill(2)+' from '+str(H_LEVELS[j,0])+' m to '+str(H_LEVELS[j+1,0])+' m'
+                print ( 'No particles of CL '+str(i+1).zfill(2)+' from '+str(H_LEVELS[j,0])+' m to '+str(H_LEVELS[j+1,0])+' m' )
                 pass
 
             else:       
@@ -260,7 +257,7 @@ else:
                 loading_i = loading3D[:,:,column + j + 1]
                 loading3D_sum_kg += loading_i * pixel_area * (int(H_LEVELS[j+1,0])-int(H_LEVELS[j,0]))
 
-                print 'CL',str(i+1).zfill(2),': ','%.1e'%mass_in_the_air,' kg, H:  '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m'
+                print ( 'CL',str(i+1).zfill(2),': ','%.1e'%mass_in_the_air,' kg, H:  '+str(H_LEVELS[j,0])+' m - '+str(H_LEVELS[j+1,0])+' m' )
 
                 # Save the deposit for the single classes on a ESRI rater ascii file
                 output_file = runname+'_CL'+str(i+1).zfill(2)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'.asc'

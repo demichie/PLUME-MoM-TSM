@@ -6,6 +6,7 @@ import re
 import shutil
 import math as math
 from collections import Counter
+
 from input_file import *
 
 def round_minutes(dt, direction, resolution):
@@ -35,9 +36,9 @@ runtime=endruntime_round-starttime_round
 d = datetime.datetime(2000,1,1) + runtime
 runtime_hh = '{0:02}'.format( int(runtime.total_seconds()//3600) )
 
-print 'Start time:',starttime
-print 'End run time:',endruntime
-print 'Total runtime',runtime_hh,'hrs'
+print ( 'Start time:',starttime )
+print ( 'End run time:',endruntime )
+print ( 'Total runtime',runtime_hh,'hrs' )
 
 # to work with deltat_plumemom < 3600 
 
@@ -90,7 +91,7 @@ duration_hhhh = '{0:04}'.format(int(str(d2.strftime("%H"))))
 hours = []
 
 startime_count_0 = starttime_hhmm
-print starttime_hhmm
+print ( starttime_hhmm )
 hours.append(startime_count_0.hour)
 
 for i in range(n_runs-1):
@@ -111,8 +112,8 @@ with open('meteo_ground_elev.txt', 'r') as f:
     for line in f:
         z_ground = float(line)     
 
-
-print 'EMITTIMES: z_ground',z_ground
+ 
+print ( 'EMITTIMES: z_ground',z_ground )
 
 #***************CREATE EMITTIMES and CONTROL FOR GAS DISPERSION************************
 
@@ -163,7 +164,7 @@ else:
 
 timei_old = timei
 
-print 'Block 1',duration_hhmm
+print ( 'Block 1',duration_hhmm )
 
 timei_str = timei.strftime("%Y %m %d %H")
 timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -200,7 +201,7 @@ if os.path.isfile(str(plume_hy)):
 
         umbrella_file = runname + '_{0:03}'.format(1)+'.swu'
  
-        print umbrella_file
+        print ( umbrella_file )
  
         a = np.loadtxt(umbrella_file,skiprows=1)
         a = np.asarray(a)
@@ -298,7 +299,7 @@ for i in range(2,n_runs,1):
 
     duration_hhmm = str(d.strftime("%H%M"))
 
-    print 'Block',i,duration_hhmm
+    print ( 'Block',i,duration_hhmm )
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -309,12 +310,12 @@ for i in range(2,n_runs,1):
 
         # read the whole plumemom .hy file
         with open(plume_hy, 'r') as fin:
-	    data = fin.read().splitlines(True)
+            data = fin.read().splitlines(True)
         fin.close()
 
         # delete the header line and save to temp.hy
         with open('temp.hy', 'w') as fout:
-	    fout.writelines(data[1:])
+            fout.writelines(data[1:])
         fout.close()
 
         # load the data from temp.hy
@@ -355,7 +356,7 @@ for i in range(2,n_runs,1):
 
             umbrella_file = runname + '_{0:03}'.format(i)+'.swu'
  
-            print umbrella_file
+            print ( umbrella_file )
  
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
@@ -435,7 +436,7 @@ for i in range(2,n_runs,1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -476,7 +477,7 @@ for i in range(2,n_runs,1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -518,7 +519,7 @@ if ( n_runs > 1):
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
-    print 'Block',n_runs,duration_hhmm
+    print ( 'Block',n_runs,duration_hhmm )
 
     # name of the .hy file
     plume_hy = runname + '_{0:03}'.format(n_runs)+'_volcgas.hy'
@@ -555,7 +556,7 @@ if ( n_runs > 1):
 
             umbrella_file = runname + '_{0:03}'.format(n_runs)+'.swu'
  
-            print umbrella_file
+            print ( umbrella_file )
  
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
@@ -634,7 +635,7 @@ if ( n_runs > 1):
                                            str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
@@ -674,7 +675,7 @@ if ( n_runs > 1):
                                            str(vent_height)+' 0.0 0.0 0.0\n')
 
 
-  	            emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
 
                 else:
