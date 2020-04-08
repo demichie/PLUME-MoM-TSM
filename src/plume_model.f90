@@ -84,6 +84,12 @@ PROGRAM plume_model
      !***  Solve the plume model
      CALL invert_height
 
+     IF ( umbrella_flag ) THEN
+
+        CALL solve_umbrella
+        
+     END IF
+
   ELSE
 
      !***  Solve the plume model
