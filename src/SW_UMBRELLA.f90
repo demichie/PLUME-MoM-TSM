@@ -488,9 +488,9 @@ CONTAINS
 
     WRITE(swu_unit,308)  x_new_source , y_new_source , r_new_source
 
-307 FORMAT( 1x,'x_new_source (m)', 10x,'y_new_source (m)',10x, 'r_new_source (m)')
+307 FORMAT( 5x,'x_new_source (m)', 14x,'y_new_source (m)',14x, 'r_new_source (m)')
 
-308 FORMAT((7x,f10.4,16x,f10.4,16x,f10.4)) 
+308 FORMAT((7x,f14.4,16x,f14.4,16x,f14.4)) 
 
     CLOSE(swu_unit)
 
