@@ -457,17 +457,23 @@ CONTAINS
     WRITE(*,*) 'Upwind umbrella point',x_upw,y_upw
     WRITE(*,*) 'Upwind umbrella distance',d_upw_umb
     WRITE(*,*) 
-    WRITE(*,*) 'Radius increase', r_new_source/r_source - 1.0_wp
-    WRITE(*,*) 'Upwind spreading increase', d_upw_umb/d_upw_nbl - 1.0_wp
+    WRITE(*,*) 'Radius increase', r_new_source/r_source 
+    WRITE(*,*) 'Upwind spreading increase', d_upw_umb/d_upw_nbl 
 
     IF ( dakota_flag ) THEN
     
+       description = 'Radius old'
+       CALL write_dakota(description,r_source)
+       description = 'Radius new'
+       CALL write_dakota(description,r_new_source)
        description = 'Radius increase'
-       CALL write_dakota(description,r_new_source/r_source - 1.0_wp)
+       CALL write_dakota(description,r_new_source/r_source)
+       description = 'Upwind distance old'
+       CALL write_dakota(description,d_upw_nbl)
        description = 'Upwind distance'
        CALL write_dakota(description,d_upw_umb)
        description = 'Upwind increase'
-       CALL write_dakota(description,d_upw_umb/d_upw_nbl - 1.0_wp)
+       CALL write_dakota(description,d_upw_umb/d_upw_nbl)
 
        CLOSE(dak_unit)
 
