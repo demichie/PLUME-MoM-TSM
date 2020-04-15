@@ -2206,7 +2206,8 @@ CONTAINS
        ELSE
 
           REWIND(inp_unit)
-
+          WRITE(bak_unit, umbrella_run_parameters)
+          
        END IF
 
        ! ------- READ numeric_parameters NAMELIST ----------------------------------
@@ -2224,6 +2225,7 @@ CONTAINS
        ELSE
 
           REWIND(inp_unit)
+          WRITE(bak_unit, numeric_parameters)
 
        END IF
 

@@ -259,7 +259,7 @@ CONTAINS
 
        max_up_dist = r_source
        x1 = x_source - r_source*u_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
-       y1 = x_source - r_source*v_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
+       y1 = y_source - r_source*v_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
        max_cw_distL = 0.0_wp
        max_cw_distR = 0.0_wp
 
@@ -278,7 +278,7 @@ CONTAINS
                      v_atm_nbl * ( y_comp(k) - y_source ) )                     &
                      / ( SQRT( u_atm_nbl**2 + v_atm_nbl**2 ) )
 
-                crosswind_dist(j,k) = ( v_atm_nbl * ( x_comp(j) - x_source ) +  &
+                crosswind_dist(j,k) = ( v_atm_nbl * ( x_comp(j) - x_source ) -  &
                      u_atm_nbl * ( y_comp(k) - y_source ) )                     &
                      / ( SQRT( u_atm_nbl**2 + v_atm_nbl**2 ) )
 
@@ -323,7 +323,8 @@ CONTAINS
 
        !$OMP END PARALLEL DO
 
-       ! WRITE(*,*) x1,y1,x2,y2,x3,y3
+       !WRITE(*,*) max_up_dist
+       !WRITE(*,*) x1,y1,x2,y2,x3,y3
 
        IF ( ABS( y1 - y2 ) .LT. ABS( y1 - y3 ) ) THEN
 
