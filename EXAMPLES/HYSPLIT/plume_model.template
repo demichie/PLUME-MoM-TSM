@@ -17,7 +17,7 @@
 &PARTICLES_PARAMETERS
  PHI_MIN= {phi_min}   ,
  DELTA_PHI=  {delta_phi}  ,
- DISTRIBUTION="LOGNORMAL           ",
+ DISTRIBUTION= {distribution},
  SOLID_PARTIAL_MASS_FRACTION=  {solid_partial_mass_fraction}     ,
  PHI1= {phi1},
  RHO1= {rho1}         ,
@@ -48,12 +48,12 @@
  R0=  NaN     ,
  W0=  {vent_velocity}     ,
  LOG10_MFR=  {log10_mfr} ,
- MFR0=   NaN                 ,
- T_MIX0=  1273.0000000000000     ,
+ MFR0=   {mfr}                ,
+ T_MIX0=  {tmix0}     ,
  INITIAL_NEUTRAL_DENSITY=F,
  WATER_MASS_FRACTION0=  {water_mass_fraction0},
  VENT_HEIGHT= {vent_height}    ,
- DZ0=  2.5000000000000000     ,
+ DZ0=  2.5     ,
  N_GAS=         {ngas},
  /
 &VOLCGAS_PARAMETERS
@@ -71,6 +71,9 @@
 &LOGNORMAL_PARAMETERS
  MU_LOGNORMAL=  {mu},
  SIGMA_LOGNORMAL=  {sigma}       ,
+ /
+&BIN_PARAMETERS
+ BIN_PARTIAL_MASS_FRACTION = {bin_partial_mass_fraction}
  /
 &HYSPLIT_PARAMETERS
  HY_DELTAZ = {deltaz_release}   ,
