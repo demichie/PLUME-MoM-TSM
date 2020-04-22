@@ -312,8 +312,10 @@ if os.path.isfile(str(plume_hy)):
         lat_new = vent_lat - ((a[1]*10**-3)/float(100))
         lon_new = vent_lon + ((a[0]*10**-3)/float(100))
         emission_area_new = np.pi * a[2]**(2)
+        h_avg = a[3]
+        height_new = b[-1,2] + h_avg/float(2)
 
-        b[-1,[0,1,3]] = [lat_new,lon_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
 
     # add lines in order to have all the blocks with the same lenght
 
@@ -470,12 +472,11 @@ for i in range(2,n_runs,1):
             lat_new = vent_lat - ((a[1]*10**-3)/float(100))
             lon_new = vent_lon + ((a[0]*10**-3)/float(100))
             emission_area_new = np.pi * a[2]**(2)
+            h_avg = a[3]
+            height_new = b[-1,2] + h_avg/float(2)
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
   
-            b[-1,[0,1,3]] = [lat_new,lon_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
-  
-
-
-
         # add lines in order to have all the blocks with the same lenght
 
         for i in range(max_lines-len(b)):
@@ -677,8 +678,11 @@ if ( n_runs > 1):
             lat_new = vent_lat - ((a[1]*10**-3)/float(100))
             lon_new = vent_lon + ((a[0]*10**-3)/float(100))
             emission_area_new = np.pi * a[2]**(2)
-  
-            b[-1,[0,1,3]] = [lat_new,lon_new,emission_area_new]	# at nbl replace values for umbrella cloud 		
+            h_avg = a[3]
+            height_new = b[-1,2] + h_avg/float(2)
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+
 	
         # add lines in order to have all the blocks with the same lenght
 

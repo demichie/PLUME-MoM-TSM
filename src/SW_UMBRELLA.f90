@@ -493,11 +493,11 @@ CONTAINS
 
     WRITE(swu_unit,307)
 
-    WRITE(swu_unit,308)  x_new_source , y_new_source , r_new_source
+    WRITE(swu_unit,308)  x_new_source , y_new_source , r_new_source , h_avg
 
-307 FORMAT( 5x,'x_new_source (m)', 14x,'y_new_source (m)',14x, 'r_new_source (m)')
+307 FORMAT( 5x,'x_new_source (m)', 14x,'y_new_source (m)',14x, 'r_new_source (m)',14x, 'h_avg (m)')
 
-308 FORMAT((7x,f14.4,16x,f14.4,16x,f14.4)) 
+308 FORMAT((7x,f14.4,16x,f14.4,16x,f14.4,9x,f14.4)) 
 
     CLOSE(swu_unit)
 
