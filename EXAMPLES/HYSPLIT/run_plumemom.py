@@ -184,60 +184,77 @@ print ( 'n_runs ', n_runs )
 
 if 'plume_height' in locals():
 
-    if isinstance(plume_height, (np.ndarray) ):
+    filedata = filedata.replace("{inversion_flag}", 'T' )
+    filedata = filedata.replace("{log10_mfr}", 'NaN' )
+    filedata = filedata.replace("{mfr}", 'NaN' )
 
-        if ( len(plume_height) != n_runs ):
-
-            print ( 'WARNING: check numbers of values of plume_height',len(plume_height),n_runs )
-            sys.exit()
-
-    else:
-
-        filedata = filedata.replace("{inversion_flag}", 'T' )
-        filedata = filedata.replace("{log10_mfr}", 'NaN' )
-        filedata = filedata.replace("{mfr}", 'NaN' )
-        try:
+    if isinstance(plume_height, list):
+        if len(plume_height) == n_runs:
             plume_height = np.ones(n_runs)*plume_height
-        except ValueError:
+        else:
             print ( 'WARNING: check numbers of values of plume_height and n_runs: ',len(plume_height),n_runs )
             sys.exit()
+    else:
+        plume_height = np.ones(n_runs)*plume_height
 
-    if ('log10_mfr' or 'mfr') in locals():
+    if 'mfr' in locals() or 'log10_mfr' in locals()  :
 
-        print ( 'WARNING: not possible to fix both log10_mfr/mfr and plume_height' )
+        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
         sys.exit()
 
 
 if 'log10_mfr' in locals():
 
-        filedata = filedata.replace("{inversion_flag}", 'F' )
-        filedata = filedata.replace("{plume_height}", '-1.0' )
-        filedata = filedata.replace("{mfr}", 'NaN' )
-        try:
+    filedata = filedata.replace("{inversion_flag}", 'F' )
+    filedata = filedata.replace("{plume_height}", '-1.0' )
+    filedata = filedata.replace("{mfr}", 'NaN' )
+
+    if isinstance(log10_mfr, list):
+        if len(log10_mfr) == n_runs:
             log10_mfr = np.ones(n_runs)*log10_mfr
-        except ValueError:
+        else:
             print ( 'WARNING: check numbers of values of log10_mfr and n_runs: ',len(log10_mfr),n_runs )
             sys.exit()
+    else:
+        log10_mfr = np.ones(n_runs)*log10_mfr
+
+    if 'mfr' in locals() or 'plume_height' in locals()  :
+
+        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
+        sys.exit()
+
+
 
 if 'mfr' in locals():
 
-        filedata = filedata.replace("{inversion_flag}", 'F' )
-        filedata = filedata.replace("{plume_height}", '-1.0' )
-        filedata = filedata.replace("{log10_mfr}", 'NaN' )
-        try:
+    filedata = filedata.replace("{inversion_flag}", 'F' )
+    filedata = filedata.replace("{plume_height}", '-1.0' )
+    filedata = filedata.replace("{log10_mfr}", 'NaN' )
+    if isinstance(mfr, list):
+        if len(mfr) == n_runs:
             mfr = np.ones(n_runs)*mfr
-        except ValueError:
+        else:
             print ( 'WARNING: check numbers of values of mrf and n_runs: ',len(mfr),n_runs )
             sys.exit()
+    else:
+        mfr = np.ones(n_runs)*mfr
+
+    if 'log10_mfr' in locals() or 'plume_height' in locals()  :
+
+        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
+        sys.exit()
 
 
 if 'vent_velocity' in locals():
 
-    try:
+    if isinstance(vent_velocity, list):
+        if len(vent_velocity) == n_runs:
+            vent_velocity = np.ones(n_runs)*vent_velocity
+        else:
+            print ( 'WARNING: check numbers of values of vent_velocity and n_runs: ',len(vent_velocity),n_runs )
+            sys.exit()
+    else:
         vent_velocity = np.ones(n_runs)*vent_velocity
-    except ValueError:
-        print ( 'WARNING: check numbers of values of vent_velocity and n_runs: ',len(vent_velocity),n_runs )
-        sys.exit()
 
 f = open('plume_model.temp1','w')
 f.write(filedata)
