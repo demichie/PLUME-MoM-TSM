@@ -16,15 +16,19 @@ spacing_lon = 0.1 # degrees between nodes of the sampling grid
 span_lat = 10.00   # the total span of the grid in x direction. For instance, a span of 10 degrees would cover 5 degrees on each side of the center grid location
 span_lon = 10.00   # the total span of the grid in y direction. For instance, a span of 10 degrees would cover 5 degrees on each side of the center grid location
 
-
 vent_lat = 37.73  	# vent latitude
 vent_lon = 15.00       # vent longitude
 vent_height = 3300    # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
 vent_velocity = 200.0
-log10_mfr = 6.3 # options: log10_mfr or plume_height (plume height above the vent)
+tmix0 = 1273 # mixture temperature in Kelvin
+
+#options for mass flow rate or plume height (meters above the vent), select only one:
+log10_mfr = 6 
+#mfr = 1E5
+#plume_height = 6000 
+# N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
 
 #umbrella cloud parameters
-
 umbrella_flag = "T"
 
 # volcanic gas parameters
@@ -50,8 +54,7 @@ added_water_mass_fraction =  0.1
 deltaz_release = 200.0
 ncloud = 5
 
-
-# SETUP parameters
+# HYSPLIT SETUP parameters
 kmsl = 0  	# starting heights default to AGL=0 or MSL=1 *** NOTE: please do not change it (kmsl=0) *** 
 ninit = 1  	# particle initialization(0-none; 1-once; 2-add; 3-replace)
 ndump = 1  	# dump particles to/from file 0-none or nhrs-output intervall
@@ -69,8 +72,6 @@ kbls = 1        # Boundary Layer Stability. Default value, see HYSPLIT user guid
 kblt = 2        # Vertical Turbulence. Default value, see HYSPLIT user guide
 cmass = 0       # Compute grid concentrations (cmass=0) or grid mass (cmass=1) *** NOTE: please do not change it (cmass=0) *** 
 
-# CONTROL parameters
-
 #SAMPLING INTERVAL
 SI_TYPE = 0 # Avg:0 Now:1 Max:2 
 SI_HOUR = 0 # hrs 
@@ -79,21 +80,31 @@ SI_MINUTE = 5 # min
 #HEIGHT OF EACH CONCENTRATION LEVEL (m-msl)
 H_LEVELS = '0 30000'  
 
-
-# particles parameters
+# particle parameters
 npart = 1
-n_sections = 11
-phi_min = -4
+n_sections = 18
+phi_min = -6
 delta_phi = 1
 solid_partial_mass_fraction = 1
+
+# particle distribution can be LOGNORMAL or BIN
+distribution = "LOGNORMAL"
+
+# parameters for LOGNORMAL distribution
+mu = 1
+sigma = 1
+
+# parameters for BIN distribution
+bin_partial_mass_fraction = [1.9E-03 , 1.1E-02, 4.3E-02 ,1.1E-01 ,2.1E-01, 2.5E-01, 2.1E-01 ,1.1E-01, 4.3E-02, 1.1E-02, 1.9E-03, 2.2E-04, 1.7E-05, 9.3E-07, 3.4E-08, 8.2E-10, 1.4E-11, 1.5E-13]
+
+# parameters for particle density
 phi1 = -1
 rho1 = 2500
 phi2 = 4
 rho2 = 2500
-cp_part = 1100
-shapefactor = 0.6
-mu = 1
-sigma = 1
+
+cp_part = 1100 
+shapefactor = 0.6 
 
 #SAMPLING POINTS, LAT - LON - N_SECTIONS
 P01=[36.00, 18.00, 11]
