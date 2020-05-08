@@ -1090,10 +1090,19 @@ CONTAINS
 
     IF ( MINVAL(mom) .LT. 0.0_wp ) THEN
 
-       WRITE(*,*) 'mom'
-       WRITE(*,*) mom
-       STOP
+       IF ( MINVAL(mom) .GT. 1.0e-10_wp ) THEN
 
+          mom = MAX(mom,0.0_wp)
+
+       ELSE
+       
+          WRITE(*,*) 'ERROR: Negative moment'
+          WRITE(*,*) mom
+          WRITE(*,*) 'Try to reduce initial integraztion step dz0' 
+          STOP
+
+       END IF
+       
     END IF
        
     DO i_part=1,n_part

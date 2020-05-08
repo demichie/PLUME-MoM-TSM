@@ -37,7 +37,8 @@
  R_MAX=                      200,
  N_VALUES=          20,
  W_MIN=                      40,
- W_MAX=                      200,
+ W_MAX=                      250,
+ NBL_STOP = F ,
  /
 &ATM_PARAMETERS
  VISC_ATM0=  1.8000000000000000E-005,

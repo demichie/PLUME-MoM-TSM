@@ -218,6 +218,9 @@ CONTAINS
     
     CALL eval_quad_values
 
+    !WRITE(*,*) 'qui'
+    !WRITE(*,*) 'mom0',mom
+    
     IF ( n_gas .GT. 0 ) THEN
 
        volcgas_mix_mass_fraction = SUM(volcgas_mass_fraction(1:n_gas))

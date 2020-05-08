@@ -101,7 +101,7 @@ CONTAINS
   
   SUBROUTINE rate
 
-    USE meteo_module, ONLY: u_atm , rho_atm , ta , duatm_dz , cpair , rair ,    &
+    USE meteo_module, ONLY: u_atm , rho_atm , ta , cpair , rair ,               &
          cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , u_wind , v_wind
 
     USE mixture_module, ONLY: rho_mix , t_mix , rgasmix , rho_gas ,             &
@@ -143,6 +143,8 @@ CONTAINS
 
     REAL(wp) :: a_10 , a_10_deriv
 
+    REAL(wp) :: rate_mom , f_mom , coeff_mom
+    
     !WRITE(*,*) 'mag_u',mag_u
 
     cos_phi = SQRT( u**2+v**2 ) / mag_u
@@ -229,6 +231,34 @@ CONTAINS
        !ueps = alpha_p * ABS( w ) + beta_p * SQRT( (u - u_wind)**2 + ( v-v_wind)**2 )
 
     END IF
+    
+    !---- Particle loss term corrections
+    ! It is not possible to loose more particles than available in the plume
+
+    DO i_part=1,n_part
+       
+       DO i_sect=1,n_sections
+
+         DO i=0,n_mom-1
+             
+             rate_mom = - 2.0_wp * prob_factor * r * set_mom(i,i_sect,i_part)    &
+                  * mom(i,i_sect,i_part)
+             
+             f_mom = w * r**2 * mom(i,i_sect,i_part)
+             
+             IF ( rate_mom .LT. - ( f_mom / dz ) ) THEN
+
+                coeff_mom = -f_mom / ( rate_mom * dz )
+                ! The correction is applied to both the moments
+                set_mom(:,i_sect,i_part) = coeff_mom * set_mom(:,i_sect,i_part)
+
+             END IF
+             
+          END DO
+           
+       END DO
+          
+    END DO
 
     solid_term = SUM( set_mom( 1, 1:n_sections , 1:n_part )                    &
          * mom( 1 , 1:n_sections , 1:n_part ) )

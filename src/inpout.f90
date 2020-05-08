@@ -37,8 +37,8 @@ MODULE inpout
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
     
-    USE meteo_module, ONLY: gt , gs , p0 , t0 , h1 , h2 , rh , visc_atm0 ,      &
-         rair , cpair , read_atm_profile , u_r , z_r , exp_wind ,               &
+    USE meteo_module, ONLY: p0 , t0 , h1 , h2 , rh , sphu_atm , visc_atm0 ,     &
+         rair , cpair , read_atm_profile , u_max , z_r , exp_wind ,             &
          wind_mult_coeff ,rwv
 
     USE solver_module, ONLY: dz0 
@@ -156,7 +156,7 @@ MODULE inpout
        shape_factor , particles_loss , settling_model
   
   NAMELIST / inversion_parameters / height_obj , r_min , r_max , n_values ,     &
-       w_min , w_max
+       w_min , w_max , nbl_stop
   
   NAMELIST / entrainment_parameters / alpha_inp , beta_inp
   
@@ -167,10 +167,9 @@ MODULE inpout
   NAMELIST / atm_parameters / visc_atm0 , rair , cpair , wind_mult_coeff ,      &
        read_atm_profile
   
-  NAMELIST / std_atm_parameters / gt , gs , p0 , t0 , h1 , h2 , rh , u_r , z_r ,&
-       exp_wind
+  NAMELIST / std_atm_parameters / sphu_atm , u_max
   
-  NAMELIST / table_atm_parameters / month , lat , u_r , z_r , exp_wind
+  NAMELIST / table_atm_parameters / month , lat , u_max , z_r , exp_wind
 
   NAMELIST / initial_values / r0 , w0 , log10_mfr , mfr0 , t_mix0 ,             &
        initial_neutral_density , water_mass_fraction0 , vent_height , dz0 ,     &
@@ -252,6 +251,10 @@ CONTAINS
     !-------------- default values of the AGGEGATION_PARAMETERS namelist --------
     particles_beta0 = notSet
 
+    !-------------- default values of the STD_ATM_PARAMETERS namelist --------
+    sphu_atm = notSet
+    u_max = notSet
+    
     !------------ default values of the HYSPLIT_PARAMETERS namelist -------------
     hy_deltaz = notSet
     nbl_stop = .TRUE.
@@ -338,16 +341,10 @@ CONTAINS
        SETTLING_MODEL = "textor"
 
        !---------- parameters of the STD_ATM_PARAMETERS namelist ----------------
-       GT= -6.5E-3_wp
-       GS=  1.0E-3_wp
-       P0=  101325.0_wp     
-       T0=  288.15_wp     
-       H1=  11000.0_wp     
-       H2=  20000.0_wp     
-       RH= 0.0_wp 
-       U_R=  5.0_wp     
-       Z_R=  1000.0_wp     
-       EXP_WIND=  0.0_wp     
+       SPHU_ATM = 0.0_wp 
+       U_MAX =  5.0_wp     
+       Z_R =  1000.0_wp     
+       EXP_WIND =  0.0_wp     
 
        !---------- parameters of the INITIAL_VALUES namelist --------------------
        R0= 50.0_wp     
@@ -567,6 +564,20 @@ CONTAINS
           
        ELSE
 
+          IF ( ( .NOT.isSet(w0) ) .AND. ( .NOT.isSet(r0) ) ) THEN
+
+             IF ( umbrella_flag ) THEN
+                
+                WRITE(*,*) 'ERROR: problem with INVERSION'
+                WRITE(*,*) 'Search for both radius and velocity is not possible'
+                WRITE(*,*) 'with UMBRELLA_FLAG = T'
+                WRITE(*,*) 'Please check the input file'
+                STOP
+
+             END IF
+
+          END IF
+          
           IF ( ( .NOT. isSet(height_obj) ) .OR. ( height_obj .LE. 0 ) ) THEN
 
              WRITE(*,*) ''
@@ -1428,57 +1439,29 @@ CONTAINS
           
        ELSE
 
-          IF ( .NOT. isSet(GT) ) THEN
+          IF ( .NOT. isSet(u_max) ) THEN
 
              WRITE(*,*) ''
              WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
              WRITE(*,*)
              WRITE(*,std_atm_parameters) 
              WRITE(*,*)
-             WRITE(*,*) 'Please check GT value (<0 [°C/km])'
-             WRITE(*,*) 'GT =',GT
-             WRITE(*,*)
-             STOP
-             
-          END IF
-          
-          IF ( .NOT. isSet(GS) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,std_atm_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check GS value (>0 [°C/km])'
-             WRITE(*,*) 'GS =',GS
+             WRITE(*,*) 'Please check u_max value (>0 [m/s])'
+             WRITE(*,*) 'u_max =',u_max
              WRITE(*,*)
              STOP
              
           END IF
 
-          IF ( .NOT. isSet(P0) ) THEN
+          IF ( .NOT. isSet(sphu_atm) ) THEN
 
              WRITE(*,*) ''
              WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
              WRITE(*,*)
              WRITE(*,std_atm_parameters) 
              WRITE(*,*)
-             WRITE(*,*) 'Please check P0 value (>0 [Pa])'
-             WRITE(*,*) 'P0 =',P0
-             WRITE(*,*)
-             STOP
-             
-          END IF
-
-          IF ( .NOT. isSet(T0) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,std_atm_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check T0 value (<0 [K])'
-             WRITE(*,*) 'T0 =',T0
+             WRITE(*,*) 'Please check sphu_atm value (<0 [Kg/Kg])'
+             WRITE(*,*) 'u_max =',u_max
              WRITE(*,*)
              STOP
              

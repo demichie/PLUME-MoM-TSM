@@ -16,7 +16,7 @@ MODULE rise
   REAL(wp) :: plume_height
   REAL(wp) :: column_regime
 
-  INTEGER, PARAMETER :: n_RK = 6
+  INTEGER, PARAMETER :: n_RK = 7
 
   SAVE
 
@@ -147,6 +147,8 @@ CONTAINS
 
     REAL(wp) :: drho_atm_dz
 
+    REAL(wp) :: phi_mean
+    
     !
     ! ... Set initial conditions at the release height
     !
@@ -263,79 +265,86 @@ CONTAINS
     deltarho_min = 1000.0_wp
 
     deltarho_old = 0.0_wp
+    
 
-
-    A_RK(1,1) = 0.0_wp
-    A_RK(1,2) = 0.0_wp
-
-    A_RK(2,1) = 1.0_wp
-    A_RK(2,2) = 0.0_wp
-
-    B_RK(1) = 0.5_wp
-    B_RK(2) = 0.5_wp
-
-    C_RK(1) = 1.0_wp
-    C_RK(2) = 0.0_wp
-
+    ! Dormand-Prince RK Coefficients
+    
     A_RK(1,1) = 0.0_wp
     A_RK(1,2) = 0.0_wp
     A_RK(1,3) = 0.0_wp
     A_RK(1,4) = 0.0_wp
     A_RK(1,5) = 0.0_wp
     A_RK(1,6) = 0.0_wp
+    A_RK(1,7) = 0.0_wp
 
-    A_RK(2,1) = 0.25_wp
+    A_RK(2,1) = 0.2_wp
     A_RK(2,2) = 0.0_wp
     A_RK(2,3) = 0.0_wp
     A_RK(2,4) = 0.0_wp
     A_RK(2,5) = 0.0_wp
     A_RK(2,6) = 0.0_wp
+    A_RK(2,7) = 0.0_wp
 
-    A_RK(3,1) = 3.0_wp / 32.0_wp
-    A_RK(3,2) = 9.0_wp / 32.0_wp
+    A_RK(3,1) = 3.0_wp / 40.0_wp
+    A_RK(3,2) = 9.0_wp / 40.0_wp
     A_RK(3,3) = 0.0_wp
     A_RK(3,4) = 0.0_wp
     A_RK(3,5) = 0.0_wp
     A_RK(3,6) = 0.0_wp
+    A_RK(3,7) = 0.0_wp
 
-    A_RK(4,1) = 1932.0_wp / 2197.0_wp
-    A_RK(4,2) = -7200.0_wp / 2197.0_wp
-    A_RK(4,3) = 7296.0_wp / 2197.0_wp
+    A_RK(4,1) = 44.0_wp / 45.0_wp
+    A_RK(4,2) = - 56.0_wp / 15.0_wp
+    A_RK(4,3) = 32.0_wp / 9.0_wp
     A_RK(4,4) = 0.0_wp
     A_RK(4,5) = 0.0_wp
     A_RK(4,6) = 0.0_wp
+    A_RK(4,7) = 0.0_wp
 
-    A_RK(5,1) = 439.0_wp / 216.0_wp
-    A_RK(5,2) = -8.0_wp
-    A_RK(5,3) = 3680.0_wp / 513.0_wp
-    A_RK(5,4) = -845.0_wp / 4104.0_wp
+    A_RK(5,1) = 19372.0_wp / 6561.0_wp
+    A_RK(5,2) = - 25360.0_wp / 2187.0_wp
+    A_RK(5,3) = 64448.0_wp / 6561.0_wp
+    A_RK(5,4) = - 212.0_wp / 729.0_wp
     A_RK(5,5) = 0.0_wp
     A_RK(5,6) = 0.0_wp
+    A_RK(5,7) = 0.0_wp
 
-    A_RK(6,1) = -8.0_wp / 27.0_wp
-    A_RK(6,2) = 2.0_wp
-    A_RK(6,3) = -3544.0_wp / 2565.0_wp
-    A_RK(6,4) = 1859.0_wp / 4104.0_wp
-    A_RK(6,5) = -11.0_wp / 40.0_wp
+    A_RK(6,1) = 9017.0_wp / 3168.0_wp
+    A_RK(6,2) = - 355.0_wp / 33.0_wp
+    A_RK(6,3) = 46732.0_wp / 5247.0_wp
+    A_RK(6,4) = 49.0_wp / 176.0_wp
+    A_RK(6,5) = - 5103.0_wp / 18656.0_wp
     A_RK(6,6) = 0.0_wp
+    A_RK(6,7) = 0.0_wp
 
+    A_RK(7,1) = 35.0_wp / 384.0_wp
+    A_RK(7,2) = 0.0_wp
+    A_RK(7,3) = 500.0_wp / 1113.0_wp
+    A_RK(7,4) = 125.0_wp / 192.0_wp
+    A_RK(7,5) = - 2187.0_wp / 6784.0_wp
+    A_RK(7,6) = 11.0_wp / 84.0_wp
+    A_RK(7,7) = 0.0_wp
+    
     ! 5th order solution coefficients
-    B_RK(1) = 16.0_wp / 135.0_wp
+    B_RK(1) = 35.0_wp / 384.0_wp
     B_RK(2) = 0.0_wp
-    B_RK(3) = 6656.0_wp / 12825.0_wp
-    B_RK(4) = 28561.0_wp / 56430.0_wp
-    B_RK(5) = -9.0_wp / 50.0_wp
-    B_RK(6) = 2.0_wp / 55.0_wp
-
+    B_RK(3) = 500.0_wp / 1113.0_wp
+    B_RK(4) = 125.0_wp / 192.0_wp
+    B_RK(5) = - 2187.0_wp / 6784.0_wp
+    B_RK(6) = 11.0_wp / 84.0_wp
+    B_RK(7) = 0.0_wp
+    
     ! 4th order solution coefficients
-    C_RK(1) = 25.0_wp / 216.0_wp
+    C_RK(1) = 5179.0_wp / 57600.0_wp
     C_RK(2) = 0.0_wp
-    C_RK(3) = 1408.0_wp / 2565.0_wp
-    C_RK(4) = 2197.0_wp / 4104.0_wp
-    C_RK(5) = -1.0_wp / 5.0_wp
-    C_RK(6) = 0.0_wp
-
-    eps_RK = 1.0E-9_wp
+    C_RK(3) = 7571.0_wp / 16695.0_wp
+    C_RK(4) = 393.0_wp / 640.0_wp
+    C_RK(5) = - 92097.0_wp / 339200.0_wp
+    C_RK(6) = 187.0_wp / 2100.0_wp
+    C_RK(7) = 1.0_wp / 40.0_wp
+    
+    
+    eps_RK = 1.0E-10_wp
 
     flag_nbl = .FALSE.
 
@@ -442,6 +451,7 @@ CONTAINS
 
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
+          ! WRITE(*,*) 'dz',dz
           f = f_stepold
 
           ! go to the next iteration
@@ -571,7 +581,7 @@ CONTAINS
 
        ! ----- Exit condition ---------------------------------------------------
 
-       IF ( ( w .LE. 1.0E-4_wp ) .OR. ( dz .LE. 1.0E-4_wp ) ) THEN
+       IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-5_wp ) ) THEN
 
           EXIT main_loop
 
@@ -775,15 +785,20 @@ CONTAINS
        WRITE(*,*)
        WRITE(*,*) 'Solid partial mass distribution'
 
+       phi_mean = 0.0_wp
+       
        DO i_part=1,n_part
 
           partial_mf(:) = mom(1,:,i_part) / SUM( mom(1,:,i_part) )
+
+          phi_mean = SUM(partial_mf(:) * phiR(:)) 
 
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") partial_mf(n_sections:1:-1)
           WRITE(*,*)
+          WRITE(*,*) 'Phi mean',phi_mean
           !READ(*,*)
 
        END DO

@@ -33,8 +33,9 @@
  /
 &INVERSION_PARAMETERS
  HEIGHT_OBJ=               15000,
- W_MIN=                      40,
- W_MAX=                      200,
+ W_MIN=                      100,
+ W_MAX=                      350,
+ NBL_STOP = T ,
  /
 &ATM_PARAMETERS
  VISC_ATM0=  1.8000000000000000E-005,

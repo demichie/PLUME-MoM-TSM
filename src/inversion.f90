@@ -35,7 +35,10 @@ MODULE inversion
 
   !> Optimal solution regime
   INTEGER :: opt_regime
-  
+
+
+  REAL(wp) :: check_height
+
   SAVE
   
 CONTAINS
@@ -175,7 +178,9 @@ CONTAINS
   SUBROUTINE velocity_search(w_opt,search_flag)
     
     USE variables, ONLY: height_obj, w_min, w_max
-    
+    USE variables, ONLY: height_nbl
+    USE variables, ONLY : nbl_stop , umbrella_flag
+
     IMPLICIT none
 
     REAL(wp),INTENT(OUT) :: w_opt
@@ -193,30 +198,42 @@ CONTAINS
 
     ! Initial velocity value for the search of the best value
     w0_init = SQRT(w_max*w_min)
+    w0 = w0_init
 
     CALL plumerise
+
+    IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
+       
+       check_height = height_nbl
+       
+    ELSE
+       
+       check_height = plume_height
+       
+    END IF
+    
     ! WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
 
     w_opt = w0
-    opt_value = ABS(plume_height-height_obj)
-    opt_height = plume_height
+    opt_value = ABS(check_height-height_obj)
+    opt_height = check_height
     opt_mfr = mass_flow_rate
     opt_regime = column_regime
   
     
-    IF ( ( plume_height .GT. height_obj ) ) THEN
+    IF ( ( check_height .GT. height_obj ) ) THEN
 
        mult_fact = 1.0_wp/((w_max/w_min)**0.125_wp)
-       plume_height_2 = plume_height
+       plume_height_2 = check_height
        
     ELSE
 
        mult_fact = ((w_max/w_min)**0.125_wp)
-       plume_height_0 = plume_height
+       plume_height_0 = check_height
 
     END IF
 
-    init_sign = plume_height-height_obj
+    init_sign = check_height-height_obj
 
     ! loop to search for a velocity interval over which the residual change sign
     search_interval:DO iter_interval=1,4
@@ -225,11 +242,21 @@ CONTAINS
        
        CALL plumerise
 
-       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
+          
+          check_height = height_nbl
+          
+       ELSE
+          
+          check_height = plume_height
+          
+       END IF
+
+       IF ( ABS(check_height-height_obj) .LT. opt_value ) THEN
 
           w_opt = w0
-          opt_value = ABS(plume_height-height_obj)
-          opt_height = plume_height
+          opt_value = ABS(check_height-height_obj)
+          opt_height = check_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
           
@@ -237,7 +264,7 @@ CONTAINS
 
        ! WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
 
-       IF ( (plume_height-height_obj)*init_sign .LT. 0.0_wp ) EXIT search_interval
+       IF ( (check_height-height_obj)*init_sign .LT. 0.0_wp ) EXIT search_interval
        
     END DO search_interval
 
@@ -250,18 +277,18 @@ CONTAINS
 
     END IF
     
-    init_sign = plume_height-height_obj
+    init_sign = check_height-height_obj
 
     IF ( mult_fact .GT. 1.0_wp ) THEN 
     
        w0_2 = w0
-       plume_height_2 = plume_height
+       plume_height_2 = check_height
        w0_0 = w0 / mult_fact
 
     ELSE
 
        w0_0 = w0
-       plume_height_0 = plume_height
+       plume_height_0 = check_height
        w0_2 = w0 / mult_fact
 
     END IF
@@ -277,24 +304,33 @@ CONTAINS
        
        CALL plumerise
 
-       IF ( ABS(plume_height-height_obj) .LT. opt_value ) THEN
+       IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
+          
+          check_height = height_nbl
+          
+       ELSE
+          
+          check_height = plume_height
+          
+       END IF
+
+       IF ( ABS(check_height-height_obj) .LT. opt_value ) THEN
 
           w_opt = w0
-          opt_value = ABS(plume_height-height_obj)
-          opt_height = plume_height
+          opt_value = ABS(check_height-height_obj)
+          opt_height = check_height
           opt_mfr = mass_flow_rate
           opt_regime = column_regime
 
        END IF
        
-       ! WRITE(*,*) 'plume_height,regime',plume_height,INT(column_regime)
-       ! WRITE(*,*) 'w0_0,w0_2',w0_0,w0_2
-       ! WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
-       ! READ(*,*)
+       !WRITE(*,*) 'plume_height,regime',plume_height,INT(column_regime)
+       !WRITE(*,*) 'w0_0,w0_2',w0_0,w0_2
+       !WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
+       !READ(*,*)
 
        IF ( ABS(plume_height_0-plume_height_2) .LT. 1.E-3_wp ) EXIT search_zero
-       IF ( ABS(plume_height-height_obj) .LT. 1.E-3_wp ) EXIT search_zero
-       IF ( ABS(plume_height-height_obj) .LT. 1.E-3_wp ) EXIT search_zero
+       IF ( ABS(check_height-height_obj)/height_obj .LT. 1.E-5_wp ) EXIT search_zero
        IF ( ABS(w0_2-w0_0) .LT. 1.E-6_wp ) THEN
 
           search_flag = .FALSE.
@@ -302,21 +338,21 @@ CONTAINS
 
        END IF
           
-       IF ( (plume_height-height_obj)*sign_2 .LT. 0.0_wp ) THEN
+       IF ( (check_height-height_obj)*sign_2 .LT. 0.0_wp ) THEN
 
           w0_0 = w0
-          plume_height_0 = plume_height
+          plume_height_0 = check_height
           sign_0 = plume_height_0-height_obj
 
       ELSE
 
           w0_2 = w0
-          plume_height_2 = plume_height
+          plume_height_2 = check_height
           sign_2 = plume_height_2-height_obj
           
        END IF
 
-       init_sign = plume_height-height_obj
+       init_sign = check_height-height_obj
        
     END DO search_zero
 
@@ -350,7 +386,6 @@ CONTAINS
     REAL(wp) :: plume_height_0 , plume_height_2
     REAL(wp) :: sign_0 , sign_2
     REAL(wp) :: init_sign , mult_fact
-    REAL(wp) :: check_height
 
     INTEGER :: iter_interval
     
@@ -373,7 +408,7 @@ CONTAINS
        check_height = plume_height
 
     END IF
-
+    
     opt_value = ABS(check_height-height_obj)
     opt_height = check_height
 
@@ -473,7 +508,6 @@ CONTAINS
           check_height = plume_height
           
        END IF
-
        
        IF ( ABS(check_height-height_obj) .LT. opt_value ) THEN
 
@@ -485,14 +519,13 @@ CONTAINS
 
        END IF
        
-       !WRITE(*,*) 'search_zero',r0,plume_height,INT(column_regime)
+       !WRITE(*,*) 'search_zero',r0,check_height,INT(column_regime)
        !WRITE(*,*) 'r0_0,r0_2',r0_0,r0_2
-       !WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
+       !WRITE(*,*) 'plume_0,height_obj,plume_2',plume_height_0,height_obj,plume_height_2
        !READ(*,*)
 
        IF ( ABS(plume_height_0-plume_height_2) .LT. 1.E-3_wp ) EXIT search_zero
-       IF ( ABS(check_height-height_obj) .LT. 1.E-3_wp ) EXIT search_zero
-       IF ( ABS(check_height-height_obj) .LT. 1.E-3_wp ) EXIT search_zero
+       IF ( ABS(check_height-height_obj)/height_obj .LT. 1.E-5_wp ) EXIT search_zero
        IF ( ABS(r0_2-r0_0) .LT. 1.E-6_wp ) THEN
 
           search_flag = .FALSE.

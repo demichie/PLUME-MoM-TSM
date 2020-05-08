@@ -14,25 +14,57 @@ MODULE meteo_module
   USE variables, ONLY : wp
 
   IMPLICIT NONE
-
-  !> Temp gradient Troposphere
-  REAL(wp) :: gt     
-  
-  !> Temp gradient Stratosphere
-  REAL(wp) :: gs    
-  
-  !> Pressure at sea level
-  REAL(wp) :: p0     
-  
-  !> Temperature at sea level
-  REAL(wp) :: t0     
-  
-  !> Bottom height of the tropopause
+    
+  REAL(wp) :: h0    
   REAL(wp) :: h1    
-  
-  !> Top height of the tropopause
   REAL(wp) :: h2    
+  REAL(wp) :: h3    
+  REAL(wp) :: h4    
+  REAL(wp) :: h5    
+  REAL(wp) :: h6    
 
+  REAL(wp) :: T0    
+  REAL(wp) :: T1    
+  REAL(wp) :: T2    
+  REAL(wp) :: T3    
+  REAL(wp) :: T4    
+  REAL(wp) :: T5    
+  REAL(wp) :: T6    
+
+  REAL(wp) :: p0    
+  REAL(wp) :: p1    
+  REAL(wp) :: p2    
+  REAL(wp) :: p3    
+  REAL(wp) :: p4    
+  REAL(wp) :: p5    
+  REAL(wp) :: p6    
+
+  REAL(wp) :: u0    
+  REAL(wp) :: u1    
+  REAL(wp) :: u2    
+  REAL(wp) :: u3    
+  REAL(wp) :: u4    
+  REAL(wp) :: u5    
+  REAL(wp) :: u6    
+
+  REAL(wp) :: Gamma_m0
+  REAL(wp) :: Gamma_m1
+  REAL(wp) :: Gamma_m2
+  REAL(wp) :: Gamma_m3
+  REAL(wp) :: Gamma_m4
+  REAL(wp) :: Gamma_m5
+  REAL(wp) :: Gamma_m6
+
+  REAL(wp) :: Gamma_d0
+  REAL(wp) :: Gamma_d1
+  REAL(wp) :: Gamma_d2
+  REAL(wp) :: Gamma_d3
+  REAL(wp) :: Gamma_d4
+  REAL(wp) :: Gamma_d5
+  REAL(wp) :: Gamma_d6
+
+  REAL(wp) :: rho_dry
+  
   !> Relative humidity for standard atmosphere
   REAL(wp) :: rh
   
@@ -51,7 +83,7 @@ MODULE meteo_module
   !> Atmospheric density
   REAL(wp) :: rho_atm  
 
-  !> Atmospheric specific humidity 
+  !> Atmospheric specific humidity (kg/kg)
   REAL(wp) :: sphu_atm
 
   !> Atmospheric kinematic viscosity
@@ -71,9 +103,6 @@ MODULE meteo_module
 
   !> Vertical gradient of the temperature
   REAL(wp) :: dtdz     
-
-  !> Vertical gradient of the hor. atm. vel.
-  REAL(wp) :: duatm_dz 
 
   !> perfect gas constant for dry air ( J/(kg K) )
   REAL(wp) :: rair
@@ -124,7 +153,7 @@ MODULE meteo_module
 
   CHARACTER*10 :: read_atm_profile
 
-  REAL(wp) :: u_r , z_r , exp_wind
+  REAL(wp) :: u_max , z_r , exp_wind
 
   REAL(wp), ALLOCATABLE :: rho_atm_month_lat(:) , pres_atm_month_lat(:) ,   &
        temp_atm_month_lat(:) , temp_atm_month(:,:)
@@ -186,13 +215,12 @@ CONTAINS
     !> Sutherland's constant
     REAL(wp) :: Cs
 
-    ! Variables used to compute duatm_dz
-    REAL(wp) :: eps_z , z_eps
-
-    REAL(wp) :: WE_wind_eps , NS_wind_eps , u_atm_eps , rho_atm_eps
-
     ! Saturation mixing ratio (hPa)
     REAL(wp) :: es
+
+    REAL(wp) :: K
+
+    REAL(wp) :: hu_ratio
     
     IF ( read_atm_profile .EQ. 'card' ) THEN
 
@@ -229,22 +257,6 @@ CONTAINS
        cos_theta = WE_wind / u_atm
        sin_theta = NS_wind / u_atm
 
-       eps_z = 1.E-5_wp
-       z_eps = z + eps_z
-
-       ! interp pressure profile
-       CALL interp_1d_scalar(atm_profile(1,:), atm_profile(6,:), z_eps,         &
-            WE_wind_eps)
-
-       ! interp pressure profile
-       CALL interp_1d_scalar(atm_profile(1,:), atm_profile(7,:), z_eps,         &
-            NS_wind_eps)
-
-       u_atm_eps = SQRT( WE_wind_eps**2 + NS_wind_eps**2 )
-
-       duatm_dz = ( u_atm_eps - u_atm ) / eps_z 
-
-
     ELSEIF ( read_atm_profile .EQ. 'table' ) THEN
 
        ! interp density profile
@@ -258,118 +270,142 @@ CONTAINS
 
        IF ( ( z - vent_height ) .LE. z_r ) THEN
 
-          u_atm = u_r * ( ( z - vent_height ) / z_r )**exp_wind
-
-          duatm_dz =  ( exp_wind * u_r * ( ( z - vent_height ) / z_r )         &
-               ** ( exp_wind - 1.0_wp ) ) * ( 1.0_wp / z_r )
+          u_atm = u_max * ( ( z - vent_height ) / z_r )**exp_wind
 
        ELSE
 
-          u_atm = u_r
-
-          duatm_dz = 0.0_wp
+          u_atm = u_max
 
        END IF
        
        cos_theta = 1.0_wp
        sin_theta = 0.0_wp
 
-
     ELSEIF ( read_atm_profile .EQ. 'standard' ) THEN
 
-       IF ( ( z_r .LE. 0.0_wp ) .OR. ( exp_wind .LE. 0.0_wp ) ) THEN
+       ! humidity ratio (kg/kg)
+       hu_ratio = sphu_atm / ( 1.0_wp - sphu_atm )
 
-          u_atm = u_r
-          duatm_dz = 0.0_wp
+       ! density correction factor
+       K = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
 
-       ELSE
-          IF ( ( z - vent_height ) .LT. z_r ) THEN
+       ! tropospere base altitude (m)
+       h0 = 0.0_wp 
+       T0 = 288.15_wp
+       p0 = 101325.0_wp
+       u0 = 0.0_wp
 
-             u_atm = u_r * ( ( z - vent_height ) / z_r )**exp_wind
-             
-             duatm_dz =  ( exp_wind * u_r * ( ( z - vent_height ) / z_r )       &
-                  ** ( exp_wind - 1.0_wp ) ) * ( 1.0_wp / z_r )
-             
-          ELSE
-             
-             u_atm = u_r            
-             duatm_dz = 0.0_wp
-             
-          END IF
-
-       END IF
+       ! tropopause base altitude
+       h1 = 11000.0_wp
+       Gamma_d1 = 6.5E-3_wp
+       Gamma_m1 = Gamma_d1 * (1.0_wp - 0.856_wp * sphu_atm )
+       T1 = T0 - Gamma_m1 * (h1-h0)
+       p1 = p0 * ( T1 / T0 )**( K * gi / (rair*Gamma_m1) )
+       u1 = u_max
        
 
-       u_wind = u_r  
-       v_wind = 0.0_wp
+       h2 = 20000.0_wp
+       T2 = T1
+       p2 = p1 * EXP( - K* gi / ( rair * T1 ) * ( h2 - h1 ) )
+       u2 = 0.0_wp
 
-       IF ( u_r .GT. 0.0_wp ) THEN
+       h3 = 32000.0_wp
+       Gamma_d3 = -1.0E-3_wp
+       Gamma_m3 = Gamma_d3 * (1.0_wp - 0.856_wp * sphu_atm )
+       T3 = T2 - Gamma_m3 * (h3-h2)
+       p3 = p2 * ( T3 / T2 )**( K * gi / (rair*Gamma_m3) )
 
-           cos_theta = u_wind/u_r 
-           sin_theta = v_wind/u_r
+       h4 = 47000.0_wp
+       Gamma_d4 = -2.8E-3_wp
+       Gamma_m4 = Gamma_d4 * (1.0_wp - 0.856_wp * sphu_atm )
+       T4 = T3 - Gamma_m4 * (h4-h3)
+       p4 = p3 * ( T4 / T3 )**( K * gi / (rair*Gamma_m4) )
 
-       ELSE
+       h5 = 51000.0_wp
+       T5 = T4
+       p5 = p4 * EXP( - K* gi / ( rair * T4 ) * ( h5 - h4 ) )
 
-           cos_theta = 1.0_wp
-           sin_theta = 0.0_wp
-
-       END IF
-
-       !      
-       ! ... Temperature and pressure at the tropopause bottom
-       !
-       const = - gi / ( rair * gt )
-       t1 = t0 + gt * h1
-       p1 = p0 * (t1/t0)**const
-       const1 = gi / ( rair * t1 )
-       p2 = p1 * EXP( -const1 * ( h2-h1 ) )
-       const2 = - gi / ( rair * gs )
-
+       h6 = 71000.0_wp
+       Gamma_d6 = +2.8e-3_wp
+       Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sphu_atm )
+       T6 = T5 - Gamma_m6 * (h6-h5)
+       p6 = p5 * ( T6 / T5 )**( K * gi / (rair*Gamma_m6) )
+       u6 = 65.0_wp
+       
        IF ( z <= h1 ) THEN
 
           ! ... Troposphere
-
-          ta = t0 + gt * z
-          pa = p0 * ( ta / t0 )**const
-          rho_atm = pa / ( rair*ta )
-
+          Ta = T0 - Gamma_m1 * (z-h0)
+          pa = p0 * ( ( T0 - Gamma_m1*(z-h0) ) / T0 )**( K * gi / (rair*Gamma_m1) )
+          u_atm = u0 + (u1-u0) * (z-h0) / (h1-h0)
+          
        ELSE IF (z > h1 .AND. z <= h2) THEN
 
           ! ... Tropopause
+          Ta = T1
+          pa = p1 * EXP( - K* gi / ( rair * T1 ) * ( z - h1 ) )
+          u_atm = u1 + (u2-u1) * (z-h1) / (h2-h1)
 
-          ta = t1
-          pa = p1 * EXP( -const1 * ( z - h1 ) )
-          rho_atm = pa / ( rair * ta )
-
-       ELSE
+       ELSE IF (z > h2 .AND. z <= h3) THEN
 
           ! ... Stratosphere
+          Ta = T2 - Gamma_m3 * (z-h2)
+          pa = p2 * ( ( T2 - Gamma_m3*(z-h2) ) / T2 )**( K * gi / (rair*Gamma_m3) )
+          u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
 
-          ta = t0 + gt*h1 + gs*(z-h2)
-          pa = p2 * (ta/t1)**const2 
-          rho_atm = pa / (rair*ta)
+       ELSE IF (z > h3 .AND. z <= h4) THEN
 
+          Ta = T3 - Gamma_m4 * (z-h3)
+          pa = p3 * ( ( T3 - Gamma_m4*(z-h3) ) / T3 )**( K * gi / (rair*Gamma_m4) )
+          u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
+
+       ELSE IF (z > h4 .AND. z <= h5) THEN
+
+          Ta = T4
+          pa = p4 * EXP( - K* gi / ( rair * T4 ) * ( z - h4 ) )
+          u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
+
+       ELSE IF (z > h5 .AND. z <= h6) THEN
+
+          Ta = T5 - Gamma_m6 * (z-h5)
+          pa = p5 * ( ( T5 - Gamma_m6*(z-h5) ) / T5 )**( K * gi / (rair*Gamma_m6) )
+          u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
+          
        ENDIF
 
-       es = EXP( 21.4_wp - ( 5351.0_wp / ta) )
+       rho_dry = pa / ( rair*ta )
+       rho_atm = K * rho_dry;
 
-       sphu_atm = MIN( 1.0_wp , rh * ( 0.622_wp * es ) / ( pa / 100.0_wp ) )
-
-       !WRITE(*,*) 'z,ta,pa',z,ta,pa
-       !WRITE(*,*) 'es',100.0_wp*es
-       !WRITE(*,*) 'sphu_atm',sphu_atm
-       !READ(*,*)
+       u_wind = u_atm  
+       v_wind = 0.0_wp
        
+       IF ( u_max .GT. 0.0_wp ) THEN
+          
+          cos_theta = u_wind/u_max 
+          sin_theta = v_wind/u_max
+          
+       ELSE
+          
+          cos_theta = 1.0_wp
+          sin_theta = 0.0_wp
+          
+       END IF
+              
     END IF
 
     ! ... Air viscosity ( Armienti et al. 1988)
     Cs = 120.0_wp
     visc_atm = visc_atm0 * ( 288.15_wp + Cs ) / ( ta + Cs ) * ( ta / 288.15_wp )**1.5_wp
 
-    IF ( verbose_level .GE. 2 ) THEN
-
-       WRITE(*,*) z,rho_atm,pa,ta,u_atm,cos_theta,sin_theta
-       WRITE(*,*) 'visc_atm',visc_atm
+    IF ( verbose_level .GE. 1 ) THEN
+       
+       WRITE(*,*) 'Height (asl) = ',z
+       WRITE(*,*) 'Ambient temperature (K) = ',Ta
+       WRITE(*,*) 'Ambient pressure (Pa) = ', pa
+       WRITE(*,*) 'Dry atmosphere density (kg m-3) = ',rho_dry
+       WRITE(*,*) 'Moist atmosphere density (kg m-3) = ',rho_atm
+       WRITE(*,*) 'Atmosphere viscosity = ',visc_atm
+       WRITE(*,*) 'Wind speed (m s-1) = ',u_atm
        READ(*,*)
 
     END IF
