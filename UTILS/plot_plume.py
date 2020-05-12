@@ -597,9 +597,10 @@ barcollection2 = ax2.bar(x_bin, sed_solid[0,:], width=0.9*delta_phi, bottom=sed_
 sed_solid_pmf = np.sum(sed_solid.reshape((n_levels,n_part,n_bin)),axis=1)
 # find the maximum over bins and levels of stacked bars
 max_sed_solid_pmf = np.nanmax(sed_solid_pmf)
+
 ax2.set_ylim(0.0, 1.1*max_sed_solid_pmf)
 ax2.set_xlim(phi_min-1,phi_max+1)
-ax2.title.set_text('Sedimentation Rate')
+ax2.title.set_text('Sedimentation GSD')
 ax2.set_xlabel('phi')
 
 
@@ -607,7 +608,7 @@ ax2.set_xlabel('phi')
 
 ax3.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change])
 if change:
-    ax3.plot(solid_mass_tot_loss_cum[last_change:],z[last_change:])
+    ax3.plot(solid_mass_tot_loss_cum[last_change-1:],z[last_change-1:])
 
 
 ax3.yaxis.set_label_position("right")
