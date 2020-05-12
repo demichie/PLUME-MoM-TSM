@@ -307,7 +307,9 @@ CONTAINS
        h2 = 20000.0_wp
        T2 = T1
        p2 = p1 * EXP( - K* gi / ( rair * T1 ) * ( h2 - h1 ) )
-       u2 = 0.0_wp
+       ! AN INVESTIGATION OF STRATOSPHERIC WINDS IN SUPPORT OF THE
+       ! HIGH ALTITUDE AIRSHIP (Figg. 3 and 6) 
+       u2 = 10.0_wp
 
        h3 = 32000.0_wp
        Gamma_d3 = -1.0E-3_wp
@@ -330,6 +332,7 @@ CONTAINS
        Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sphu_atm )
        T6 = T5 - Gamma_m6 * (h6-h5)
        p6 = p5 * ( T6 / T5 )**( K * gi / (rair*Gamma_m6) )
+       ! WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
        u6 = 65.0_wp
        
        IF ( z <= h1 ) THEN
