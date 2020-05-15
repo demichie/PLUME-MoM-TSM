@@ -562,45 +562,57 @@ CONTAINS
           WRITE(*,inversion_parameters) 
           STOP
           
-       ELSE
+       END IF
 
-          IF ( ( .NOT.isSet(w0) ) .AND. ( .NOT.isSet(r0) ) ) THEN
+       READ(inp_unit, initial_values )
 
-             IF ( umbrella_flag ) THEN
-                
-                WRITE(*,*) 'ERROR: problem with INVERSION'
-                WRITE(*,*) 'Search for both radius and velocity is not possible'
-                WRITE(*,*) 'with UMBRELLA_FLAG = T'
-                WRITE(*,*) 'Please check the input file'
-                STOP
-
-             END IF
-
-          END IF
+       IF ( ios .NE. 0 ) THEN
           
-          IF ( ( .NOT. isSet(height_obj) ) .OR. ( height_obj .LE. 0 ) ) THEN
+          WRITE(*,*) 'IOSTAT=',ios
+          WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
+          WRITE(*,*) 'Please check the input file'
+          WRITE(*,initial_values) 
+          STOP
+          
+       END IF
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check HEIGHT_OBJ value (>0 [m])'
-             WRITE(*,*) 'HEIGHT_OBJ =',height_obj
-             WRITE(*,*)
+       REWIND(inp_unit)
+          
+       IF ( ( .NOT.isSet(w0) ) .AND. ( .NOT.isSet(r0) ) ) THEN
+          
+          IF ( umbrella_flag ) THEN
+             
+             WRITE(*,*) 'ERROR: problem with INVERSION'
+             WRITE(*,*) 'Search for both radius and velocity is not possible'
+             WRITE(*,*) 'with UMBRELLA_FLAG = T'
+             WRITE(*,*) 'Please check the input file'
              STOP
              
           END IF
-
-          IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
-          WRITE(bak_unit, inversion_parameters)
-          write_flag = .FALSE.
-          REWIND(inp_unit)
           
        END IF
        
+       IF ( ( .NOT. isSet(height_obj) ) .OR. ( height_obj .LE. 0 ) ) THEN
+          
+          WRITE(*,*) ''
+          WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+          WRITE(*,*)
+          WRITE(*,inversion_parameters) 
+          WRITE(*,*)
+          WRITE(*,*) 'Please check HEIGHT_OBJ value (>0 [m])'
+          WRITE(*,*) 'HEIGHT_OBJ =',height_obj
+          WRITE(*,*)
+          STOP
+          
+       END IF
+       
+       IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
+       WRITE(bak_unit, inversion_parameters)
+       write_flag = .FALSE.
+       REWIND(inp_unit)
+       
     ELSE
-
+       
        write_flag = .TRUE.
        
     END IF

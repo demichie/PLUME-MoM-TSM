@@ -573,7 +573,7 @@ CONTAINS
 
        ELSE
 
-          dz = 5.0_wp * dz
+          dz = 2.0_wp * dz
 
        END IF
 
