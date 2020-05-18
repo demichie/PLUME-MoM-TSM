@@ -86,6 +86,10 @@ MODULE meteo_module
   !> Atmospheric specific humidity (kg/kg)
   REAL(wp) :: sphu_atm
 
+  !> Atmospheric specific humidity at sea level (kg/kg)
+  REAL(wp) :: sphu_atm0
+
+  
   !> Atmospheric kinematic viscosity
   REAL(wp) :: visc_atm 
 
@@ -218,7 +222,13 @@ CONTAINS
     ! Saturation mixing ratio (hPa)
     REAL(wp) :: es
 
-    REAL(wp) :: K
+    ! Density correction factors
+    REAL(wp) :: K1,K2,K3,K4,K5,K6
+
+    REAL(wp) :: sp_hu0, sp_hu1, sp_hu2, sp_hu3, sp_hu4, sp_hu5, sp_hu6 
+    
+    REAL(wp) :: sp_hu_avg
+    
 
     REAL(wp) :: hu_ratio
     
@@ -283,101 +293,204 @@ CONTAINS
 
     ELSEIF ( read_atm_profile .EQ. 'standard' ) THEN
 
-       ! humidity ratio (kg/kg)
-       hu_ratio = sphu_atm / ( 1.0_wp - sphu_atm )
-
-       ! density correction factor
-       K = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
        ! tropospere base altitude (m)
        h0 = 0.0_wp 
        T0 = 288.15_wp
        p0 = 101325.0_wp
        u0 = 0.0_wp
+       sp_hu0 = sphu_atm0
+       
+       ! ------------------------ atmosphere layer 1 ----------------------------
 
        ! tropopause base altitude
        h1 = 11000.0_wp
+
+       ! specific humidity (kg/kg) at top of layer 1
+       sp_hu1 = 2.0E-6_wp
+       ! average value of specific humidity in layer 1
+       sp_hu_avg = ( sp_hu1-sp_hu0 ) / ( log(sp_hu1) - log(sp_hu0) )
+       ! mixing ratio computer from average value in layer 1
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity
+       K1 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+
        Gamma_d1 = 6.5E-3_wp
-       Gamma_m1 = Gamma_d1 * (1.0_wp - 0.856_wp * sphu_atm )
+       Gamma_m1 = Gamma_d1 * (1.0_wp - 0.856_wp * sp_hu_avg )
        T1 = T0 - Gamma_m1 * (h1-h0)
-       p1 = p0 * ( T1 / T0 )**( K * gi / (rair*Gamma_m1) )
+       p1 = p0 * ( T1 / T0 )**( K1 * gi / (rair*Gamma_m1) )
        u1 = u_max
        
 
+       ! ------------------------ atmosphere layer 2 ----------------------------
        h2 = 20000.0_wp
+
+       ! specific humidity (kg/kg) at top of layer 2
+       sp_hu2 = 2.6E-6_wp
+       ! average value of specific humidity in layer 2
+       sp_hu_avg = ( sp_hu2-sp_hu1 ) / ( log(sp_hu2) - log(sp_hu1) )
+       ! mixing ratio computer from average value in layer 2
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity in layer 2
+       K2 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+
        T2 = T1
-       p2 = p1 * EXP( - K* gi / ( rair * T1 ) * ( h2 - h1 ) )
+       p2 = p1 * EXP( - K2* gi / ( rair * T1 ) * ( h2 - h1 ) )
        ! AN INVESTIGATION OF STRATOSPHERIC WINDS IN SUPPORT OF THE
        ! HIGH ALTITUDE AIRSHIP (Figg. 3 and 6) 
        u2 = 10.0_wp
 
+       ! ------------------------ atmosphere layer 3 ----------------------------
        h3 = 32000.0_wp
+
+       ! specific humidity (kg/kg) at top of layer 3
+       sp_hu3 = 3.2E-6_wp
+       ! average value of specific humidity in layer 3
+       sp_hu_avg = ( sp_hu3-sp_hu2 ) / ( log(sp_hu3) - log(sp_hu2) )
+       ! mixing ratio computer from average value in layer 3
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity in layer 3
+       K3 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+
        Gamma_d3 = -1.0E-3_wp
-       Gamma_m3 = Gamma_d3 * (1.0_wp - 0.856_wp * sphu_atm )
+       Gamma_m3 = Gamma_d3 * (1.0_wp - 0.856_wp * sp_hu_avg )
        T3 = T2 - Gamma_m3 * (h3-h2)
-       p3 = p2 * ( T3 / T2 )**( K * gi / (rair*Gamma_m3) )
+       p3 = p2 * ( T3 / T2 )**( K3 * gi / (rair*Gamma_m3) )
 
+       ! ------------------------ atmosphere layer 4 ----------------------------
        h4 = 47000.0_wp
+
+       ! specific humidity (kg/kg) at top of layer 4
+       sp_hu4 = 3.2E-6_wp
+       ! average value of specific humidity in layer 4
+       sp_hu_avg = sp_hu4
+       ! mixing ratio computer from average value in layer 4
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity in layer 4
+       K4 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+       
        Gamma_d4 = -2.8E-3_wp
-       Gamma_m4 = Gamma_d4 * (1.0_wp - 0.856_wp * sphu_atm )
+       Gamma_m4 = Gamma_d4 * (1.0_wp - 0.856_wp * sp_hu_avg )
        T4 = T3 - Gamma_m4 * (h4-h3)
-       p4 = p3 * ( T4 / T3 )**( K * gi / (rair*Gamma_m4) )
-
+       p4 = p3 * ( T4 / T3 )**( K4 * gi / (rair*Gamma_m4) )
+        
+       ! ------------------------ atmosphere layer 5 ----------------------------
        h5 = 51000.0_wp
-       T5 = T4
-       p5 = p4 * EXP( - K* gi / ( rair * T4 ) * ( h5 - h4 ) )
 
+       ! specific humidity (kg/kg) at top of layer 5
+       sp_hu5 = 3.2E-6_wp
+       ! average value of specific humidity in layer 5
+       sp_hu_avg = ( sp_hu5-sp_hu4 ) / ( log(sp_hu5) - log(sp_hu4) )
+       ! mixing ratio computer from average value in layer 5
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity in layer 5
+       K5 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+
+       T5 = T4
+       p5 = p4 * EXP( - K5 * gi / ( rair * T4 ) * ( h5 - h4 ) )
+
+       ! ------------------------ atmosphere layer 6 ----------------------------
        h6 = 71000.0_wp
+
+       ! specific humidity (kg/kg) at top of layer 6
+       sp_hu6 = 2.4E-6_wp
+       ! average value of specific humidity in layer 6
+       sp_hu_avg = ( sp_hu6-sp_hu5 ) / ( log(sp_hu6) - log(sp_hu5) )
+       ! mixing ratio computer from average value in layer 6
+       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
+       ! density correction due to humidity in layer 6
+       K6 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
+
        Gamma_d6 = +2.8e-3_wp
-       Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sphu_atm )
+       Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sp_hu_avg )
        T6 = T5 - Gamma_m6 * (h6-h5)
-       p6 = p5 * ( T6 / T5 )**( K * gi / (rair*Gamma_m6) )
-       ! WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
+       p6 = p5 * ( T6 / T5 )**( K6 * gi / (rair*Gamma_m6) )
+
+       ! Ref: WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
        u6 = 65.0_wp
        
        IF ( z <= h1 ) THEN
 
           ! ... Troposphere
           Ta = T0 - Gamma_m1 * (z-h0)
-          pa = p0 * ( ( T0 - Gamma_m1*(z-h0) ) / T0 )**( K * gi / (rair*Gamma_m1) )
+          pa = p0 * ( ( T0 - Gamma_m1*(z-h0) ) / T0 )**( K1 * gi / (rair*Gamma_m1) )
           u_atm = u0 + (u1-u0) * (z-h0) / (h1-h0)
+
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K1 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu0) + ( LOG(sp_hu1) - LOG(sp_hu0) ) * (z-h0)  &
+               / (h1-h0) )
           
        ELSE IF (z > h1 .AND. z <= h2) THEN
 
           ! ... Tropopause
           Ta = T1
-          pa = p1 * EXP( - K* gi / ( rair * T1 ) * ( z - h1 ) )
+          pa = p1 * EXP( - K2* gi / ( rair * T1 ) * ( z - h1 ) )
           u_atm = u1 + (u2-u1) * (z-h1) / (h2-h1)
 
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K2 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu1) + ( LOG(sp_hu2) - LOG(sp_hu1) ) * (z-h1)  &
+               / (h2-h1) )
+          
        ELSE IF (z > h2 .AND. z <= h3) THEN
 
           ! ... Stratosphere
           Ta = T2 - Gamma_m3 * (z-h2)
-          pa = p2 * ( ( T2 - Gamma_m3*(z-h2) ) / T2 )**( K * gi / (rair*Gamma_m3) )
+          pa = p2 * ( ( T2 - Gamma_m3*(z-h2) ) / T2 )**( K3 * gi / (rair*Gamma_m3) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
 
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K3 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu2) + ( LOG(sp_hu3) - LOG(sp_hu2) ) * (z-h2)  &
+               / (h3-h2) )
+          
        ELSE IF (z > h3 .AND. z <= h4) THEN
 
           Ta = T3 - Gamma_m4 * (z-h3)
-          pa = p3 * ( ( T3 - Gamma_m4*(z-h3) ) / T3 )**( K * gi / (rair*Gamma_m4) )
+          pa = p3 * ( ( T3 - Gamma_m4*(z-h3) ) / T3 )**( K4 * gi / (rair*Gamma_m4) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
 
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K4 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu3) + ( LOG(sp_hu4) - LOG(sp_hu3) ) * (z-h3)  &
+               / (h4-h3) )
+          
        ELSE IF (z > h4 .AND. z <= h5) THEN
 
           Ta = T4
-          pa = p4 * EXP( - K* gi / ( rair * T4 ) * ( z - h4 ) )
+          pa = p4 * EXP( - K5 * gi / ( rair * T4 ) * ( z - h4 ) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
 
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K5 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu4) + ( LOG(sp_hu5) - LOG(sp_hu4) ) * (z-h4)  &
+               / (h5-h4) )
+          
        ELSE IF (z > h5 .AND. z <= h6) THEN
 
           Ta = T5 - Gamma_m6 * (z-h5)
-          pa = p5 * ( ( T5 - Gamma_m6*(z-h5) ) / T5 )**( K * gi / (rair*Gamma_m6) )
+          pa = p5 * ( ( T5 - Gamma_m6*(z-h5) ) / T5 )**( K6 * gi / (rair*Gamma_m6) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
+
+          rho_dry = pa / ( rair*ta )
+          rho_atm = K6 * rho_dry;
+
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sp_hu5) + ( LOG(sp_hu6) - LOG(sp_hu5) ) * (z-h5)  &
+               / (h6-h5) )
           
        ENDIF
 
-       rho_dry = pa / ( rair*ta )
-       rho_atm = K * rho_dry;
 
        u_wind = u_atm  
        v_wind = 0.0_wp

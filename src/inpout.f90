@@ -37,7 +37,7 @@ MODULE inpout
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
     
-    USE meteo_module, ONLY: p0 , t0 , h1 , h2 , rh , sphu_atm , visc_atm0 ,     &
+    USE meteo_module, ONLY: p0 , t0 , h1 , h2 , rh , sphu_atm0 , visc_atm0 ,    &
          rair , cpair , read_atm_profile , u_max , z_r , exp_wind ,             &
          wind_mult_coeff ,rwv
 
@@ -167,7 +167,7 @@ MODULE inpout
   NAMELIST / atm_parameters / visc_atm0 , rair , cpair , wind_mult_coeff ,      &
        read_atm_profile
   
-  NAMELIST / std_atm_parameters / sphu_atm , u_max
+  NAMELIST / std_atm_parameters / sphu_atm0 , u_max
   
   NAMELIST / table_atm_parameters / month , lat , u_max , z_r , exp_wind
 
@@ -252,7 +252,7 @@ CONTAINS
     particles_beta0 = notSet
 
     !-------------- default values of the STD_ATM_PARAMETERS namelist --------
-    sphu_atm = notSet
+    sphu_atm0 = notSet
     u_max = notSet
     
     !------------ default values of the HYSPLIT_PARAMETERS namelist -------------
@@ -341,7 +341,7 @@ CONTAINS
        SETTLING_MODEL = "textor"
 
        !---------- parameters of the STD_ATM_PARAMETERS namelist ----------------
-       SPHU_ATM = 0.0_wp 
+       SPHU_ATM0 = 0.0_wp 
        U_MAX =  5.0_wp     
        Z_R =  1000.0_wp     
        EXP_WIND =  0.0_wp     
@@ -1465,15 +1465,15 @@ CONTAINS
              
           END IF
 
-          IF ( .NOT. isSet(sphu_atm) ) THEN
+          IF ( .NOT. isSet(sphu_atm0) ) THEN
 
              WRITE(*,*) ''
              WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
              WRITE(*,*)
              WRITE(*,std_atm_parameters) 
              WRITE(*,*)
-             WRITE(*,*) 'Please check sphu_atm value (<0 [Kg/Kg])'
-             WRITE(*,*) 'u_max =',u_max
+             WRITE(*,*) 'Please check sphu_atm0 value (<0 [Kg/Kg])'
+             WRITE(*,*) 'sphu_atm0 =',sphu_atm0
              WRITE(*,*)
              STOP
              
