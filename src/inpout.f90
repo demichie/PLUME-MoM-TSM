@@ -1476,6 +1476,19 @@ CONTAINS
              WRITE(*,*) 'sphu_atm0 =',sphu_atm0
              WRITE(*,*)
              STOP
+
+          ELSE
+
+             IF ( sphu_atm0 .LE. 2.0E-6_wp ) THEN
+
+                WRITE(*,*) 'WARNING: sphu_atm0 value at sea level'
+                WRITE(*,*) 'should be higher than value at tropopause'
+                WRITE(*,*) 'base (2.0E-6 kg/kg)'
+                WRITE(*,*) 'Value changed to 2.01E-6'
+                WRITE(*,*)
+                sphu_atm0 = 2.01e-6_wp
+
+             END IF
              
           END IF
           
