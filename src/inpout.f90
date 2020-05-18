@@ -1783,6 +1783,7 @@ CONTAINS
           WRITE(*,*) 'IOSTAT=',ios
           WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
           WRITE(*,*) 'Please check the input file'
+          WRITE(*,aggregation_parameters)
           STOP
           
        ELSE
