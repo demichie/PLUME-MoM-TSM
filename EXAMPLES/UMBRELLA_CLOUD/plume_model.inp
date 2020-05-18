@@ -40,7 +40,7 @@
  READ_ATM_PROFILE="standard",
  /
 &STD_ATM_PARAMETERS
- SPHU_ATM=                      0.01,
+ SPHU_ATM0=                      0.01,
  U_MAX=                      30.0,
  /
 &INITIAL_VALUES
