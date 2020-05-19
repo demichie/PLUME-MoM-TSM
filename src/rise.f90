@@ -150,6 +150,8 @@ CONTAINS
     REAL(wp) :: drho_atm_dz
 
     REAL(wp) :: phi_mean
+
+    LOGICAL :: update_z
     
     !
     ! ... Set initial conditions at the release height
@@ -271,6 +273,7 @@ CONTAINS
 
     ! Dormand-Prince RK Coefficients
 
+    ! nodes
     D_RK(1) = 0.0_wp
     D_RK(2) = 0.2_wp
     D_RK(3) = 0.3_wp
@@ -279,7 +282,7 @@ CONTAINS
     D_RK(6) = 1.0_wp
     D_RK(7) = 1.0_wp
 
-    
+    ! matrix
     A_RK(1,1) = 0.0_wp
     A_RK(1,2) = 0.0_wp
     A_RK(1,3) = 0.0_wp
@@ -336,7 +339,7 @@ CONTAINS
     A_RK(7,6) = 11.0_wp / 84.0_wp
     A_RK(7,7) = 0.0_wp
     
-    ! 5th order solution coefficients
+    ! 5th order solution weights
     B_RK(1) = 35.0_wp / 384.0_wp
     B_RK(2) = 0.0_wp
     B_RK(3) = 500.0_wp / 1113.0_wp
@@ -345,7 +348,7 @@ CONTAINS
     B_RK(6) = 11.0_wp / 84.0_wp
     B_RK(7) = 0.0_wp
     
-    ! 4th order solution coefficients
+    ! 4th order solution weights
     C_RK(1) = 5179.0_wp / 57600.0_wp
     C_RK(2) = 0.0_wp
     C_RK(3) = 7571.0_wp / 16695.0_wp
@@ -364,6 +367,20 @@ CONTAINS
 
        CALL unlump(f)
 
+       rho_atm_old = rho_atm
+       r_old = r
+       z_old = z
+
+       ! old velocities are updated only when previous step was successful
+       IF ( update_z ) THEN
+          
+          w_oldold = w_old
+          w_old = w
+
+       END IF
+          
+       update_z = .FALSE.
+       
        CALL rate
 
        IF ( aggregation_flag ) THEN
@@ -378,10 +395,6 @@ CONTAINS
 
        fscal = ABS( f_stepold)+ABS(dz*rhs1+rhs2)+1.E-10
 
-       w_oldold = w_old
-       w_old = w
-       r_old = r
-
        rhs_RK(1:itotal,1:n_RK) = 0.0_wp
 
        z_temp = z
@@ -394,7 +407,11 @@ CONTAINS
                   * A_RK(i_RK,1:n_RK) )
 
           END DO
+
+          ! the height is updated to compute the correct values of the
+          ! atnospheric variables within unlump (where zmet is called)
           z = z_temp + dz * D_RK(i_RK)
+          
           CALL unlump( ftemp )
 
           ! ----- Check on the solution to reduce step-size condition -------------
@@ -474,9 +491,13 @@ CONTAINS
 
        f(1:itotal) = f5th(1:itotal)
 
+       ! the height is updated to compute the correct values of the
+       ! atnospheric variables within unlump (where zmet is called)
        z = z_temp + dz
+
        CALL unlump(f)
 
+       ! we restore the initial value of the height
        z = z_temp
        
        ! ----- Reduce step-size condition and repeat iteration ------------------
@@ -517,8 +538,8 @@ CONTAINS
 
        IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
 
-          IF ( dz .GT. 0.001_wp ) THEN
-
+          IF ( dz .GT. 1.0_wp ) THEN
+                             
              dz = 0.5_wp * dz
              f = f_stepold
              CYCLE main_loop
@@ -561,13 +582,10 @@ CONTAINS
        END IF
 
        deltarho_old = deltarho
-       rho_atm_old = rho_atm
-       r_old = r
-       z_old = z
-
              
        ! ------ update the solution ---------------------------------------------
 
+       update_z = .TRUE.
        z = z + dz
        
        ! Compute the rate of particle loss due to settling from plume margin
@@ -588,7 +606,8 @@ CONTAINS
             cum_particle_loss_rate(1:n_part,1:n_sections) +                     &
             particle_loss_rate(1:n_part,1:n_sections)
 
-
+       ! save minrel and maxrel of vertical velocity to search for
+       ! plume regime (buoyant, superbuoyant or collapsing)
        IF ( ( w_old .LT. w ) .AND. ( w_old .LT. w_oldold ) )  THEN
 
           w_minrel = w_old
@@ -605,6 +624,8 @@ CONTAINS
        
        IF ( write_flag ) CALL write_column
 
+       ! update the integration step according to truncation error of
+       ! Runge-Kutta procedure
        IF ( errmax .GT. ERRCON ) THEN
 
           dz = dz * SAFETY * ( errmax**PGROW )
@@ -615,16 +636,9 @@ CONTAINS
 
        END IF
 
-       IF ( umbrella_flag ) THEN
-
-          dz = MIN( dz, 5.0_wp )
-
-       ELSE
-
-          dz = MIN( dz, 50.0_wp )
-
-       END IF
-          
+       ! limit the integration step
+       dz = MIN( dz, 50.0_wp )
+                 
        ! ----- Exit condition ---------------------------------------------------
 
        IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-5_wp ) ) THEN

@@ -219,9 +219,6 @@ CONTAINS
     !> Sutherland's constant
     REAL(wp) :: Cs
 
-    ! Saturation mixing ratio (hPa)
-    REAL(wp) :: es
-
     ! Density correction factors
     REAL(wp) :: K1,K2,K3,K4,K5,K6
 
@@ -309,13 +306,13 @@ CONTAINS
        sp_hu1 = 2.0E-6_wp
        ! average value of specific humidity in layer 1
        sp_hu_avg = ( sp_hu1-sp_hu0 ) / ( log(sp_hu1) - log(sp_hu0) )
-       ! mixing ratio computer from average value in layer 1
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity
-       K1 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
+       K1 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Dry air lapse rate in layer 1
        Gamma_d1 = 6.5E-3_wp
+       ! Moist lapse rate in layer 1
        Gamma_m1 = Gamma_d1 * (1.0_wp - 0.856_wp * sp_hu_avg )
+       ! Temperature at top of layer 1
        T1 = T0 - Gamma_m1 * (h1-h0)
        p1 = p0 * ( T1 / T0 )**( K1 * gi / (rair*Gamma_m1) )
        u1 = u_max
@@ -328,11 +325,9 @@ CONTAINS
        sp_hu2 = 2.6E-6_wp
        ! average value of specific humidity in layer 2
        sp_hu_avg = ( sp_hu2-sp_hu1 ) / ( log(sp_hu2) - log(sp_hu1) )
-       ! mixing ratio computer from average value in layer 2
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity in layer 2
-       K2 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
+       K2 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Temperature at top of layer 2
        T2 = T1
        p2 = p1 * EXP( - K2* gi / ( rair * T1 ) * ( h2 - h1 ) )
        ! AN INVESTIGATION OF STRATOSPHERIC WINDS IN SUPPORT OF THE
@@ -346,13 +341,13 @@ CONTAINS
        sp_hu3 = 3.2E-6_wp
        ! average value of specific humidity in layer 3
        sp_hu_avg = ( sp_hu3-sp_hu2 ) / ( log(sp_hu3) - log(sp_hu2) )
-       ! mixing ratio computer from average value in layer 3
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity in layer 3
-       K3 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
+       K3 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Dry air lapse rate in layer 3
        Gamma_d3 = -1.0E-3_wp
+       ! Moist lapse rate in layer 3
        Gamma_m3 = Gamma_d3 * (1.0_wp - 0.856_wp * sp_hu_avg )
+       ! Temperature at top of layer 3
        T3 = T2 - Gamma_m3 * (h3-h2)
        p3 = p2 * ( T3 / T2 )**( K3 * gi / (rair*Gamma_m3) )
 
@@ -363,13 +358,13 @@ CONTAINS
        sp_hu4 = 3.2E-6_wp
        ! average value of specific humidity in layer 4
        sp_hu_avg = sp_hu4
-       ! mixing ratio computer from average value in layer 4
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity in layer 4
-       K4 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-       
+       K4 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Dry air lapse rate in layer 4
        Gamma_d4 = -2.8E-3_wp
+       ! Moist lapse rate in layer 4
        Gamma_m4 = Gamma_d4 * (1.0_wp - 0.856_wp * sp_hu_avg )
+       ! Temperature at top of layer 4
        T4 = T3 - Gamma_m4 * (h4-h3)
        p4 = p3 * ( T4 / T3 )**( K4 * gi / (rair*Gamma_m4) )
         
@@ -380,11 +375,9 @@ CONTAINS
        sp_hu5 = 3.2E-6_wp
        ! average value of specific humidity in layer 5
        sp_hu_avg = ( sp_hu5-sp_hu4 ) / ( log(sp_hu5) - log(sp_hu4) )
-       ! mixing ratio computer from average value in layer 5
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity in layer 5
-       K5 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
+       K5 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Temperature at top of layer 5
        T5 = T4
        p5 = p4 * EXP( - K5 * gi / ( rair * T4 ) * ( h5 - h4 ) )
 
@@ -395,13 +388,12 @@ CONTAINS
        sp_hu6 = 2.4E-6_wp
        ! average value of specific humidity in layer 6
        sp_hu_avg = ( sp_hu6-sp_hu5 ) / ( log(sp_hu6) - log(sp_hu5) )
-       ! mixing ratio computer from average value in layer 6
-       hu_ratio = sp_hu_avg / ( 1.0_wp - sp_hu_avg )
        ! density correction due to humidity in layer 6
-       K6 = ( 1.0_wp + hu_ratio ) / ( 1.0_wp + 1.609_wp * hu_ratio )
-
+       K6 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
+       ! Dry air lapse rate in layer 6
        Gamma_d6 = +2.8e-3_wp
        Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sp_hu_avg )
+       ! Temperature at top of layer 6
        T6 = T5 - Gamma_m6 * (h6-h5)
        p6 = p5 * ( T6 / T5 )**( K6 * gi / (rair*Gamma_m6) )
 
