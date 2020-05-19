@@ -56,7 +56,7 @@ CONTAINS
     USE solver_module, ONLY: f_stepold , itotal
     USE variables, ONLY : verbose_level , inversion_flag , height_obj
     USE variables, ONLY : dakota_flag , hysplit_flag , nbl_stop
-    USE variables, ONLY : write_flag
+    USE variables, ONLY : write_flag , umbrella_flag
     USE variables, ONLY : aggregation_flag
     USE variables, ONLY : pi_g , height_nbl , flag_nbl , radius_nbl
 
@@ -112,6 +112,7 @@ CONTAINS
     
     REAL(wp) :: rho_atm_old
     REAL(wp) :: z_old
+    REAL(wp) :: z_temp
     REAL(wp) :: r_old
     REAL(wp) :: deltarho , deltarho_old
 
@@ -125,6 +126,7 @@ CONTAINS
     REAL(wp) :: A_RK(n_RK,n_RK)
     REAL(wp) :: B_RK(n_RK)
     REAL(wp) :: C_RK(n_RK)
+    REAL(wp) :: D_RK(n_RK)
 
     REAL(wp) :: f5th(itotal)
     REAL(wp) :: f4th(itotal)
@@ -268,6 +270,15 @@ CONTAINS
     
 
     ! Dormand-Prince RK Coefficients
+
+    D_RK(1) = 0.0_wp
+    D_RK(2) = 0.2_wp
+    D_RK(3) = 0.3_wp
+    D_RK(4) = 0.8_wp
+    D_RK(5) = 8.0_wp / 9.0_wp
+    D_RK(6) = 1.0_wp
+    D_RK(7) = 1.0_wp
+
     
     A_RK(1,1) = 0.0_wp
     A_RK(1,2) = 0.0_wp
@@ -342,8 +353,7 @@ CONTAINS
     C_RK(5) = - 92097.0_wp / 339200.0_wp
     C_RK(6) = 187.0_wp / 2100.0_wp
     C_RK(7) = 1.0_wp / 40.0_wp
-    
-    
+       
     eps_RK = 1.0E-10_wp
 
     flag_nbl = .FALSE.
@@ -374,15 +384,17 @@ CONTAINS
 
        rhs_RK(1:itotal,1:n_RK) = 0.0_wp
 
-       RungeKutta:DO i_RK = 1,n_RK
+       z_temp = z
 
+       RungeKutta:DO i_RK = 1,n_RK
+   
           DO i=1,itotal
 
              ftemp(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK)               &
                   * A_RK(i_RK,1:n_RK) )
 
           END DO
-
+          z = z_temp + dz * D_RK(i_RK)
           CALL unlump( ftemp )
 
           ! ----- Check on the solution to reduce step-size condition -------------
@@ -416,7 +428,6 @@ CONTAINS
 
           END IF
 
-
           ! RATE uses the values computed from the last call of UNLUMP
           CALL rate
 
@@ -437,6 +448,7 @@ CONTAINS
 
        END DO RungeKutta
 
+       
        ! Compute the new solution
        DO i=1,itotal
 
@@ -451,7 +463,8 @@ CONTAINS
 
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
-          ! WRITE(*,*) 'dz',dz
+          !WRITE(*,*) 'z,dz',z,dz
+          !READ(*,*)
           f = f_stepold
 
           ! go to the next iteration
@@ -461,8 +474,11 @@ CONTAINS
 
        f(1:itotal) = f5th(1:itotal)
 
+       z = z_temp + dz
        CALL unlump(f)
 
+       z = z_temp
+       
        ! ----- Reduce step-size condition and repeat iteration ------------------
 
        IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
@@ -492,8 +508,68 @@ CONTAINS
 
        END IF
 
+       ! ----------- check for nbl ---------------------------------------------
+
+       delta_rho = MIN( delta_rho , rho_mix - rho_atm )
+
+       ! used to define the neutral buoyancy level 
+       deltarho =  rho_mix - rho_atm
+
+       IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
+
+          IF ( dz .GT. 0.001_wp ) THEN
+
+             dz = 0.5_wp * dz
+             f = f_stepold
+             CYCLE main_loop
+
+          ELSE
+
+             rho_nbl = rho_mix
+             height_nbl = z - vent_height
+             radius_nbl = r
+             
+             x_nbl = x
+             y_nbl = y
+             
+             u_nbl = u
+             v_nbl = v
+             w_nbl = w
+             
+             u_wind_nbl = u_wind
+             v_wind_nbl = v_wind
+             
+             wind_nbl = SQRT( u_wind**2 + v_wind**2 )
+             
+             drho_atm_dz =  (rho_atm - rho_atm_old) / dz
+             drho_dz = drho_atm_dz
+             dr_dz = ( r - r_old ) / dz
+             
+             IF ( deltarho .GT. 0.0_wp ) THEN
+
+                flag_nbl = .TRUE.
+                !WRITE(*,*) 'z nbl',z
+                !WRITE(*,*) 'dz at nbl',dz
+                !WRITE(*,*) rho_atm,rho_atm_old
+                !WRITE(*,*) drho_dz
+                !READ(*,*)
+
+             END IF
+                
+          END IF
+             
+       END IF
+
+       deltarho_old = deltarho
+       rho_atm_old = rho_atm
+       r_old = r
+       z_old = z
+
+             
        ! ------ update the solution ---------------------------------------------
 
+       z = z + dz
+       
        ! Compute the rate of particle loss due to settling from plume margin
        DO i_part=1,n_part
 
@@ -526,44 +602,6 @@ CONTAINS
           w_maxrel = w_old
 
        END IF
-
-       delta_rho = MIN( delta_rho , rho_mix - rho_atm )
-
-       ! used to define the neutral buoyancy level 
-       deltarho =  rho_mix - rho_atm
-       
-       IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
-
-          rho_nbl = rho_mix
-          height_nbl = z - vent_height
-          radius_nbl = r
-          
-          x_nbl = x
-          y_nbl = y
-
-          u_nbl = u
-          v_nbl = v
-          w_nbl = w
-
-          u_wind_nbl = u_wind
-          v_wind_nbl = v_wind
-
-          wind_nbl = SQRT( u_wind**2 + v_wind**2 )
-
-          drho_atm_dz =  (rho_atm - rho_atm_old) / dz
-          drho_dz = drho_atm_dz
-          dr_dz = ( r - r_old ) / dz
-       
-          IF ( deltarho .GT. 0.0_wp ) flag_nbl = .TRUE.
-
-       END IF
-
-       deltarho_old = deltarho
-       rho_atm_old = rho_atm
-       r_old = r
-       z_old = z
-
-       z = z + dz
        
        IF ( write_flag ) CALL write_column
 
@@ -577,8 +615,16 @@ CONTAINS
 
        END IF
 
-       dz = MIN( dz, 50.0_wp )
+       IF ( umbrella_flag ) THEN
 
+          dz = MIN( dz, 5.0_wp )
+
+       ELSE
+
+          dz = MIN( dz, 50.0_wp )
+
+       END IF
+          
        ! ----- Exit condition ---------------------------------------------------
 
        IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-5_wp ) ) THEN
