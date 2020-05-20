@@ -15,7 +15,7 @@ MODULE inpout
   
     USE variables
 
-    USE parameters_2d, ONLY : t_start , t_end , dt_output , wp , n_vars
+    USE parameters_2d, ONLY : t_start , t_end , dt_output , wp , n_vars , C_D
 
     ! -- Variables for the namelist NUMERIC_PARAMETERS
     USE parameters_2d, ONLY : rsource_cells , solver_scheme, dt0 , max_dt , cfl,&
@@ -184,7 +184,7 @@ MODULE inpout
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
 
-  NAMELIST / umbrella_run_parameters / t_end , dt_output
+  NAMELIST / umbrella_run_parameters / t_end , dt_output , C_D
   
   NAMELIST / numeric_parameters / rsource_cells , solver_scheme, dt0 , max_dt , &
        cfl, limiter , theta , reconstr_coeff , interfaces_relaxation , n_RK   
@@ -266,6 +266,11 @@ CONTAINS
     added_water_temp = notSet
     added_water_mass_fraction = notSet
 
+    
+    !---------- default values of the UMBRELLA namelist -------------------------
+    t_end = 3600
+    dt_output = 600
+    C_D = notSet
     
     !---------- default values of the ATM_PARAMETERS namelist -------------------
     VISC_ATM0 = notSet
@@ -2214,6 +2219,20 @@ CONTAINS
 
        ELSE
 
+          IF ( ( .NOT.isSet(C_D) ) .OR. ( C_D .LT. 0.0_wp ) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,umbrella_run_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check C_D value'
+             WRITE(*,*) 'C_D =',C_D
+             WRITE(*,*)
+             STOP
+
+          END IF
+          
           REWIND(inp_unit)
           WRITE(bak_unit, umbrella_run_parameters)
           

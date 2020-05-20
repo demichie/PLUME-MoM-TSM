@@ -37,7 +37,6 @@ MODULE inpout_2d
   USE parameters_2d, ONLY : vol_flux_source , u_source , v_source , dr_dz
 
   ! -- Variables for the namelist ATM_PARAMETERS
-  USE constitutive_2d, ONLY : C_D
   USE constitutive_2d, ONLY : grav , rho_nbl , drho_dz , N
 
   IMPLICIT NONE
@@ -181,7 +180,6 @@ CONTAINS
     dx = cell_size
     dy = cell_size
         
-    C_D = 1.0_wp
     grav = gi
     N = SQRT( - grav / rho_nbl * drho_dz )
 

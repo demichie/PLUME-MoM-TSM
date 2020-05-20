@@ -33,6 +33,8 @@ MODULE parameters_2d
 
   INTEGER :: rsource_cells
 
+  REAL(wp) :: C_D
+  
   REAL(wp) :: x_source
   REAL(wp) :: y_source
   REAL(wp) :: r_source

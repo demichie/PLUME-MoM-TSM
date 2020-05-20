@@ -419,6 +419,7 @@ CONTAINS
           IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
 
              dz = 0.5_wp * dz
+             z = z_temp
              f = f_stepold
 
              IF ( verbose_level .GT. 0 ) THEN
@@ -480,6 +481,7 @@ CONTAINS
 
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
+          z = z_temp
           !WRITE(*,*) 'z,dz',z,dz
           !READ(*,*)
           f = f_stepold

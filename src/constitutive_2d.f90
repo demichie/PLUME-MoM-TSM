@@ -5,7 +5,7 @@ MODULE constitutive_2d
 
   USE variables, ONLY : wp
   USE parameters_2d, ONLY : tolh
-  USE parameters_2d, ONLY : n_eqns , n_vars
+  USE parameters_2d, ONLY : n_eqns , n_vars , C_D
 
   IMPLICIT none
 
@@ -13,7 +13,6 @@ MODULE constitutive_2d
   LOGICAL, ALLOCATABLE :: implicit_flag(:)
 
   REAL(wp) :: u_atm_nbl , v_atm_nbl
-  REAL(wp) :: C_D
   REAL(wp) :: N
   REAL(wp) :: grav , drho_dz , rho_nbl
 
