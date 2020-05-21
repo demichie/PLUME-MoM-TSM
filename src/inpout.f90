@@ -147,7 +147,7 @@ MODULE inpout
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
        inversion_flag , hysplit_flag , aggregation_flag, water_flag ,           &
-       umbrella_flag
+       umbrella_flag , entr_abv_nbl_flag
 
   NAMELIST / mom_parameters / n_part , n_mom , n_nodes , n_sections
 
@@ -228,7 +228,8 @@ CONTAINS
     aggregation_flag = .FALSE.
     water_flag = .FALSE.
     umbrella_flag = .FALSE.
-
+    entr_abv_nbl_flag = .FALSE. 
+    
     !------- default parameters of the ENTRAINMENT_PARAMETERS namelist ----------
     alpha_inp = notSet
     beta_inp = notSet

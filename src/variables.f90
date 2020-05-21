@@ -46,6 +46,9 @@ MODULE variables
 
   LOGICAL :: flag_nbl
 
+  ! Flag to allow for entrainment above neutral buoyancy level
+  LOGICAL :: entr_abv_nbl_flag
+  
   LOGICAL :: umbrella_flag
   
   INTEGER :: n_cloud

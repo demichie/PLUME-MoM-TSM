@@ -540,7 +540,7 @@ CONTAINS
 
        IF ( deltarho * deltarho_old .LT. 0.0_wp ) THEN
 
-          IF ( dz .GT. 1.0_wp ) THEN
+          IF ( ( dz .GT. 1.0_wp ) .AND. ( deltarho .GT. 0.0_wp ) ) THEN
                              
              dz = 0.5_wp * dz
              f = f_stepold

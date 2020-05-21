@@ -113,7 +113,7 @@ CONTAINS
     USE plume_module, ONLY: s , r , u , w , v , mag_u , phi , alpha_inp ,       &
          beta_inp , rp , prob_factor , particles_loss , r0 , z
 
-    USE variables, ONLY: gi , flag_nbl
+    USE variables, ONLY: gi , flag_nbl , entr_abv_nbl_flag
 
     !
     IMPLICIT NONE
@@ -219,7 +219,7 @@ CONTAINS
     END IF
    
     !---- Entrainment velocity (Eq. 20 PlumeMoM - GMD) 
-    IF ( flag_nbl ) THEN
+    IF ( ( flag_nbl ) .AND. ( .not. entr_abv_nbl_flag ) ) THEN
 
        ueps = 0.0_wp
 
