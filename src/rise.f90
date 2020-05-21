@@ -357,7 +357,7 @@ CONTAINS
     C_RK(6) = 187.0_wp / 2100.0_wp
     C_RK(7) = 1.0_wp / 40.0_wp
        
-    eps_RK = 1.0E-10_wp
+    eps_RK = 1.0E-5_wp
 
     flag_nbl = .FALSE.
 
