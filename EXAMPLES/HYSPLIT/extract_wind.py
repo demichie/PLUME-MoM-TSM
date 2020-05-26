@@ -4,8 +4,9 @@ import datetime
 import os,sys,time
 import shutil
 from scipy import interpolate 
+import pandas as pd
 
-def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list):
+def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list,c_vwind):
     """create atmosperic profile for plumemom """
     nlev=len(profile[:,0])
 
@@ -152,11 +153,11 @@ def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list):
     U_idx = fields_list.index("UWND") + 1
     U = profile[:,U_idx]
    
-    # S->N component of horizontal velocity (m/s)
+    # N->S component of horizontal velocity (m/s)
     V_idx = fields_list.index("VWND") + 1
-    V = profile[:,V_idx]
+    V = profile[:,V_idx] * c_vwind
 
-    # Return z (km), density (kg/m3) , P (hPa) , T (K) , specific humidity (kg/kg), WE vel (m/s) , SN vel (m/s) 
+    # Return z (km), density (kg/m3) , P (hPa) , T (K) , specific humidity (kg/kg), WE vel (m/s) , NS vel (m/s) 
     return z/1000.0, rho, P/100, T, Q, U, V 
 
 def write_atm(time_input):
@@ -246,6 +247,14 @@ def write_atm(time_input):
             print ( 'search for 3D fields: success',i )
             idx_fields_line = i+1
             fields_list = line[idx_fields_line].split()
+   
+    # check direction of v wind 
+    # if S->N, multiply it for c_vwind = -1 to be consistent with plumemom
+    c_vwind = 1
+    for i in range(len(line)):
+        if ( 'S->N' in line[i] ):
+            c_vwind = -1
+            break
 
     a= datetime.datetime.strptime(str(time_start[0:14]), "%y %m %d %H %M")
     b= datetime.datetime.strptime(str(time_input), "%y %m %d %H %M")
@@ -273,29 +282,25 @@ def write_atm(time_input):
     # read the file 'atm_profile.txt'
     arrays = [np.array(list(map(float, line.split()))) for line in open('atm_profile.txt')]
 
-    # compute the number of values in the first level
-    n0 = len(arrays[0])
-    b = np.zeros((len(arrays),n0))
-
-    # search for the number of levels with the same number of values
-    nfull = 0
-    for i in range(len(arrays)):
-        if (len(arrays[i]) == n0):
-            b[i,:] = arrays[i]
-            nfull = nfull+1
-
-    # extract only the lines with the same number of values (n0)
-    profile = np.asarray(b[0:nfull,:])
+    # read atm profile from atm_profile.txt and replace missing values with zero  
+    profile = pd.read_fwf('atm_profile.txt',delimiter=" ",header=None).fillna(0)
+    profile = np.asarray(profile)
 
     # compute the missing fields
-    a = calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list)
+    a = calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list,c_vwind)
     a = np.asarray(a)
 
     if ( z_ground == 0.0 and prss > 0):
 
-        f = interpolate.interp1d(a[2,:],1000*a[0,:])
-        z_ground = f(prss)
-        print ( 'z_ground',z_ground )
+        try:
+
+            f = interpolate.interp1d(a[2,:],1000*a[0,:])
+            z_ground = f(prss)
+            print ( 'z_ground',z_ground )
+
+        except ValueError:
+
+            print ( 'z_ground',z_ground )
 
     nrows = a.shape[1]
 

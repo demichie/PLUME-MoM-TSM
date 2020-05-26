@@ -1,5 +1,5 @@
 hysplit_dir = "/home/federica/hysplit/trunk"
-plumemom_dir = "/home/federica/Scrivania/Codes/PLUME-MoM-TSM"
+plumemom_dir = "/home/federica/Scrivania/Codes/PLUME-MoM-TSM-master"
 runname = 'Etna_test'
 starttime="18 12 24 11 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 12 00"
