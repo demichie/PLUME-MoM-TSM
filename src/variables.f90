@@ -46,10 +46,14 @@ MODULE variables
 
   LOGICAL :: flag_nbl
 
-  ! Flag to allow for entrainment above neutral buoyancy level
+  !> Flag to allow for entrainment above neutral buoyancy level
   LOGICAL :: entr_abv_nbl_flag
-  
+
+  !> Flag to solve the model for the umbrella spreading
   LOGICAL :: umbrella_flag
+
+  !> Flag to stop the umbrella solver when a steady upwind spreading is reached
+  LOGICAL :: steady_flag
   
   INTEGER :: n_cloud
 

@@ -8,7 +8,7 @@ CONTAINS
   SUBROUTINE solve_umbrella
 
     USE constitutive_2d, ONLY : init_problem_param
-    USE constitutive_2d, ONLY : u_atm_nbl , v_atm_nbl
+    USE constitutive_2d, ONLY : u_atm_umbl , v_atm_umbl
 
     USE geometry_2d, ONLY : init_grid , deallocate_grid
     USE geometry_2d, ONLY : init_source , compute_cell_fract
@@ -32,7 +32,7 @@ CONTAINS
     USE solver_2d, ONLY : check_solve
 
     USE variables, ONLY : wp
-    USE variables, ONLY : hysplit_flag , dakota_flag
+    USE variables, ONLY : hysplit_flag , dakota_flag , steady_flag
     
     USE parameters_2d, ONLY : x_source , y_source , r_source
 
@@ -67,7 +67,7 @@ CONTAINS
 
     REAL(wp) :: dt_old , dt_old_old
     LOGICAL :: stop_flag
-    LOGICAL :: steady_flag
+    LOGICAL :: steady_state
 
     INTEGER :: j,k,l
     INTEGER :: n_threads
@@ -105,8 +105,10 @@ CONTAINS
 
     !> Name of output file for the parameters of the umbrella 
     CHARACTER(LEN=30) :: swu_file
+    CHARACTER(LEN=30) :: umb_file
 
     INTEGER, PARAMETER :: swu_unit = 19      !< swu data unit
+    INTEGER, PARAMETER :: umb_unit = 20      !< swu data unit
 
     CHARACTER(LEN=20) :: description
     
@@ -133,8 +135,8 @@ CONTAINS
     END IF
 
 
-    WRITE(*,*) 'u_atm',u_atm_nbl
-    WRITE(*,*) 'v_atm',v_atm_nbl
+    WRITE(*,*) 'u_atm',u_atm_umbl
+    WRITE(*,*) 'v_atm',v_atm_umbl
     
     
 
@@ -163,7 +165,26 @@ CONTAINS
     END IF
 
     t = t_start
-    steady_flag = .FALSE.
+
+    umb_file = TRIM(run_name)//'.umb'    
+
+    OPEN(umb_unit,FILE=umb_file,status='unknown',form='formatted')
+
+    x_upw = x_source - r_source * u_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
+    y_upw = y_source - r_source * v_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
+
+    d_upw_nbl = SQRT(x_upw**2 + y_upw**2) 
+
+    WRITE(umb_unit,305)    
+    WRITE(umb_unit,306)  t, 3.1415_wp * r_source**2 , d_upw_nbl
+
+305 FORMAT( 5x,'        time (s)', 11x,'       area (m2)',11x, 'upw distance (m)')
+
+306 FORMAT((7x,f14.4,16x,ES11.3E3,16x,ES11.3E3)) 
+
+    steady_state = .FALSE.
     
     solve_mask(2:comp_cells_x-1,2:comp_cells_y-1) = .TRUE.
 
@@ -209,7 +230,7 @@ CONTAINS
 
     END DO
 
-    CALL output_solution(t,steady_flag)
+    CALL output_solution(t,steady_state)
 
     IF ( SUM(q(1,:,:)) .EQ. 0.0_wp ) t_steady = t_output
 
@@ -258,8 +279,8 @@ CONTAINS
        !$OMP PARALLEL DO private(j,k)
 
        max_up_dist = r_source
-       x1 = x_source - r_source*u_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
-       y1 = y_source - r_source*v_atm_nbl / ( SQRT( u_atm_nbl**2+v_atm_nbl**2 ) )
+       x1 = x_source - r_source*u_atm_umbl / ( SQRT( u_atm_umbl**2+v_atm_umbl**2 ) )
+       y1 = y_source - r_source*v_atm_umbl / ( SQRT( u_atm_umbl**2+v_atm_umbl**2 ) )
        max_cw_distL = 0.0_wp
        max_cw_distR = 0.0_wp
 
@@ -274,13 +295,13 @@ CONTAINS
 
              IF ( qp(1,j,k) .GE. 10.0_wp ) THEN
 
-                upwind_dist(j,k) = - ( u_atm_nbl * ( x_comp(j) - x_source ) +   &
-                     v_atm_nbl * ( y_comp(k) - y_source ) )                     &
-                     / ( SQRT( u_atm_nbl**2 + v_atm_nbl**2 ) )
+                upwind_dist(j,k) = - ( u_atm_umbl * ( x_comp(j) - x_source ) +   &
+                     v_atm_umbl * ( y_comp(k) - y_source ) )                     &
+                     / ( SQRT( u_atm_umbl**2 + v_atm_umbl**2 ) )
 
-                crosswind_dist(j,k) = ( v_atm_nbl * ( x_comp(j) - x_source ) -  &
-                     u_atm_nbl * ( y_comp(k) - y_source ) )                     &
-                     / ( SQRT( u_atm_nbl**2 + v_atm_nbl**2 ) )
+                crosswind_dist(j,k) = ( v_atm_umbl * ( x_comp(j) - x_source ) -  &
+                     u_atm_umbl * ( y_comp(k) - y_source ) )                     &
+                     / ( SQRT( u_atm_umbl**2 + v_atm_umbl**2 ) )
 
 
                 IF ( upwind_dist(j,k) .GE. max_up_dist ) THEN
@@ -374,9 +395,19 @@ CONTAINS
 
           END IF
 
-          CALL output_solution(t,steady_flag)
+          CALL output_solution(t,steady_state)
 
-          IF ( r_new_source .EQ. r_old_source ) THEN
+          x_upw = x_new_source - r_new_source * u_atm_umbl / SQRT( u_atm_umbl**2 +      &
+               v_atm_umbl**2 )
+          y_upw = y_new_source - r_new_source * v_atm_umbl / SQRT( u_atm_umbl**2 +      &
+               v_atm_umbl**2 )
+
+          d_upw_umb = SQRT(x_upw**2 + y_upw**2) 
+
+          WRITE(umb_unit,306)  t, dx*dy*COUNT(q(1,:,:).GT.1.E-2_wp) , d_upw_umb
+
+          
+          IF ( steady_flag .AND. ( r_new_source .EQ. r_old_source ) ) THEN
 
              WRITE(*,*) 'STEADY UMBRELLA REACHED'
              EXIT time_loop
@@ -390,8 +421,8 @@ CONTAINS
 
     END DO time_loop
 
-    steady_flag = .TRUE.
-    CALL output_solution(t,steady_flag)
+    steady_state = .TRUE.
+    CALL output_solution(t,steady_state)
 
     
     CALL check_solve
@@ -433,10 +464,10 @@ CONTAINS
     WRITE(*,FMT="(A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)") ' xold =', x_source,   &
          ' yold =',y_source, ' rold =',r_source
 
-    x_upw = x_source - r_source * u_atm_nbl / SQRT( u_atm_nbl**2 +      &
-         v_atm_nbl**2 )
-    y_upw = y_source - r_source * v_atm_nbl / SQRT( u_atm_nbl**2 +      &
-         v_atm_nbl**2 )
+    x_upw = x_source - r_source * u_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
+    y_upw = y_source - r_source * v_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
 
     d_upw_nbl = SQRT(x_upw**2 + y_upw**2) 
     
@@ -448,10 +479,10 @@ CONTAINS
          x_new_source, ' ynew =',y_new_source, ' rnew =',r_new_source,' havg =',&
          h_avg
 
-    x_upw = x_new_source - r_new_source * u_atm_nbl / SQRT( u_atm_nbl**2 +      &
-         v_atm_nbl**2 )
-    y_upw = y_new_source - r_new_source * v_atm_nbl / SQRT( u_atm_nbl**2 +      &
-         v_atm_nbl**2 )
+    x_upw = x_new_source - r_new_source * u_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
+    y_upw = y_new_source - r_new_source * v_atm_umbl / SQRT( u_atm_umbl**2 +      &
+         v_atm_umbl**2 )
 
     d_upw_umb = SQRT(x_upw**2 + y_upw**2) 
 
@@ -500,7 +531,8 @@ CONTAINS
 308 FORMAT((7x,f14.4,16x,f14.4,16x,f14.4,9x,f14.4)) 
 
     CLOSE(swu_unit)
-
+    CLOSE(umb_unit)
+    
   END SUBROUTINE solve_umbrella
 
 END module SW_UMBRELLA

@@ -184,7 +184,7 @@ MODULE inpout
   
   NAMELIST / lognormal_parameters / mu_lognormal , sigma_lognormal
 
-  NAMELIST / umbrella_run_parameters / t_end , dt_output , C_D
+  NAMELIST / umbrella_run_parameters / t_end , dt_output , C_D , steady_flag
   
   NAMELIST / numeric_parameters / rsource_cells , solver_scheme, dt0 , max_dt , &
        cfl, limiter , theta , reconstr_coeff , interfaces_relaxation , n_RK   
@@ -272,6 +272,7 @@ CONTAINS
     t_end = 3600
     dt_output = 600
     C_D = notSet
+    steady_flag = .FALSE.
     
     !---------- default values of the ATM_PARAMETERS namelist -------------------
     VISC_ATM0 = notSet

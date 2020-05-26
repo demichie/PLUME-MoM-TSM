@@ -173,10 +173,10 @@ CONTAINS
     time_param(4) = t_end
         
     cell_size = r_source / rsource_cells
-    comp_cells_x = FLOOR( 20.0_wp * r_source / cell_size )
+    comp_cells_x = FLOOR( 40.0_wp * r_source / cell_size )
     comp_cells_y = comp_cells_x
-    x0 = x_source - 0.5_wp * comp_cells_x * cell_size
-    y0 = y_source - 0.5_wp * comp_cells_y * cell_size
+    x0 = x_source - 0.25_wp * comp_cells_x * cell_size
+    y0 = y_source - 0.25_wp * comp_cells_y * cell_size
     dx = cell_size
     dy = cell_size
         
@@ -211,7 +211,7 @@ CONTAINS
   !
   !******************************************************************************
 
-  SUBROUTINE output_solution(time,steady_flag)
+  SUBROUTINE output_solution(time,steady_state)
 
     ! external procedures
     USE constitutive_2d, ONLY : qc_to_qp
@@ -227,7 +227,7 @@ CONTAINS
     IMPLICIT none
 
     REAL(wp), INTENT(IN) :: time
-    LOGICAL, INTENT(IN) :: steady_flag
+    LOGICAL, INTENT(IN) :: steady_state
     
     CHARACTER(LEN=4) :: idx_string
 
@@ -239,7 +239,7 @@ CONTAINS
     INTEGER :: i
     INTEGER :: i_vars
 
-    IF ( .NOT. steady_flag ) THEN
+    IF ( .NOT. steady_state ) THEN
     
        output_idx = output_idx + 1
        

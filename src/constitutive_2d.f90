@@ -12,7 +12,7 @@ MODULE constitutive_2d
   !> flag used for size of implicit non linear-system
   LOGICAL, ALLOCATABLE :: implicit_flag(:)
 
-  REAL(wp) :: u_atm_nbl , v_atm_nbl
+  REAL(wp) :: u_atm_umbl , v_atm_umbl
   REAL(wp) :: N
   REAL(wp) :: grav , drho_dz , rho_nbl
 
@@ -554,8 +554,8 @@ CONTAINS
 
     CALL c_phys_var(qj,h,u,v)
 
-    delta_u = u - u_atm_nbl
-    delta_v = v - v_atm_nbl
+    delta_u = u - u_atm_umbl
+    delta_v = v - v_atm_umbl
 
     mod_vel = SQRT( delta_u**2 + delta_v**2 )
 

@@ -45,7 +45,7 @@ CONTAINS
     USE parameters_2d, ONLY : x_source, y_source, r_source, vol_flux_source ,   &
          u_source, v_source, dr_dz
 
-    USE constitutive_2d, ONLY : u_atm_nbl , v_atm_nbl , rho_nbl , drho_dz
+    USE constitutive_2d, ONLY : u_atm_umbl , v_atm_umbl , rho_nbl , drho_dz
     
     USE particles_module, ONLY : n_part , n_sections , mom , phiL , phiR , n_mom
     USE particles_module, ONLY : solid_partial_mass_fraction ,                  &
@@ -152,6 +152,9 @@ CONTAINS
     REAL(wp) :: phi_mean
 
     LOGICAL :: update_z
+
+    REAL(wp) :: u_atm_nbl , v_atm_nbl
+    REAL(wp) :: u_atm_top , v_atm_top
     
     !
     ! ... Set initial conditions at the release height
@@ -801,6 +804,14 @@ CONTAINS
     v_source = v_nbl
     u_atm_nbl = u_wind_nbl
     v_atm_nbl = v_wind_nbl
+    u_atm_top = u_wind
+    v_atm_top = v_wind
+
+    u_atm_umbl = u_atm_nbl
+    v_atm_umbl = v_atm_nbl
+    
+    ! u_atm_umbl = 0.5_wp * ( u_atm_nbl + u_atm_top )
+    ! v_atm_umbl = 0.5_wp * ( v_atm_nbl + v_atm_top )
         
     IF ( write_flag) THEN
 
@@ -828,6 +839,8 @@ CONTAINS
                v_atm_nbl
           WRITE(*,*) 'Atmospheric density vertical gradient at nbl [kg/m4] =',     &
                drho_atm_dz
+          WRITE(*,*) 'Wind velocity at plume top [m/s] =', u_atm_top ,&
+               v_atm_top
 
        END IF
        
