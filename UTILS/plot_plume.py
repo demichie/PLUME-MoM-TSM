@@ -28,14 +28,16 @@ else:
     required = {'easygui','tkinter'}
     installed = {pkg.key for pkg in pkg_resources.working_set}
 
-    if ( 'easygui' in installed ):
-        import easygui
-        filename = easygui.fileopenbox( filetypes=['*.col'])
-    elif ( 'tkinter' in installed ):
+    print("Select your *.col file")
 
+    if ( 'easygui' in installed ):      
+        import easygui
+        filename = easygui.fileopenbox(msg='select your *.col file', filetypes = ['*.col'])
+
+    elif ( 'tkinter' in installed ):
         from  tkinter import *
         root = Tk()
-        root.filename =  filedialog.askopenfilename(title = "choose your file",filetypes=[("col files", "*.col")])
+        root.filename =  filedialog.askopenfilename(title = 'select your *.col file',filetypes=[("col files", "*.col")])
         filename = root.filename
         root.destroy()
 
@@ -205,9 +207,6 @@ solid_mass_fraction = np.zeros((results.shape[0],n_part_sect))
 for i in range(n_part_sect):
     solid_mass_fraction[:,i] = solid_partial_mass_fraction[:,i] * ( 1 - gas_mass_fraction[:,0] - ice_mass_fraction[:,0] - liquid_water_mass_fraction[:,0])
        
-
-
-
 solid_tot_mass_fraction = np.zeros((results.shape[0],1))
 solid_tot_mass_fraction[:,0] = np.sum(solid_mass_fraction,axis=1)
 
@@ -249,10 +248,9 @@ colors = [ cm.jet(xj) for xj in cm_subsection ]
 
 colors = np.tile(colors,(n_part,1))
 
-linestyle_str = [ 'solid','dotted','dashed','dashdot'] 
+linestyle_str = [ 'solid','dotted','dashdot']
 
 linestyle_str = np.repeat(linestyle_str,n_bin)
-
 
 # MASS FRACTION 
 
@@ -260,11 +258,19 @@ fig = plt.figure()
 
 plt.subplot(2, 2, 1)
 
-lines = plt.plot(dry_air_mass_fraction,z, volcgas_mix_mass_fraction,z,wvapour_mass_fraction,z,gas_mass_fraction,z)
+plt.plot(dry_air_mass_fraction[:last_change],z[:last_change],"-",c="orange")
+plt.plot(volcgas_mix_mass_fraction[:last_change],z[:last_change],"-",c="g")
+plt.plot(wvapour_mass_fraction[:last_change],z[:last_change],"-",c="orangered")
+plt.plot(gas_mass_fraction[:last_change],z[:last_change],"-",c="b")
 
-names = ['dry air','volcgas','wv','totalgas']
+if change:
 
-plt.legend(lines, [names[j] for j in range(len(names))])
+    plt.plot(dry_air_mass_fraction[last_change:],z[last_change:],"--",c="orange")
+    plt.plot(volcgas_mix_mass_fraction[last_change:],z[last_change:],"--",c="g")
+    plt.plot(wvapour_mass_fraction[last_change:],z[last_change:],"--",c="orangered")
+    plt.plot(gas_mass_fraction[last_change:],z[last_change:],"--",c="b")
+
+plt.legend(['dry air','volcgas','wv','totalgas'])
 plt.xlabel('Gas mass fraction')
 plt.ylabel('Height (km)')
 
@@ -272,24 +278,40 @@ plt.subplot(2, 2, 2)
 
 water = wvapour_mass_fraction + liquid_water_mass_fraction + ice_mass_fraction
 
-lines = plt.plot(wvapour_mass_fraction/water,z,'-',liquid_water_mass_fraction/water,z,'-', ice_mass_fraction/water, z,'-')
+plt.plot(wvapour_mass_fraction[:last_change]/water[:last_change],z[:last_change],"-",c="orangered")
+plt.plot(liquid_water_mass_fraction[:last_change]/water[:last_change],z[:last_change],"-",c="g")
+plt.plot(ice_mass_fraction[:last_change]/water[:last_change],z[:last_change],"-",c="cornflowerblue")
+
+if change:
+
+    plt.plot(wvapour_mass_fraction[last_change:]/water[last_change:],z[last_change:],"--",c="orangered")
+    plt.plot(liquid_water_mass_fraction[last_change:]/water[last_change:],z[last_change:],"--",c="g")
+    plt.plot(ice_mass_fraction[last_change:]/water[last_change:],z[last_change:],"--",c="cornflowerblue")
+
 
 plt.xlabel('Water mass fraction')
 plt.ylabel('Height (km)')
-names = ['wv','lq','ice']
-
-plt.legend(lines, [names[j] for j in range(len(names))])
+plt.legend(['wv','lq','ice'])
 
 
 plt.subplot(2, 2, 4)
 
-lines = plt.plot(solid_tot_mass_fraction ,z, gas_mass_fraction,z,liquid_water_mass_fraction,z, ice_mass_fraction, z,'--')
+plt.plot(solid_tot_mass_fraction[:last_change] ,z[:last_change],"-",c="r")
+plt.plot(gas_mass_fraction[:last_change] ,z[:last_change],"-",c="b")
+plt.plot(liquid_water_mass_fraction[:last_change] ,z[:last_change],"-",c="g")
+plt.plot(ice_mass_fraction[:last_change] ,z[:last_change],"-",c="cornflowerblue")
+
+if change:
+
+    plt.plot(solid_tot_mass_fraction[last_change:] ,z[last_change:],"--",c="r")
+    plt.plot(gas_mass_fraction[last_change:] ,z[last_change:],"--",c="b")
+    plt.plot(liquid_water_mass_fraction[last_change:] ,z[last_change:],"--",c="g")
+    plt.plot(ice_mass_fraction[last_change:] ,z[last_change:],"--",c="cornflowerblue")
 
 plt.xlabel('Phases mass fraction')
 plt.ylabel('Height (km)')
-names = ['part','gas','lq','ice']
 fig.tight_layout()
-plt.legend(lines, [names[j] for j in range(len(names))])
+plt.legend(['part','gas','lq','ice'])
 
 
 plt.subplot(2, 2, 3)
@@ -299,11 +321,16 @@ n_bin_sample = np.linspace(0, n_bin-1, num=7, endpoint=True, dtype=int)
 for i in range(n_part_sect):
 
     if ( np.remainder(i,n_bin) in n_bin_sample):
-        plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i],label=labels[i])
+        plt.plot(solid_mass_fraction[:last_change,i],z[:last_change], color=colors[i],linestyle=linestyle_str[i],label=labels[i])
+        if change:
+            plt.plot(solid_mass_fraction[last_change:,i],z[last_change:], color=colors[i],linestyle="--",label='_nolegend_')
     else:
-        plt.plot(solid_mass_fraction[:,i],z, color=colors[i],linestyle=linestyle_str[i],label='_nolegend_')
+        plt.plot(solid_mass_fraction[:last_change,i],z[:last_change], color=colors[i],linestyle=linestyle_str[i],label='_nolegend_')
+        if change:
+            plt.plot(solid_mass_fraction[last_change:,i],z[last_change:], color=colors[i],linestyle="--",label='_nolegend_')
 
-plt.legend(ncol=n_part,fontsize = 'x-small')
+
+plt.legend(labels,ncol=n_part,fontsize = 'x-small')
 
 
 plt.xlabel('Particles mass fraction')
@@ -318,12 +345,12 @@ fig.savefig(str(filename)+'_mass_fraction.pdf')   # save the figure to file
 
 fig = plt.figure()
 
-plt.plot(temp[:last_change]+273,z[:last_change])
+plt.plot(temp[:last_change]+273,z[:last_change],'-',c="b")
 if change:
-    plt.plot(temp[last_change:]+273,z[last_change:])
+    plt.plot(temp[last_change:]+273,z[last_change:],'--',c="b")
 
-plt.axvline(273, c = 'r',ls='--')
-plt.axvline(233, c = 'r',ls='--')
+plt.axvline(273, c = 'r',ls='-',lw=0.3)
+plt.axvline(233, c = 'r',ls='-',lw=0.3)
 #plt.plot(temp_atm,z,'.r')
 plt.xlabel('Temp [K]')
 plt.ylabel('Height (km)')
@@ -347,9 +374,10 @@ if ( not aggregation_flag ):
     fig = plt.figure()
 
     for i in range(n_part_sect):
-
-        plt.plot(solid_mass_loss_cum[:,i],z, color=colors[i],linestyle=linestyle_str[i])
-
+        plt.plot(solid_mass_loss_cum[:last_change,i],z[:last_change], color=colors[i],linestyle=linestyle_str[i],label=labels[i])
+        if change:
+            plt.plot(solid_mass_loss_cum[last_change:,i],z[last_change:], color = colors[i],linestyle="--",label='_nolegend_')
+    
     plt.legend(labels,ncol=n_part,fontsize = 'x-small')
     plt.xlabel('Particles mass loss fraction')
     plt.ylabel('Height (km)')
@@ -370,36 +398,36 @@ fig = plt.figure()
 
 plt.subplot(2, 2, 1)
 
-plt.plot(r[:last_change],z[:last_change])
+plt.plot(r[:last_change],z[:last_change],"-",c="b")
 if change:
-    plt.plot(r[last_change:],z[last_change:])
+    plt.plot(r[last_change:],z[last_change:],"--",c="b")
 
 plt.xlabel('Radius (km)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 2)
 
-plt.plot(w[:last_change],z[:last_change])
+plt.plot(w[:last_change],z[:last_change],"-",c="b")
 if change:
-    plt.plot(w[last_change:],z[last_change:])
+    plt.plot(w[last_change:],z[last_change:],"--",c="b")
 
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 3)
 
-plt.plot(rho_mix[:last_change],z[:last_change])
+plt.plot(rho_mix[:last_change],z[:last_change],"-",c="b")
 if change:
-    plt.plot(rho_mix[last_change:],z[last_change:])
+    plt.plot(rho_mix[last_change:],z[last_change:],"--",c="b")
 
 plt.xlabel('Mixture density (kg/m$^3$)')
 plt.ylabel('Height (km)')
 
 plt.subplot(2, 2, 4)
 
-plt.plot(rho_rel[:last_change],z[:last_change])
+plt.plot(rho_rel[:last_change],z[:last_change],"-",c="b")
 if change:
-    plt.plot(rho_rel[last_change:],z[last_change:])
+    plt.plot(rho_rel[last_change:],z[last_change:],"--",c="b")
 
 #plt.plot(rho_atm,z,'.r')
 
@@ -417,9 +445,9 @@ ax = fig.add_subplot(111, projection='3d', proj_type = 'ortho')
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors = prop_cycle.by_key()['color']
 
-ax.plot(x[:last_change,0],y[:last_change,0],z[:last_change,0])
+ax.plot(x[:last_change,0],y[:last_change,0],z[:last_change,0],"-",c="b")
 if change:
-    ax.plot(x[last_change:,0],y[last_change:,0],z[last_change:,0])
+    ax.plot(x[last_change:,0],y[last_change:,0],z[last_change:,0],"--",c="b")
 
 # ax.scatter(x, y,z)
 
@@ -467,9 +495,9 @@ for i in range(n_sect):
 
     # ax.scatter(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:])
     if (ind<=last_change):
-        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color=colors[0])
+        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color="b",ls = "-")
     else:
-        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color=colors[1])
+        ax.plot(x[ind,0]+plume[0,:], y[ind,0]+plume[1,:],z[ind,0]+plume[2,:],color="b",ls = "--",alpha = 0.7)
 
 
 ax.set_xlabel('x (km)')
@@ -606,15 +634,15 @@ ax2.set_xlabel('phi')
 
 # ax = plt.subplot(1, 3, 3)
 
-ax3.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change])
+ax3.plot(solid_mass_tot_loss_cum[:last_change],z[:last_change],c="b",ls = "-")
 if change:
-    ax3.plot(solid_mass_tot_loss_cum[last_change-1:],z[last_change-1:])
+    ax3.plot(solid_mass_tot_loss_cum[last_change-1:],z[last_change-1:],c="b",ls = "--")
 
 
 ax3.yaxis.set_label_position("right")
 ax3.yaxis.tick_right()
 
-mark_pos, = ax3.plot(solid_mass_tot_loss_cum[0],z[0],'o')
+mark_pos, = ax3.plot(solid_mass_tot_loss_cum[0],z[0],'o',c="orange")
 ax3.set_ylabel('Height [km]')
 # plt.xlabel('Fraction of solid flux lost')
 ax3.title.set_text('Fraction of solid flux lost')
