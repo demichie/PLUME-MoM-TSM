@@ -1799,30 +1799,40 @@ CONTAINS
 
           aggregation_model = lower(aggregation_model)
        
-          IF ( ( aggregation_model.EQ.'costa') .AND. ( .not.WATER_FLAG ) ) THEN
+          IF ( aggregation_model.EQ.'costa') THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: only wet aggregation is possible'
-             WRITE(*,*) 'with ''Costa'' aggregation model'
-             WRITE(*,*) 'WATER FLAG =',WATER_FLAG
+             IF ( .not.WATER_FLAG ) THEN
+
+                WRITE(*,*) ''
+                WRITE(*,*) 'ERROR: only wet aggregation is possible'
+                WRITE(*,*) 'with ''Costa'' aggregation model'
+                WRITE(*,*) 'WATER FLAG =',WATER_FLAG
+                
+                STOP
+
+             END IF
+
+          ELSEIF ( aggregation_model.EQ.'constant') THEN
+
+             IF ( .not.isSet(particles_beta0) ) THEN
+
+                WRITE(*,*) ''
+                WRITE(*,*) 'ERROR: particles_beta0 requested'
+                WRITE(*,*) 'with ''constant'' aggregation model'
+                WRITE(*,*) 'PARTICLES_BETA0 = ',particles_beta0
              
-             STOP
+                STOP
+
+             END IF
+
+          ELSEIF ( aggregation_model.NE.'brownian') THEN
+
+             WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
+             WRITE(*,*) 'Please check aggregation_model:',aggregation_model
+             STOP             
              
           END IF
         
-          IF ( ( aggregation_model.EQ.'constant') .AND.                            &
-               ( .not.isSet(particles_beta0) ) ) THEN
-
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: particles_beta0 requested'
-             WRITE(*,*) 'with ''constant'' aggregation model'
-             WRITE(*,*) 'PARTICLES_BETA0 =',particles_beta0
-             
-             STOP
-             
-          END IF
-        
-
           WRITE(bak_unit, aggregation_parameters)
           
        END IF
