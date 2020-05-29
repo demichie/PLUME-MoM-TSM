@@ -37,9 +37,9 @@ MODULE inpout
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
     
-    USE meteo_module, ONLY: p0 , t0 , h1 , h2 , rh , sphu_atm0 , visc_atm0 ,    &
+    USE meteo_module, ONLY: h1 , h2 , rh , sphu_atm0 , visc_atm0 ,    &
          rair , cpair , read_atm_profile , u_max , z_r , exp_wind ,             &
-         wind_mult_coeff ,rwv
+         wind_mult_coeff , rwv , rel_hu
 
     USE solver_module, ONLY: dz0 
 
@@ -143,7 +143,9 @@ MODULE inpout
   REAL(wp) :: hy_deltaz , hy_z , hy_z_old , hy_x , hy_y , hy_x_old , hy_y_old 
 
   REAL(wp), ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) , &
-        solid_mfr_oldold(:)
+       solid_mfr_oldold(:)
+
+  REAL(wp) :: p_atm0 , t_atm0
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
        inversion_flag , hysplit_flag , aggregation_flag, water_flag ,           &
@@ -167,7 +169,7 @@ MODULE inpout
   NAMELIST / atm_parameters / visc_atm0 , rair , cpair , wind_mult_coeff ,      &
        read_atm_profile
   
-  NAMELIST / std_atm_parameters / sphu_atm0 , u_max
+  NAMELIST / std_atm_parameters / sphu_atm0 , u_max , p_atm0 , t_atm0 , rel_hu
   
   NAMELIST / table_atm_parameters / month , lat , u_max , z_r , exp_wind
 
@@ -254,6 +256,9 @@ CONTAINS
 
     !-------------- default values of the STD_ATM_PARAMETERS namelist --------
     sphu_atm0 = notSet
+    rel_hu = notSet
+    p_atm0 = notSet
+    t_atm0 = notSet
     u_max = notSet
     
     !------------ default values of the HYSPLIT_PARAMETERS namelist -------------
@@ -421,7 +426,7 @@ CONTAINS
 
     ! External variables
 
-    USE meteo_module, ONLY: rho_atm , pa , atm_profile , n_atm_profile
+    USE meteo_module, ONLY: rho_atm , pa , ta , atm_profile , n_atm_profile
 
     USE mixture_module, ONLY: water_volume_fraction0 , rgasmix ,                &
          gas_mass_fraction, water_vapor_mass_fraction ,                         &
@@ -1474,30 +1479,97 @@ CONTAINS
 
           IF ( .NOT. isSet(sphu_atm0) ) THEN
 
+             IF ( .NOT. isSet(rel_hu) ) THEN
+            
+                WRITE(*,*) ''
+                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(*,*)
+                WRITE(*,std_atm_parameters) 
+                WRITE(*,*)
+                WRITE(*,*) 'Please assign sphu_atm0 or rel_hu'
+                WRITE(*,*)
+                STOP
+
+             ELSEIF ( ( rel_hu .LT. 0.0_wp ) .OR. ( rel_hu .GT. 1.0_wp ) ) THEN
+
+                WRITE(*,*) ''
+                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(*,*)
+                WRITE(*,std_atm_parameters) 
+                WRITE(*,*)                
+                WRITE(*,*) 'Please check rel_hu value (0<=rel_hu<=1)'
+                WRITE(*,*) 'rel_hu =',rel_hu
+                WRITE(*,*)
+                STOP
+
+             END IF
+
+          ELSE
+
+             IF ( isSet(rel_hu) ) THEN
+            
+                WRITE(*,*) ''
+                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(*,*)
+                WRITE(*,std_atm_parameters) 
+                WRITE(*,*)
+                WRITE(*,*) 'Please assign only sphu_atm0 or rel_hu'
+                WRITE(*,*)
+                STOP
+
+             ELSE
+             
+                IF ( sphu_atm0 .LE. 2.0E-6_wp ) THEN
+                   
+                   WRITE(*,*) 'WARNING: sphu_atm0 value at sea level'
+                   WRITE(*,*) 'should be higher than value at tropopause'
+                   WRITE(*,*) 'base (2.0E-6 kg/kg)'
+                   WRITE(*,*) 'Value changed to 2.01E-6'
+                   WRITE(*,*)
+                   sphu_atm0 = 2.01e-6_wp
+                   
+                END IF
+
+             END IF
+             
+          END IF
+
+          IF ( .NOT. isSet(p_atm0) ) THEN
+
              WRITE(*,*) ''
              WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
              WRITE(*,*)
              WRITE(*,std_atm_parameters) 
              WRITE(*,*)
-             WRITE(*,*) 'Please check sphu_atm0 value (<0 [Kg/Kg])'
-             WRITE(*,*) 'sphu_atm0 =',sphu_atm0
+             WRITE(*,*) 'Please check p_atm0 value (Pa)'
+             WRITE(*,*) 'p_atm0 =',p_atm0
              WRITE(*,*)
              STOP
 
           ELSE
+          
+             pa = p_atm0
 
-             IF ( sphu_atm0 .LE. 2.0E-6_wp ) THEN
-
-                WRITE(*,*) 'WARNING: sphu_atm0 value at sea level'
-                WRITE(*,*) 'should be higher than value at tropopause'
-                WRITE(*,*) 'base (2.0E-6 kg/kg)'
-                WRITE(*,*) 'Value changed to 2.01E-6'
-                WRITE(*,*)
-                sphu_atm0 = 2.01e-6_wp
-
-             END IF
-             
           END IF
+
+          IF ( .NOT. isSet(t_atm0) ) THEN
+
+             WRITE(*,*) ''
+             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+             WRITE(*,*)
+             WRITE(*,std_atm_parameters) 
+             WRITE(*,*)
+             WRITE(*,*) 'Please check t_atm0 value (K)'
+             WRITE(*,*) 't_atm0 =',t_atm0
+             WRITE(*,*)
+             STOP
+
+          ELSE
+          
+             ta = t_atm0
+
+          END IF
+
           
           WRITE(bak_unit, std_atm_parameters)
           REWIND(inp_unit)

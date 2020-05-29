@@ -10,6 +10,7 @@
 
 MODULE solver_module
   USE moments_module, ONLY: n_mom , n_sections
+  USE meteo_module, ONLY: read_atm_profile
   USE particles_module, ONLY : n_part
   USE mixture_module, ONLY : n_gas
   USE variables, ONLY : wp
@@ -68,8 +69,16 @@ CONTAINS
 
     IMPLICIT NONE
     !
-    itotal = n_part * n_sections * n_mom + 9 + n_gas
-    !
+    IF ( read_atm_profile .EQ. 'standard' ) THEN
+
+       itotal = n_part * n_sections * n_mom + 9 + n_gas + 2
+
+    ELSE
+       
+       itotal = n_part * n_sections * n_mom + 9 + n_gas
+
+    END IF
+       !
     ALLOCATE(f(itotal))
     ALLOCATE(f_stepold(itotal))
     ALLOCATE(rhs1(itotal))
@@ -101,7 +110,7 @@ CONTAINS
   
   SUBROUTINE rate
 
-    USE meteo_module, ONLY: u_atm , rho_atm , ta , cpair , rair ,               &
+    USE meteo_module, ONLY: u_atm , rho_atm , ta , cpair , rair , gamma_m ,     &
          cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , u_wind , v_wind
 
     USE mixture_module, ONLY: rho_mix , t_mix , rgasmix , rho_gas ,             &
@@ -337,6 +346,13 @@ CONTAINS
 
     END DO
 
+    IF ( read_atm_profile .EQ. 'standard' ) THEN
+
+       rhs1(itotal-1 ) = - rho_atm * gi 
+       rhs1(itotal ) = - Gamma_m
+       
+    END IF
+    
     RETURN
 
   END SUBROUTINE rate
@@ -414,7 +430,7 @@ CONTAINS
          water_vapor_mass_fraction, ice_mass_fraction
 
     USE meteo_module, ONLY: u_atm , c_lw , c_wv , cpair , h_lw0 , h_wv0 ,       &
-         T_ref , c_ice
+         T_ref , c_ice , ta , pa
 
     USE particles_module, ONLY: mom , cpsolid
 
@@ -479,6 +495,14 @@ CONTAINS
 
     END DO
 
+    IF ( read_atm_profile .EQ. 'standard' ) THEN
+
+       f_(itotal-1 ) = pa 
+       f_(itotal ) = ta
+       
+    END IF
+    
+    
     RETURN
 
   END SUBROUTINE lump
@@ -533,7 +557,8 @@ CONTAINS
   
   SUBROUTINE unlump(f_)
 
-    USE meteo_module, ONLY: u_atm , rair , pa , cpair , rwv , rho_atm , visc_atm
+    USE meteo_module, ONLY: u_atm , rair , pa , cpair , rwv , rho_atm , ta ,    &
+         visc_atm
     
     USE mixture_module, ONLY: rho_gas , rgasmix , rho_mix , t_mix ,             &
          gas_volume_fraction , solid_tot_volume_fraction , gas_mass_fraction ,  &
@@ -618,6 +643,13 @@ CONTAINS
     y = f_(7)
  
     ! ---- evaluate the new atmospheric density ad u and temperature at z -------
+    IF ( read_atm_profile .EQ. 'standard' ) THEN
+
+       pa = f_(itotal-1 )
+       ta = f_(itotal ) 
+       
+    END IF
+
     CALL zmet
 
     u = f_(2)/f_(1)

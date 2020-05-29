@@ -68,6 +68,8 @@ CONTAINS
     mag_u = SQRT(u*u+v*v+w*w)
     phi = ATAN(w/u)
 
+    
+
     RETURN
 
   END SUBROUTINE initialize_plume

@@ -160,7 +160,7 @@ CONTAINS
     ! ... Set initial conditions at the release height
     !
     CALL initialize_plume
-
+    
     !
     ! ... Get meteo variables at release height
     !

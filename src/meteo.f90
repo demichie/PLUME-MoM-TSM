@@ -23,22 +23,6 @@ MODULE meteo_module
   REAL(wp) :: h5    
   REAL(wp) :: h6    
 
-  REAL(wp) :: T0    
-  REAL(wp) :: T1    
-  REAL(wp) :: T2    
-  REAL(wp) :: T3    
-  REAL(wp) :: T4    
-  REAL(wp) :: T5    
-  REAL(wp) :: T6    
-
-  REAL(wp) :: p0    
-  REAL(wp) :: p1    
-  REAL(wp) :: p2    
-  REAL(wp) :: p3    
-  REAL(wp) :: p4    
-  REAL(wp) :: p5    
-  REAL(wp) :: p6    
-
   REAL(wp) :: u0    
   REAL(wp) :: u1    
   REAL(wp) :: u2    
@@ -46,22 +30,14 @@ MODULE meteo_module
   REAL(wp) :: u4    
   REAL(wp) :: u5    
   REAL(wp) :: u6    
+  
+  REAL(wp) :: sp_hu0, sp_hu1, sp_hu2, sp_hu3, sp_hu4, sp_hu5, sp_hu6 
 
-  REAL(wp) :: Gamma_m0
-  REAL(wp) :: Gamma_m1
-  REAL(wp) :: Gamma_m2
-  REAL(wp) :: Gamma_m3
-  REAL(wp) :: Gamma_m4
-  REAL(wp) :: Gamma_m5
-  REAL(wp) :: Gamma_m6
+  REAL(wp) :: rel_hu
+  
+  REAL(wp) :: Gamma_m
 
-  REAL(wp) :: Gamma_d0
-  REAL(wp) :: Gamma_d1
-  REAL(wp) :: Gamma_d2
-  REAL(wp) :: Gamma_d3
-  REAL(wp) :: Gamma_d4
-  REAL(wp) :: Gamma_d5
-  REAL(wp) :: Gamma_d6
+  REAL(wp) :: Gamma_d
 
   REAL(wp) :: rho_dry
   
@@ -184,10 +160,57 @@ CONTAINS
 
     IMPLICIT NONE
 
+
+    IF ( read_atm_profile .EQ. 'standard' ) THEN
+
+       ! tropospere base altitude (m)
+       h0 = 0.0_wp 
+       u0 = 0.0_wp
+       sp_hu0 = sphu_atm0
+       
+       ! ------------------------ atmosphere layer 1 ----------------------------
+
+       ! tropopause base altitude
+       h1 = 11000.0_wp
+       ! specific humidity (kg/kg) at top of layer 1
+       sp_hu1 = 2.0E-6_wp
+       u1 = u_max
+       
+       ! ------------------------ atmosphere layer 2 ----------------------------
+       h2 = 20000.0_wp
+       ! specific humidity (kg/kg) at top of layer 2
+       sp_hu2 = 2.6E-6_wp
+       u2 = 10.0_wp
+
+       ! ------------------------ atmosphere layer 3 ----------------------------
+       h3 = 32000.0_wp
+       ! specific humidity (kg/kg) at top of layer 3
+       sp_hu3 = 3.2E-6_wp
+
+       ! ------------------------ atmosphere layer 4 ----------------------------
+       h4 = 47000.0_wp
+       ! specific humidity (kg/kg) at top of layer 4
+       sp_hu4 = 3.2E-6_wp
+        
+       ! ------------------------ atmosphere layer 5 ----------------------------
+       h5 = 51000.0_wp
+       ! specific humidity (kg/kg) at top of layer 5
+       sp_hu5 = 3.2E-6_wp
+
+       ! ------------------------ atmosphere layer 6 ----------------------------
+       h6 = 71000.0_wp
+       ! specific humidity (kg/kg) at top of layer 6
+       sp_hu6 = 2.4E-6_wp
+       ! Ref: WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
+       u6 = 65.0_wp
+
+    END IF
+
     CALL zmet
 
     rho_atm0 = rho_atm
 
+    
     RETURN
 
   END SUBROUTINE initialize_meteo
@@ -219,15 +242,23 @@ CONTAINS
     !> Sutherland's constant
     REAL(wp) :: Cs
 
-    ! Density correction factors
-    REAL(wp) :: K1,K2,K3,K4,K5,K6
+    ! Density correction factor
+    REAL(wp) :: K
 
-    REAL(wp) :: sp_hu0, sp_hu1, sp_hu2, sp_hu3, sp_hu4, sp_hu5, sp_hu6 
-    
     REAL(wp) :: sp_hu_avg
     
-
     REAL(wp) :: hu_ratio
+
+    REAL(wp) :: h_bot , h_top
+    REAL(wp) :: sphu_bot , sphu_top
+
+    REAL(wp) :: T_ref , t0
+    REAL(wp) :: el , es , e_sl
+
+    REAL(wp) :: p_wv , p_da
+    REAL(wp) :: n_wv , n_da
+    REAL(wp) :: x_wv , x_da
+
     
     IF ( read_atm_profile .EQ. 'card' ) THEN
 
@@ -290,200 +321,142 @@ CONTAINS
 
     ELSEIF ( read_atm_profile .EQ. 'standard' ) THEN
 
-       ! tropospere base altitude (m)
-       h0 = 0.0_wp 
-       T0 = 288.15_wp
-       p0 = 101325.0_wp
-       u0 = 0.0_wp
-       sp_hu0 = sphu_atm0
-       
-       ! ------------------------ atmosphere layer 1 ----------------------------
-
-       ! tropopause base altitude
-       h1 = 11000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 1
-       sp_hu1 = 2.0E-6_wp
-       ! average value of specific humidity in layer 1
-       sp_hu_avg = ( sp_hu1-sp_hu0 ) / ( log(sp_hu1) - log(sp_hu0) )
-       ! density correction due to humidity
-       K1 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Dry air lapse rate in layer 1
-       Gamma_d1 = 6.5E-3_wp
-       ! Moist lapse rate in layer 1
-       Gamma_m1 = Gamma_d1 * (1.0_wp - 0.856_wp * sp_hu_avg )
-       ! Temperature at top of layer 1
-       T1 = T0 - Gamma_m1 * (h1-h0)
-       p1 = p0 * ( T1 / T0 )**( K1 * gi / (rair*Gamma_m1) )
-       u1 = u_max
-       
-
-       ! ------------------------ atmosphere layer 2 ----------------------------
-       h2 = 20000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 2
-       sp_hu2 = 2.6E-6_wp
-       ! average value of specific humidity in layer 2
-       sp_hu_avg = ( sp_hu2-sp_hu1 ) / ( log(sp_hu2) - log(sp_hu1) )
-       ! density correction due to humidity in layer 2
-       K2 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Temperature at top of layer 2
-       T2 = T1
-       p2 = p1 * EXP( - K2* gi / ( rair * T1 ) * ( h2 - h1 ) )
-       ! AN INVESTIGATION OF STRATOSPHERIC WINDS IN SUPPORT OF THE
-       ! HIGH ALTITUDE AIRSHIP (Figg. 3 and 6) 
-       u2 = 10.0_wp
-
-       ! ------------------------ atmosphere layer 3 ----------------------------
-       h3 = 32000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 3
-       sp_hu3 = 3.2E-6_wp
-       ! average value of specific humidity in layer 3
-       sp_hu_avg = ( sp_hu3-sp_hu2 ) / ( log(sp_hu3) - log(sp_hu2) )
-       ! density correction due to humidity in layer 3
-       K3 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Dry air lapse rate in layer 3
-       Gamma_d3 = -1.0E-3_wp
-       ! Moist lapse rate in layer 3
-       Gamma_m3 = Gamma_d3 * (1.0_wp - 0.856_wp * sp_hu_avg )
-       ! Temperature at top of layer 3
-       T3 = T2 - Gamma_m3 * (h3-h2)
-       p3 = p2 * ( T3 / T2 )**( K3 * gi / (rair*Gamma_m3) )
-
-       ! ------------------------ atmosphere layer 4 ----------------------------
-       h4 = 47000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 4
-       sp_hu4 = 3.2E-6_wp
-       ! average value of specific humidity in layer 4
-       sp_hu_avg = sp_hu4
-       ! density correction due to humidity in layer 4
-       K4 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Dry air lapse rate in layer 4
-       Gamma_d4 = -2.8E-3_wp
-       ! Moist lapse rate in layer 4
-       Gamma_m4 = Gamma_d4 * (1.0_wp - 0.856_wp * sp_hu_avg )
-       ! Temperature at top of layer 4
-       T4 = T3 - Gamma_m4 * (h4-h3)
-       p4 = p3 * ( T4 / T3 )**( K4 * gi / (rair*Gamma_m4) )
-        
-       ! ------------------------ atmosphere layer 5 ----------------------------
-       h5 = 51000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 5
-       sp_hu5 = 3.2E-6_wp
-       ! average value of specific humidity in layer 5
-       sp_hu_avg = ( sp_hu5-sp_hu4 ) / ( log(sp_hu5) - log(sp_hu4) )
-       ! density correction due to humidity in layer 5
-       K5 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Temperature at top of layer 5
-       T5 = T4
-       p5 = p4 * EXP( - K5 * gi / ( rair * T4 ) * ( h5 - h4 ) )
-
-       ! ------------------------ atmosphere layer 6 ----------------------------
-       h6 = 71000.0_wp
-
-       ! specific humidity (kg/kg) at top of layer 6
-       sp_hu6 = 2.4E-6_wp
-       ! average value of specific humidity in layer 6
-       sp_hu_avg = ( sp_hu6-sp_hu5 ) / ( log(sp_hu6) - log(sp_hu5) )
-       ! density correction due to humidity in layer 6
-       K6 = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sp_hu_avg )
-       ! Dry air lapse rate in layer 6
-       Gamma_d6 = +2.8e-3_wp
-       Gamma_m6 = Gamma_d6 * (1.0_wp - 0.856_wp * sp_hu_avg )
-       ! Temperature at top of layer 6
-       T6 = T5 - Gamma_m6 * (h6-h5)
-       p6 = p5 * ( T6 / T5 )**( K6 * gi / (rair*Gamma_m6) )
-
-       ! Ref: WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
-       u6 = 65.0_wp
-       
        IF ( z <= h1 ) THEN
 
           ! ... Troposphere
-          Ta = T0 - Gamma_m1 * (z-h0)
-          pa = p0 * ( ( T0 - Gamma_m1*(z-h0) ) / T0 )**( K1 * gi / (rair*Gamma_m1) )
           u_atm = u0 + (u1-u0) * (z-h0) / (h1-h0)
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K1 * rho_dry;
-
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu0) + ( LOG(sp_hu1) - LOG(sp_hu0) ) * (z-h0)  &
-               / (h1-h0) )
+          h_bot = h0
+          h_top = h1
+          sphu_bot = sp_hu0
+          sphu_top = sp_hu1
           
+          Gamma_d = 6.5e-3_wp
+
        ELSE IF (z > h1 .AND. z <= h2) THEN
 
           ! ... Tropopause
-          Ta = T1
-          pa = p1 * EXP( - K2* gi / ( rair * T1 ) * ( z - h1 ) )
           u_atm = u1 + (u2-u1) * (z-h1) / (h2-h1)
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K2 * rho_dry;
+          h_bot = h1
+          h_top = h2
+          sphu_bot = sp_hu1
+          sphu_top = sp_hu2
 
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu1) + ( LOG(sp_hu2) - LOG(sp_hu1) ) * (z-h1)  &
-               / (h2-h1) )
-          
+          Gamma_d = 0.0_wp
+
        ELSE IF (z > h2 .AND. z <= h3) THEN
 
           ! ... Stratosphere
-          Ta = T2 - Gamma_m3 * (z-h2)
-          pa = p2 * ( ( T2 - Gamma_m3*(z-h2) ) / T2 )**( K3 * gi / (rair*Gamma_m3) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K3 * rho_dry;
+          h_bot = h2
+          h_top = h3
+          sphu_bot = sp_hu2
+          sphu_top = sp_hu3
 
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu2) + ( LOG(sp_hu3) - LOG(sp_hu2) ) * (z-h2)  &
-               / (h3-h2) )
-          
+          Gamma_d = -1.0e-3_wp
+
        ELSE IF (z > h3 .AND. z <= h4) THEN
 
-          Ta = T3 - Gamma_m4 * (z-h3)
-          pa = p3 * ( ( T3 - Gamma_m4*(z-h3) ) / T3 )**( K4 * gi / (rair*Gamma_m4) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K4 * rho_dry;
-
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu3) + ( LOG(sp_hu4) - LOG(sp_hu3) ) * (z-h3)  &
-               / (h4-h3) )
+          h_bot = h3
+          h_top = h4
+          sphu_bot = sp_hu3
+          sphu_top = sp_hu4
+          
+          Gamma_d = -2.8e-3_wp
           
        ELSE IF (z > h4 .AND. z <= h5) THEN
 
-          Ta = T4
-          pa = p4 * EXP( - K5 * gi / ( rair * T4 ) * ( z - h4 ) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2)
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K5 * rho_dry;
+          h_bot = h4
+          h_top = h5
+          sphu_bot = sp_hu4
+          sphu_top = sp_hu5
 
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu4) + ( LOG(sp_hu5) - LOG(sp_hu4) ) * (z-h4)  &
-               / (h5-h4) )
+          Gamma_d = 0.0_wp
           
        ELSE IF (z > h5 .AND. z <= h6) THEN
 
-          Ta = T5 - Gamma_m6 * (z-h5)
-          pa = p5 * ( ( T5 - Gamma_m6*(z-h5) ) / T5 )**( K6 * gi / (rair*Gamma_m6) )
           u_atm = u2 + (u6-u2) * (z-h2) / (h6-h2);
 
-          rho_dry = pa / ( rair*ta )
-          rho_atm = K6 * rho_dry;
+          h_bot = h5
+          h_top = h6
+          sphu_bot = sp_hu5
+          sphu_top = sp_hu6
 
-          ! log of specific humidity is assumed to vary linearly
-          sphu_atm = EXP( LOG(sp_hu5) + ( LOG(sp_hu6) - LOG(sp_hu5) ) * (z-h5)  &
-               / (h6-h5) )
-          
+          Gamma_d = +2.8e-3_wp
+
        ENDIF
 
+       IF ( sphu_atm0 .GT. 0.0_wp ) THEN
+       
+          ! log of specific humidity is assumed to vary linearly
+          sphu_atm = EXP( LOG(sphu_bot) + ( LOG(sphu_top) - LOG(sphu_bot) ) *   &
+               (z-h_bot) / (h_top-h_bot) )
 
+       ELSE
+
+          T_ref = 273.16_wp
+          t0 = T_ref - 40.0_wp
+
+          ! saturation pressure of vapor over liquid Pa
+          el = 611.2_wp * EXP( 17.67_wp * ( ta-273.16_wp ) / ( ta - 29.65_wp ) )
+          
+          ! saturation pressure of vapor over ice Pa
+          es = -9.097_wp * ( (273.16_wp / ta ) - 1.0_wp ) - 3.566_wp *          &
+               log10(273.16_wp / ta) + 0.876_wp * ( 1.0_wp - (ta / 273.16_wp) )
+          
+          es = 611.22_wp * ( 10.0_wp**es ) 
+                    
+          ! saturation pressure of vapor
+          IF ( ta .GE. T_ref ) THEN
+             
+             e_sl = el
+             
+          ELSEIF ( ta .LE. t0 ) THEN
+             
+             e_sl = es
+             
+          ELSE
+             
+             e_sl = es + ( ta - t0 ) / ( T_ref - t0 ) * ( el - es )
+             
+          END IF
+          
+          p_wv = min(pa, rel_hu*e_sl)
+          ! dry air partial pressure
+          p_da = pa - p_wv  
+          !molar fraction of water vapor
+          n_wv = p_wv / pa
+          !molar fraction dry air
+          n_da = p_da / pa
+          !mass fraction of da 
+          x_da = (n_da * da_mol_wt) / (n_da * da_mol_wt + n_wv * wv_mol_wt )
+          !mass fraction of wv
+          x_wv = (n_wv * wv_mol_wt) / (n_da * da_mol_wt + n_wv * wv_mol_wt )
+          !specific humidity
+          sphu_atm = x_wv / (x_da+x_wv)
+
+       END IF
+
+       ! WRITE(*,*) sphu_atm 
+       
+       ! Density of dry air
+       rho_dry = pa / ( rair*ta )
+
+       ! Density correction factor
+       K = 1.0_wp / ( 1.0_wp + ( Rwv/Rair - 1.0_wp ) * sphu_atm )
+
+       ! Density of mixure (dry air and water vapor)
+       rho_atm = K * rho_dry
+
+       ! Lapse rate corrected for specific humidity
+       Gamma_m = Gamma_d * (1.0_wp - 0.856_wp * sphu_atm )
+       
        u_wind = u_atm  
        v_wind = 0.0_wp
        
