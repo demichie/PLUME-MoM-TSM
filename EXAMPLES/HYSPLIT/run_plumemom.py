@@ -84,13 +84,13 @@ if distribution == "LOGNORMAL":
     filedata = filedata.replace("{sigma}", ",".join(np.char.mod('%4f', sigma)) )
     filedata = filedata.replace("{solid_partial_mass_fraction}", ",".join(np.char.mod('%f', solid_partial_mass_fraction)) )
 
-    filedata = filedata.replace("{bin_partial_mass_fraction}", '-1')
+    filedata = filedata.replace("{bin_partial_mass_fraction}", 'NaN')
 
 elif distribution == "BIN":
 
     filedata = filedata.replace("{distribution}", '"BIN"')
-    filedata = filedata.replace("{mu}", "-1" )
-    filedata = filedata.replace("{sigma}", "-1" )
+    filedata = filedata.replace("{mu}", "NaN" )
+    filedata = filedata.replace("{sigma}", "NaN" )
     filedata = filedata.replace("{solid_partial_mass_fraction}", ",".join(np.char.mod('%f', solid_partial_mass_fraction)) )
 
     filedata = filedata.replace("{bin_partial_mass_fraction}", ",".join(np.char.mod('%e', bin_partial_mass_fraction)) )
@@ -105,15 +105,15 @@ if ngas>0:
 
 else:
 
-    filedata = filedata.replace("{rvolcgas}", "" )
-    filedata = filedata.replace("{cpvolcgas}", "" )
-    filedata = filedata.replace("{volcgas_mol_wt}", "" )
-    filedata = filedata.replace("{volcgas_mass_fraction}", "" )
+    filedata = filedata.replace("{rvolcgas}", "NaN" )
+    filedata = filedata.replace("{cpvolcgas}", "NaN" )
+    filedata = filedata.replace("{volcgas_mol_wt}", "NaN" )
+    filedata = filedata.replace("{volcgas_mass_fraction}", "NaN" )
 
 
 filedata = filedata.replace("{water_mass_fraction0}", str(water_mass_fraction0) )
 
-if water_flag == str(True):
+if water_flag == str("T"):
 
     filedata = filedata.replace("{water_flag}", 'T' )
     filedata = filedata.replace("{rho_lw}", str(rho_lw) )
@@ -133,21 +133,20 @@ else:
 if umbrella_flag == str("T"):
 
     filedata = filedata.replace("{umbrella_flag}", 'T' )
+    filedata = filedata.replace("{t_end}", str(t_end) )
+    filedata = filedata.replace("{dt_output}", str(dt_output) )
+    filedata = filedata.replace("{c_d}", str(c_d) )
+    filedata = filedata.replace("{steady_flag}", str(steady_flag) )
 
 else:
 
     filedata = filedata.replace("{umbrella_flag}", 'F' )
+    filedata = filedata.replace("{t_end}", "NaN" )
+    filedata = filedata.replace("{dt_output}", "NaN" )
+    filedata = filedata.replace("{c_d}", "NaN" )
+    filedata = filedata.replace("{steady_flag}", "NaN" )
 
 time_format = "%y %m %d %H %M"
-
-#starttime_hhmm = datetime.datetime.strptime(starttime,time_format)
-#starttime_round = round_minutes(starttime_hhmm, 'down', 60) # arrotonda per difetto starttime
-
-#endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
-#endemittime_round = round_minutes(endemittime_hhmm, 'up', 60) # arrotonda per eccesso endemittime
-
-#print 'starttime',starttime_hhmm,starttime_round
-#print 'endemittime',endemittime_hhmm,endemittime_round
 
 if deltat_plumemom >=3600:
 
@@ -165,18 +164,13 @@ else:
     endemittime_hhmm = datetime.datetime.strptime(endemittime,time_format)
     endemittime_round = round_minutes(endemittime_hhmm, 'down', 15)  # arrotonda per difettos endemittime
 
-
-
 runtime=endemittime_round-starttime_round
 
 
 print ( endemittime_round, starttime_round )
 print ( runtime,deltat_plumemom )
 
-#runtime=endemittime_round-starttime_round # numero ore arrotondate tra inizio e fine emissione 
-#n_runs = np.int(np.floor( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
-
 
 print ( 'runtime.total_seconds() ',runtime.total_seconds() )
 
@@ -187,63 +181,81 @@ if 'plume_height' in locals():
     filedata = filedata.replace("{inversion_flag}", 'T' )
     filedata = filedata.replace("{log10_mfr}", 'NaN' )
     filedata = filedata.replace("{mfr}", 'NaN' )
+    filedata = filedata.replace("{vent_velocity}", 'NaN' )
+    filedata = filedata.replace("{vent_radius}", 'NaN' )
 
     if isinstance(plume_height, list):
         if len(plume_height) == n_runs:
             plume_height = np.ones(n_runs)*plume_height
         else:
-            print ( 'WARNING: check numbers of values of plume_height and n_runs: ',len(plume_height),n_runs )
+            print ( 'ERROR: check plume_height and n_runs: ',len(plume_height),n_runs )
             sys.exit()
     else:
         plume_height = np.ones(n_runs)*plume_height
 
     if 'mfr' in locals() or 'log10_mfr' in locals()  :
-
-        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
+        print ( 'ERROR: not possible to fix log10_mfr, mfr and plume_height' )
         sys.exit()
-
 
 if 'log10_mfr' in locals():
 
     filedata = filedata.replace("{inversion_flag}", 'F' )
-    filedata = filedata.replace("{plume_height}", '-1.0' )
+    filedata = filedata.replace("{plume_height}", 'NaN' )
     filedata = filedata.replace("{mfr}", 'NaN' )
+    filedata = filedata.replace("{vent_radius}", 'NaN' )
 
     if isinstance(log10_mfr, list):
         if len(log10_mfr) == n_runs:
             log10_mfr = np.ones(n_runs)*log10_mfr
         else:
-            print ( 'WARNING: check numbers of values of log10_mfr and n_runs: ',len(log10_mfr),n_runs )
+            print ( 'ERROR: check log10_mfr and n_runs: ',len(log10_mfr),n_runs )
             sys.exit()
     else:
         log10_mfr = np.ones(n_runs)*log10_mfr
 
     if 'mfr' in locals() or 'plume_height' in locals()  :
-
-        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
+        print ( 'ERROR: not possible to fix log10_mfr, mfr and plume_height' )
         sys.exit()
 
+    if 'vent_velocity' in locals() and 'vent_radius' in locals()  :
+        print ( 'ERROR: not possible to fix log10_mfr, vent_velocity and vent_radius' )
+        sys.exit()
 
 
 if 'mfr' in locals():
 
     filedata = filedata.replace("{inversion_flag}", 'F' )
-    filedata = filedata.replace("{plume_height}", '-1.0' )
+    filedata = filedata.replace("{plume_height}", 'NaN' )
     filedata = filedata.replace("{log10_mfr}", 'NaN' )
+    filedata = filedata.replace("{vent_radius}", 'NaN' )
     if isinstance(mfr, list):
         if len(mfr) == n_runs:
             mfr = np.ones(n_runs)*mfr
         else:
-            print ( 'WARNING: check numbers of values of mrf and n_runs: ',len(mfr),n_runs )
+            print ( 'ERROR: check mrf and n_runs: ',len(mfr),n_runs )
             sys.exit()
     else:
         mfr = np.ones(n_runs)*mfr
 
     if 'log10_mfr' in locals() or 'plume_height' in locals()  :
-
-        print ( 'WARNING: not possible to fix log10_mfr, mfr and plume_height' )
+        print ( 'ERROR: not possible to fix log10_mfr, mfr and plume_height' )
         sys.exit()
 
+    if 'vent_velocity' in locals() and 'vent_radius' in locals()  :
+        print ( 'ERROR: not possible to fix mfr, vent_velocity and vent_radius' )
+        sys.exit()
+
+if 'vent_velocity' and 'vent_radius' in locals():
+
+    print("WARNING: Set both vent velocity and vent radius")
+
+    if 'mfr' or 'log10_mfr' in locals():
+        print("ERROR: not possible to fix mfr, log10_mfr, vent_velocity and vent_radius ")
+ 
+    else:
+        filedata = filedata.replace("{inversion_flag}", 'NaN' )
+        filedata = filedata.replace("{plume_height}", 'NaN' )
+        filedata = filedata.replace("{log10_mfr}", 'NaN' )
 
 if 'vent_velocity' in locals():
 
@@ -251,10 +263,21 @@ if 'vent_velocity' in locals():
         if len(vent_velocity) == n_runs:
             vent_velocity = np.ones(n_runs)*vent_velocity
         else:
-            print ( 'WARNING: check numbers of values of vent_velocity and n_runs: ',len(vent_velocity),n_runs )
+            print ( 'ERROR: check vent_velocity and n_runs: ',len(vent_velocity),n_runs )
             sys.exit()
     else:
         vent_velocity = np.ones(n_runs)*vent_velocity
+
+if 'vent_radius' in locals():
+
+    if isinstance(vent_radius, list):
+        if len(vent_radius) == n_runs:
+            vent_radius = np.ones(n_runs)*vent_radius
+        else:
+            print ( 'ERROR: check vent_radius and n_runs: ',len(vent_radius),n_runs )
+            sys.exit()
+    else:
+        vent_radius = np.ones(n_runs)*vent_radius
 
 f = open('plume_model.temp1','w')
 f.write(filedata)
@@ -323,6 +346,10 @@ for i in range(n_runs):
 
         filedata = filedata.replace("{vent_velocity}", str(vent_velocity[i]) )
 
+    if 'vent_radius' in locals():
+
+        filedata = filedata.replace("{vent_radius}", str(vent_radius[i]) )
+
 
     
     f.write(filedata)
@@ -354,8 +381,8 @@ for i in range(n_runs):
         subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
 
 
-subprocess.call("rm plume_model.temp1", shell=True) 
-subprocess.call("rm plume_model.temp2", shell=True) 
+#subprocess.call("rm plume_model.temp1", shell=True) 
+#subprocess.call("rm plume_model.temp2", shell=True) 
 
 
 

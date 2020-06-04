@@ -7,6 +7,7 @@
  AGGREGATION_FLAG=F,
  WATER_FLAG={water_flag},
  UMBRELLA_FLAG={umbrella_flag},
+ ENTR_ABV_NBL_FLAG=F,
  /
 &MOM_PARAMETERS
  N_PART=          {npart},
@@ -45,7 +46,7 @@
  READ_ATM_PROFILE="card  ",
  /
 &INITIAL_VALUES
- R0=  NaN     ,
+ R0=  {vent_radius}     ,
  W0=  {vent_velocity}     ,
  LOG10_MFR=  {log10_mfr} ,
  MFR0=   {mfr}                ,
@@ -81,9 +82,10 @@
  N_CLOUD = {ncloud} ,
  /
 &UMBRELLA_RUN_PARAMETERS
- T_END=  14400.000000000000001E-00,
- DT_OUTPUT=  600.00000000000000E-00,
- C_D = 1.0000E-00,
+ T_END=  {t_end},
+ DT_OUTPUT=  {dt_output},
+ C_D = {c_d},
+ STEADY_FLAG = {steady_flag},
  /
 &NUMERIC_PARAMETERS
  RSOURCE_CELLS = 5, 

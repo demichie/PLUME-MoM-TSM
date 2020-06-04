@@ -19,17 +19,22 @@ span_lon = 10.00   # the total span of the grid in y direction. For instance, a 
 vent_lat = 37.73  	# vent latitude
 vent_lon = 15.00       # vent longitude
 vent_height = 3300    # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
-vent_velocity = 200.0
 tmix0 = 1273 # mixture temperature in Kelvin
+vent_velocity = 200.0 
 
 #options for mass flow rate or plume height (meters above the vent), select only one:
 log10_mfr = 6 
 #mfr = 1E5
-#plume_height = 6000 
+#plume_height = 6000
+#compute mfr from vent_velocity and vent_radius: set vent_velocity and add vent_radius 
 # N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
 
 #umbrella cloud parameters
 umbrella_flag = "T"
+t_end = 3600 # duration of the umbrella simulation (seconds)
+dt_output = 600 # saving output at dt_output time steps (seconds)
+c_d = 1 # drag coefficient
+steady_flag = "T" # stop the umbrella simulation when the steady state is reached
 
 # volcanic gas parameters
 ngas = 1   # in addition to H2O
@@ -59,7 +64,7 @@ kmsl = 0  	# starting heights default to AGL=0 or MSL=1 *** NOTE: please do not 
 ninit = 1  	# particle initialization(0-none; 1-once; 2-add; 3-replace)
 ndump = 1  	# dump particles to/from file 0-none or nhrs-output intervall
 ncycl = 1 	# pardump output cycle time
-numpar = 50000	# number of puffs or particles to released per cycle
+numpar = -100	# number of puffs or particles to released per cycle
 maxpar = 1000000 # maximum number of particles carried in simulation
 initd = 3 	# initial distribution, particle, puff, or combination.  0 = 3D particle (DEFAULT); 1 = Gh-THv; 2 = THh-THv; 3 = Gh-Pv; 4 = THh-Pv *** NOTE: please use initd=0 or initd=3 *** 
 delt = 5	# hysplit integration step (minutes) 

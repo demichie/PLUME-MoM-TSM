@@ -40,11 +40,11 @@ PDUMP_GAS="pdump_gas_$result"
 
 #----------------------------------------------------------
 
-python3 run_plumemom.py 
+python3 run_plumemom.py || exit
 
-python3 create_hysplit_emittimes_control_part.py
+python3 create_hysplit_emittimes_control_part.py || exit
 
-python3 create_hysplit_setup_ascdata.py
+python3 create_hysplit_setup_ascdata.py || exit
  
 echo "-------------- particles dispersion simulation ---------------"
 
@@ -54,7 +54,7 @@ ${MDL}/exec/hycs_std part
 if [ $ngas -gt 0 ] 
   then
   echo "-------------- gas dispersion simulation ---------------"
-  python3 create_hysplit_emittimes_control_gas.py
+  python3 create_hysplit_emittimes_control_gas.py || exit
   ${MDL}/exec/hycs_std gas  
 
   else
