@@ -42,6 +42,8 @@
 &STD_ATM_PARAMETERS
  SPHU_ATM0=                      0.01,
  U_MAX=                      30.0,
+ P_ATM0= 101300.0,
+ T_ATM0= 300.0,
  /
 &INITIAL_VALUES
  W0= 1.280452933212253e+02     ,

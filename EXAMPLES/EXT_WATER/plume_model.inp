@@ -51,7 +51,6 @@
  U_MAX = 0.0,
  P_ATM0= 101300.0,
  T_ATM0= 300.0,
-
  /
 &INITIAL_VALUES
  MFR0=  5.7E6     ,
