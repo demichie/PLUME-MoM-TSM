@@ -181,7 +181,6 @@ if 'plume_height' in locals():
     filedata = filedata.replace("{inversion_flag}", 'T' )
     filedata = filedata.replace("{log10_mfr}", 'NaN' )
     filedata = filedata.replace("{mfr}", 'NaN' )
-    filedata = filedata.replace("{vent_velocity}", 'NaN' )
     filedata = filedata.replace("{vent_radius}", 'NaN' )
 
     if isinstance(plume_height, list):
@@ -249,13 +248,17 @@ if 'vent_velocity' and 'vent_radius' in locals():
 
     print("WARNING: Set both vent velocity and vent radius")
 
-    if 'mfr' or 'log10_mfr' in locals():
+    if 'mfr' in locals():
+        print("ERROR: not possible to fix mfr, log10_mfr, vent_velocity and vent_radius ")
+
+    if 'log10_mfr' in locals():
         print("ERROR: not possible to fix mfr, log10_mfr, vent_velocity and vent_radius ")
  
     else:
-        filedata = filedata.replace("{inversion_flag}", 'NaN' )
+        filedata = filedata.replace("{inversion_flag}", 'F' )
         filedata = filedata.replace("{plume_height}", 'NaN' )
         filedata = filedata.replace("{log10_mfr}", 'NaN' )
+        filedata = filedata.replace("{mfr}", 'NaN' )
 
 if 'vent_velocity' in locals():
 
@@ -345,10 +348,12 @@ for i in range(n_runs):
     if 'vent_velocity' in locals():
 
         filedata = filedata.replace("{vent_velocity}", str(vent_velocity[i]) )
+        run_flag = 1
 
     if 'vent_radius' in locals():
 
         filedata = filedata.replace("{vent_radius}", str(vent_radius[i]) )
+        run_flag = 1
 
 
     

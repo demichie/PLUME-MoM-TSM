@@ -22,10 +22,10 @@ vent_height = 3300    # vent height above sea level (it can be different from gr
 tmix0 = 1273 # mixture temperature in Kelvin
 vent_velocity = 200.0 
 
-#options for mass flow rate or plume height (meters above the vent), select only one:
+#options for mass flow rate or plume height (nbl - meters above the vent), select only one:
 log10_mfr = 6 
 #mfr = 1E5
-#plume_height = 6000
+#plume_height = 6000 #plume height at nbl. inversion: search for radius given vent_velocity
 #compute mfr from vent_velocity and vent_radius: set vent_velocity and add vent_radius 
 # N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
 
