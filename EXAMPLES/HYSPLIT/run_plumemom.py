@@ -382,7 +382,8 @@ for i in range(n_runs):
                 with open(fname) as infile:
                     for line in infile:
                         outfile.write(line)
-    
+
+        subprocess.call("mv profile_01.txt atm_profile_"+str(i+1).zfill(3)+".dat", shell=True)         
         subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
 
 
