@@ -620,7 +620,7 @@ CONTAINS
   END FUNCTION particles_density
 
   !******************************************************************************
-  !> \brief Brownian aggregation
+  !> \brief Particles aggregation
   !
   !> This function evaluates the aggregation kernel using several forumation:\n
   !> - a Brownian formulations given in Marchisio et al., 2003.
@@ -634,15 +634,16 @@ CONTAINS
   !> \param[in]   rho_j    second particle density (kg/m3)
   !> \param[in]   Vs_i     first particle settling velocity
   !> \param[in]   Vs_j     second particle settling velocity
-  !> \param[in]   lw_mf    liquid water mass fraction
-  !> \param[in]   ice_mf   ice mass fraction
+  !> \param[in]   lw_vf    liquid water mass fraction
+  !> \param[in]   ice_vf   ice mass fraction
+  !> \param[in]   solid_mf   ice mass fraction
   !> \date 05/05/2015
   !> @author 
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
-  FUNCTION particles_beta(temp,visc,diam_i,diam_j,rho_i,rho_j,Vs_i,Vs_j,lw_mf,  &
-       ice_mf)
+  FUNCTION particles_beta(temp,visc,diam_i,diam_j,rho_i,rho_j,Vs_i,Vs_j,lw_vf,  &
+       ice_vf,solid_mf)
 
     IMPLICIT NONE
 
@@ -656,8 +657,9 @@ CONTAINS
     REAL(wp), INTENT(IN), OPTIONAL :: rho_j
     REAL(wp), INTENT(IN), OPTIONAL :: Vs_i
     REAL(wp), INTENT(IN), OPTIONAL :: Vs_j
-    REAL(wp), INTENT(IN), OPTIONAL :: lw_mf 
-    REAL(wp), INTENT(IN), OPTIONAL :: ice_mf 
+    REAL(wp), INTENT(IN), OPTIONAL :: lw_vf 
+    REAL(wp), INTENT(IN), OPTIONAL :: ice_vf 
+    REAL(wp), INTENT(IN), OPTIONAL :: solid_mf 
 
     SELECT CASE ( aggregation_model )
        
@@ -680,9 +682,17 @@ CONTAINS
 
     CASE ( 'costa')
 
-       particles_beta = aggregation_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j, &
-            lw_mf,ice_mf,temp,visc)
+       IF ( MAX(lw_vf,ice_vf) .LT. 1.0e-10_wp ) THEN
 
+          particles_beta = 0.0_wp
+
+       ELSE
+       
+          particles_beta = aggregation_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j, &
+               lw_vf,ice_vf,solid_mf,temp,visc)
+
+       END IF
+          
     END SELECT
 
     IF ( verbose_level .GE. 2 ) THEN
@@ -712,8 +722,9 @@ CONTAINS
   !> \param[in]   diam_j   second particle diameter (m) 
   !> \param[in]   rho_j    second particle density (kg/m3)
   !> \param[in]   Vs_j     second particle settling velocity (m/s)
-  !> \param[in]   lw_mf    liquid water mass fraction
-  !> \param[in]   ice_mf   ice mass fraction
+  !> \param[in]   lw_vf    liquid water mass fraction
+  !> \param[in]   ice_vf   ice mass fraction
+  !> \param[in]   solid_mf   ice mass fraction
   !> \param[in]   temp     mixture temperature (K)
   !> \param[in]   visc     air kinematic viscosity (m2s-1)
   !> \date 24/01/2014
@@ -722,7 +733,7 @@ CONTAINS
   !******************************************************************************
 
   FUNCTION aggregation_kernel( diam_i , rho_i , Vs_i , diam_j , rho_j , Vs_j ,  &
-       lw_mf , ice_mf , temp , visc )
+       lw_vf , ice_vf , solid_mf , temp , visc )
 
     IMPLICIT NONE
 
@@ -734,8 +745,9 @@ CONTAINS
     REAL(wp), INTENT(IN) :: diam_j
     REAL(wp), INTENT(IN) :: rho_j
     REAL(wp), INTENT(IN) :: Vs_j
-    REAL(wp), INTENT(IN) :: lw_mf 
-    REAL(wp), INTENT(IN) :: ice_mf 
+    REAL(wp), INTENT(IN) :: lw_vf 
+    REAL(wp), INTENT(IN) :: ice_vf 
+    REAL(wp), INTENT(IN) :: solid_mf 
     REAL(wp), INTENT(IN) :: temp
     REAL(wp), INTENT(IN) :: visc
 
@@ -756,15 +768,19 @@ CONTAINS
 
     beta = collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,temp,visc)
 
-    alfa = coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_mf,    &
-         ice_mf)
+    alfa = coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_vf,    &
+         ice_vf,solid_mf)
 
     aggregation_kernel = beta * alfa
 
-    !WRITE(*,*) 'lw_mf,ice_mf',lw_mf,ice_mf
-    !WRITE(*,*) 'aggregation_kernel, beta, alfa',aggregation_kernel, beta, alfa
-    !READ(*,*)
+    IF ( aggregation_kernel .GT. 0.0_wp ) THEN
 
+       !WRITE(*,*) 'lw_vf,ice_vf',lw_vf,ice_vf
+       !WRITE(*,*) 'aggregation_kernel, beta, alfa',aggregation_kernel, beta, alfa
+       !READ(*,*)
+
+    END IF
+       
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,FMT) ' ','END aggregation_kernel'
@@ -813,13 +829,13 @@ CONTAINS
     REAL(wp),INTENT(IN) :: temp
     REAL(wp),INTENT(IN) :: visc
 
-    !> Brownian motion collisions kernel
+    !> Brownian motion collisions kernel (m3 s-1)
     REAL(wp) :: beta_B   
 
-    !> Laminar and turbulent fluid shear collisions kernel
+    !> Laminar and turbulent fluid shear collisions kernel (m3 s-1)
     REAL(wp) :: beta_S
 
-    !> Differential sedimentation kernel
+    !> Differential sedimentation kernel (m3 s-1)
     REAL(wp) :: beta_DS
 
     !> Gravitational collision efficiency
@@ -847,30 +863,18 @@ CONTAINS
     beta_B = 2.0_wp / 3.0_wp * k_b * temp / visc * ( diam_i + diam_j )**2           &
          / ( diam_i*diam_j ) 
 
-    !WRITE(*,*) 'beta_B',beta_B
-
-    ! Gamma_s = SQRT( 1.3_wp * epsilon * air_kin_viscosity )
-
     ! Value from Table 1 (Costa 2010)
     Gamma_s = 0.0045_wp 
 
     ! Eq. 3, second term Costa et al. JGR 2010
     beta_S = 1.0_wp / 6.0_wp * Gamma_s * ( diam_i + diam_j )**3
 
-    !WRITE(*,*) 'beta_S',beta_S
-
-    !WRITE(*,*) pi_g , diam_i , diam_j 
-    !WRITE(*,*) Vs_j , Vs_i
-    
     ! Eq. 3, third term Costa et al. JGR 2010
     beta_DS = pi_g / 4.0_wp * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
 
-    !WRITE(*,*) 'beta_DS',beta_DS
+    ! WRITE(*,*) 'beta_B,beta_S,beta_DS',beta_B,beta_S, beta_DS
 
     collision_kernel = beta_B + beta_S + beta_DS
-
-    !WRITE(*,*) 'collision_kernel',collision_kernel
-    !READ(*,*)
 
     IF ( verbose_level .GE. 2 ) THEN
 
@@ -894,15 +898,16 @@ CONTAINS
   !> \param[in]   diam_j   second particle diameter (m) 
   !> \param[in]   rho_j    second particle density (kg/m3)
   !> \param[in]   Vs_j     second particle settling velocity (m/s)
-  !> \param[in]   lw_mf    liquid water mass fraction
-  !> \param[in]   ice_mf   ice mass fraction
+  !> \param[in]   lw_vf    liquid water mass fraction
+  !> \param[in]   ice_vf   ice mass fraction
+  !> \param[in]   solid_mf   ice mass fraction
   !> \date 24/01/2014
   !> @author 
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
 
-  FUNCTION coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_mf,    &
-       ice_mf)
+  FUNCTION coalescence_efficiency(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,lw_vf,    &
+       ice_vf,solid_mf)
 
     USE variables, ONLY: gi
 
@@ -916,8 +921,9 @@ CONTAINS
     REAL(wp), INTENT(IN) :: diam_j
     REAL(wp), INTENT(IN) :: rho_j
     REAL(wp), INTENT(IN) :: Vs_j
-    REAL(wp), INTENT(IN) :: lw_mf 
-    REAL(wp), INTENT(IN) :: ice_mf 
+    REAL(wp), INTENT(IN) :: lw_vf 
+    REAL(wp), INTENT(IN) :: ice_vf 
+    REAL(wp), INTENT(IN) :: solid_mf 
     
     REAL(wp) :: coalescence_efficiency_ice , coalescence_efficiency_water
     
@@ -941,28 +947,29 @@ CONTAINS
 
     END IF
 
-    ! Eq. 5 Costa et al. JGR 2010
-    coalescence_efficiency_ice = 0.09_wp
+    ! Modified from Eq. 5 Costa et al. JGR 2010
+    coalescence_efficiency_ice = 0.09_wp * ice_vf
             
     mu_liq = 5.43E-4_wp
     
     ! Eq. 6 Costa et al. JGR 2010 (CHECK DENSITY!)
-    Stokes = 8.0_wp * ( 0.5_wp * ( rho_i + rho_j ) ) * ABS( Vs_i - Vs_j ) /       &
+    Stokes = 8.0_wp * ( 0.5_wp * ( rho_i + rho_j ) ) * ABS( Vs_i - Vs_j ) /     &
          ( 9.0_wp * mu_liq ) * diam_i * diam_j / ( diam_i + diam_j )
     
     Stokes_cr = 1.3_wp
     
     q = 0.8_wp
     
-    ! Eq. 8 Costa et al. JGR 2010
-    coalescence_efficiency_water = 1.0_wp / ( 1.0_wp + ( Stokes / Stokes_cr ) )**q 
+    ! Modified from Eq. 8 Costa et al. JGR 2010
+    coalescence_efficiency_water = 1.0_wp / ( 1.0_wp+( Stokes/Stokes_cr ) )**q  &
+         * lw_vf
 
-    IF ( lw_mf .GT. 0.0_wp ) THEN
+    IF ( lw_vf .GT. 0.0_wp ) THEN
 
-       IF ( ice_mf .GT. 0.0_wp ) THEN
+       IF ( ice_vf .GT. 0.0_wp ) THEN
 
-          coalescence_efficiency = ( lw_mf * coalescence_efficiency_water       &
-               + ice_mf * coalescence_efficiency_ice ) / ( lw_mf + ice_mf )
+          coalescence_efficiency = coalescence_efficiency_water                 &
+               + coalescence_efficiency_ice
 
        ELSE
        
@@ -970,7 +977,7 @@ CONTAINS
 
        END IF
           
-    ELSEIF ( ice_mf .GT. 0.0_wp ) THEN
+    ELSEIF ( ice_vf .GT. 0.0_wp ) THEN
 
        coalescence_efficiency = coalescence_efficiency_ice
           
@@ -1033,16 +1040,26 @@ CONTAINS
           
           DO i_mom=0,n_mom-1
 
-             set_mom(i_mom,i_sect,i_part) = SUM( set_vel_quad(:,i_sect,i_part)  &
-                  * f_quad(:,i_sect,i_part) * w_quad(:,i_sect,i_part)           &
-                  * m_quad(:,i_sect,i_part)**i_mom ) / mom(i_mom,i_sect,i_part)
+             IF ( mom(1,i_sect,i_part) .GT. 0.0_wp ) THEN
+             
+                set_mom(i_mom,i_sect,i_part) = SUM( set_vel_quad(:,i_sect,i_part)  &
+                     * f_quad(:,i_sect,i_part) * w_quad(:,i_sect,i_part)           &
+                     * m_quad(:,i_sect,i_part)**i_mom ) / mom(i_mom,i_sect,i_part)
+                
+                set_cp_mom(i_mom,i_sect,i_part) =                                  &
+                     SUM( set_vel_quad(:,i_sect,i_part )                           &
+                     * cp_quad(:,i_sect,i_part) * f_quad(:,i_sect,i_part)          &
+                     * w_quad(:,i_sect,i_part) * m_quad(:,i_sect,i_part)**i_mom )  &
+                     / mom(i_mom,i_sect,i_part) 
+                
+             ELSE
 
-             set_cp_mom(i_mom,i_sect,i_part) =                                  &
-                  SUM( set_vel_quad(:,i_sect,i_part )                           &
-                  * cp_quad(:,i_sect,i_part) * f_quad(:,i_sect,i_part)          &
-                  * w_quad(:,i_sect,i_part) * m_quad(:,i_sect,i_part)**i_mom )  &
-                  / mom(i_mom,i_sect,i_part) 
+                set_mom(i_mom,i_sect,i_part) = 0.0_wp
+                
+                set_cp_mom(i_mom,i_sect,i_part) = 0.0_wp
 
+             END IF
+             
              IF ( verbose_level .GE. 2 ) THEN
                 
                 WRITE(*,*) 'i_part,i_mom',i_part,i_mom
@@ -1087,23 +1104,6 @@ CONTAINS
     REAL(wp) :: Ml , Mr
 
     INTEGER :: condition1(n_nodes) , condition2(n_nodes)
-
-    IF ( MINVAL(mom) .LT. 0.0_wp ) THEN
-
-       IF ( MINVAL(mom) .GT. 1.0e-10_wp ) THEN
-
-          mom = MAX(mom,0.0_wp)
-
-       ELSE
-       
-          WRITE(*,*) 'ERROR: Negative moment'
-          WRITE(*,*) mom
-          WRITE(*,*) 'Try to reduce initial integraztion step dz0' 
-          STOP
-
-       END IF
-       
-    END IF
        
     DO i_part=1,n_part
        
@@ -1360,19 +1360,26 @@ CONTAINS
   !> momentum transport equations. The aggregation kernel is called inside from
   !> this subroutine.
   !>
+  !> \param[in]   temp     temperature (K)
+  !> \param[in]   visc     viscosity
+  !> \param[in]   lw_vf    liquid water mass fraction
+  !> \param[in]   ice_vf   ice mass fraction
+  !> \param[in]   solid_mf   ice mass fraction
+  !>
   !> \date 02/05/2019
   !> @author 
   !> Mattia de' Michieli Vitturi
   !******************************************************************************
   
-  SUBROUTINE update_aggregation(temp,visc,lw_mf,ice_mf)
+  SUBROUTINE update_aggregation(temp,visc,lw_vf,ice_vf,solid_mf)
 
     IMPLICIT NONE
 
     REAL(wp),INTENT(IN) :: temp
     REAL(wp),INTENT(IN) :: visc
-    REAL(wp),INTENT(IN) :: lw_mf
-    REAL(wp),INTENT(IN) :: ice_mf
+    REAL(wp),INTENT(IN) :: lw_vf
+    REAL(wp),INTENT(IN) :: ice_vf
+    REAL(wp),INTENT(IN) :: solid_mf
   
     INTEGER :: i_part , j_part
     INTEGER :: i_sect , j_sect , k_sect
@@ -1409,7 +1416,7 @@ CONTAINS
                            rho_quad(i_node,i_sect,i_part) , &
                            set_vel_quad(j_node,j_sect,j_part) , &
                            set_vel_quad(i_node,i_sect,i_part) , &
-                           lw_mf , ice_mf )
+                           lw_vf , ice_vf , solid_mf )
 
                    END DO
 

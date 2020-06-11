@@ -105,11 +105,20 @@ MODULE mixture_module
   !> mass fraction of liquid water in the mixture
   REAL(wp) :: liquid_water_mass_fraction
 
+  !> mass fraction of liquid water in the mixture
+  REAL(wp) :: liquid_water_volume_fraction
+
   !> mass fraction of water vapor in the mixture
   REAL(wp) :: water_vapor_mass_fraction
 
+  !> mass fraction of water vapor in the mixture
+  REAL(wp) :: water_vapor_volume_fraction
+
   !> mass fraction of ice in the mixture
   REAL(wp) :: ice_mass_fraction
+
+  !> mass fraction of ice in the mixture
+  REAL(wp) :: ice_volume_fraction
 
   REAL(wp) :: volcgas_mix_mol_fract
 

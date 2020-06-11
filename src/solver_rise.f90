@@ -244,34 +244,9 @@ CONTAINS
     !---- Particle loss term corrections
     ! It is not possible to loose more particles than available in the plume
 
-    DO i_part=1,n_part
-       
-       DO i_sect=1,n_sections
-
-         DO i=0,n_mom-1
-             
-             rate_mom = - 2.0_wp * prob_factor * r * set_mom(i,i_sect,i_part)    &
-                  * mom(i,i_sect,i_part)
-             
-             f_mom = w * r**2 * mom(i,i_sect,i_part)
-             
-             IF ( rate_mom .LT. - ( f_mom / dz ) ) THEN
-
-                coeff_mom = -f_mom / ( rate_mom * dz )
-                ! The correction is applied to both the moments
-                set_mom(:,i_sect,i_part) = coeff_mom * set_mom(:,i_sect,i_part)
-
-             END IF
-             
-          END DO
-           
-       END DO
-          
-    END DO
-
     solid_term = SUM( set_mom( 1, 1:n_sections , 1:n_part )                    &
          * mom( 1 , 1:n_sections , 1:n_part ) )
-
+    
     DO i_gas=1,n_gas
 
        volcgas_rate(i_gas) = 0.0_wp
@@ -369,11 +344,16 @@ CONTAINS
   !******************************************************************************
   
   SUBROUTINE aggr_rate
-    
+
+    USE meteo_module, ONLY: visc_atm
+    USE mixture_module, ONLY: t_mix , liquid_water_volume_fraction ,            &
+         ice_volume_fraction , solid_tot_mass_fraction
     USE particles_module, ONLY: birth_mom , death_mom
 
     USE plume_module, ONLY: r
     !
+    USE particles_module, ONLY: update_aggregation
+    
     IMPLICIT NONE
     
     INTEGER :: i_mom
@@ -382,6 +362,9 @@ CONTAINS
     INTEGER :: i_gas
     
     INTEGER :: idx
+
+    CALL update_aggregation( t_mix , visc_atm , liquid_water_volume_fraction ,  &
+         ice_volume_fraction , solid_tot_mass_fraction )
     
     rhs2 = 0.0_wp
 
@@ -394,7 +377,7 @@ CONTAINS
              
              idx = 8+i_mom+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
              
-             rhs2(idx) = 1.E-10_wp * r**2 *  ( birth_mom(i_mom,i_sect,i_part) -    &
+             rhs2(idx) = r**2 *  ( birth_mom(i_mom,i_sect,i_part) -             &
                   death_mom(i_mom,i_sect,i_part))
              
           END DO
@@ -482,11 +465,9 @@ CONTAINS
 
     END DO
 
-    f_(n_part*n_sections*n_mom+8) = ( rho_mix * dry_air_mass_fraction ) * w &
-         * r**2 
+    f_(n_part*n_sections*n_mom+8) = rho_mix * dry_air_mass_fraction * w * r**2 
 
-    f_(n_part*n_sections*n_mom+9) = ( rho_mix * water_mass_fraction ) * w   &
-         * r**2
+    f_(n_part*n_sections*n_mom+9) = rho_mix * water_mass_fraction * w * r**2
 
     DO i_gas=1,n_gas
 
@@ -501,8 +482,7 @@ CONTAINS
        f_(itotal ) = ta
        
     END IF
-    
-    
+      
     RETURN
 
   END SUBROUTINE lump
@@ -567,7 +547,7 @@ CONTAINS
          rvolcgas , cpvolcgas , dry_air_mass_fraction , water_mass_fraction ,   &
          solid_tot_mass_fraction , liquid_water_mass_fraction ,                 &
          water_vapor_mass_fraction, ice_mass_fraction , rho_lw , rho_ice,       &
-         exit_status
+         exit_status , liquid_water_volume_fraction , ice_volume_fraction
 
     USE particles_module, ONLY : mom , solid_partial_mass_fraction ,            &
          solid_partial_volume_fraction , solid_volume_fraction , distribution , &
@@ -628,16 +608,6 @@ CONTAINS
     REAL(wp) :: enth
 
     REAL(wp) :: gas_mix_volume_fraction
-
-
-    ! Volume fraction of liquid water in the mixture
-
-    REAL(wp) :: liquid_water_volume_fraction
-
-    ! Volume fraction of ice in the mixture
-
-    REAL(wp) :: ice_volume_fraction
-
 
     x = f_(6)
     y = f_(7)
@@ -706,29 +676,10 @@ CONTAINS
     water_mass_fraction = f_(9+n_part*n_mom*n_sections) / f_(1)
 
     ! solid mass fraction in the mixture
-    solid_tot_mass_fraction = 1.0_wp- dry_air_mass_fraction - water_mass_fraction &
+    solid_tot_mass_fraction = 1.0_wp-dry_air_mass_fraction- water_mass_fraction &
          - volcgas_mix_mass_fraction
-    
-    DO i_part=1,n_part
 
-       DO i_sect=1,n_sections
-
-          idx1 = 9+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
-          idx2 = 9+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
-
-          mom(:,i_sect,i_part) = f_(idx1:idx2)
-          !WRITE(*,*) 'UNLUMP'
-          !WRITE(*,*)  f_(idx1:idx2)
-
-       END DO
-
-       idx1 = 8+0+(i_part-1)*n_sections*n_mom
-       idx2 = 8+0+i_part*n_sections*n_mom-1
-       rhoB_solid_w_r2(i_part) = SUM(f_(idx1+1:idx2:2))
-       
-    END DO
-
-    ! The moments updated here are not correct, because a common multiplying
+    ! The moments computed here are not correct, because a common multiplying
     ! factor (w*r^2) is present. In any case, the quadrature values computed
     ! from these "wrong" moments can be used to compute the new densities
     ! of the solid phases, because the terms f_quad appear both at the
@@ -738,27 +689,26 @@ CONTAINS
 
        DO i_sect=1,n_sections
 
-          DO i_mom=0,n_mom-1
-
-             idx = 8+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom+i_mom
-             
-             mom(i_mom,i_sect,i_part) = f_(idx)
-             
-          END DO
-
+          idx1 = 8+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          
+          mom(0:1,i_sect,i_part) = f_(idx1:idx2)
+          
        END DO
 
+       rhoB_solid_w_r2(i_part) = SUM(mom(1,:,i_part))
+              
     END DO
-
+    
     ! compute the values of f_quad with the uncorrected moments
     CALL eval_quad_values
 
     ! compute the average densities of the particle phases with f_quad values
     DO i_part=1,n_part
        
-       rho_solid_avg(i_part) = 1.0_wp / ( SUM( f_quad(:,:,i_part)*w_quad(:,:,i_part)&
-            * m_quad(:,:,i_part)/rho_quad(:,:,i_part) ) / SUM(f_quad(:,:,i_part)&
-            * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
+       rho_solid_avg(i_part) = 1.0_wp / ( SUM( f_quad(:,:,i_part)               &
+            * w_quad(:,:,i_part) * m_quad(:,:,i_part) / rho_quad(:,:,i_part) )  &
+            / SUM(f_quad(:,:,i_part)* w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
        IF ( verbose_level .GE. 1 ) THEN
 
@@ -768,8 +718,7 @@ CONTAINS
           WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
           WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)
           WRITE(*,*) 'f_quad(:,1,i_part)',f_quad(:,1,i_part)
-          
-          
+                   
        END IF
        
     END DO
@@ -777,7 +726,7 @@ CONTAINS
     ! solid-average specific heat capacity
     cpsolid = SUM( rhoB_solid_w_r2(1:n_part) * cp_part(1:n_part) )              &
          / ( SUM(rhoB_solid_w_r2(1:n_part) ) ) 
-
+    
     ! solid total mass flow rate 
     rhoB_solid_tot_w_r2 = SUM( rhoB_solid_w_r2(1:n_part) )
         
@@ -785,6 +734,7 @@ CONTAINS
 
     ! --- Compute  water_vapor_mass_fraction, ice_mass_fraction -----------------
     ! --- and t_mix from other variables ----------------------------------------
+
     CALL eval_temp(enth,pa,cpsolid)
 
     IF ( verbose_level .GE. 1 ) THEN
@@ -851,7 +801,7 @@ CONTAINS
     alfa_s_w_r2(1:n_part) = rhoB_solid_w_r2(1:n_part) / rho_solid_avg(1:n_part)
     
     ! contribution from all gas (water vapour, other volcanic gas, dry air)
-    alfa_g_w_r2 = ( f_(1) * ( 1.0_wp - liquid_water_mass_fraction                 &
+    alfa_g_w_r2 = ( f_(1) * ( 1.0_wp - liquid_water_mass_fraction               &
          - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / rho_gas 
     
     ! contribution from liquid water
@@ -863,7 +813,8 @@ CONTAINS
     w_r2 = SUM( alfa_s_w_r2(1:n_part) ) + alfa_g_w_r2 + alfa_lw_w_r2            &
          + alfa_ice_w_r2
 
-    r = SQRT( w_r2 / w )    
+    r = SQRT( w_r2 / w )
+    
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*)
@@ -878,7 +829,7 @@ CONTAINS
 
     mom(0:n_mom-1,1:n_sections,1:n_part) = mom(0:n_mom-1,1:n_sections,1:n_part) &
          / w_r2
-       
+
     ! update the values of the linear reconstructions at the quadrature points
     f_quad(1:n_nodes,1:n_sections,1:n_part) =                                   &
          f_quad(1:n_nodes,1:n_sections,1:n_part) / w_r2
@@ -910,12 +861,10 @@ CONTAINS
 
  
     ! --------- liquid fractions ------------------------------------------------
-
     liquid_water_volume_fraction = liquid_water_mass_fraction * ( rho_mix       &
          / rho_lw)
 
-    ! --------- ice fractions ------------------------------------------------
-
+    ! --------- ice fractions ---------------------------------------------------
     ice_volume_fraction = ice_mass_fraction * ( rho_mix / rho_ice)
 
     ! -------- solid fractions --------------------------------------------------
@@ -938,17 +887,14 @@ CONTAINS
     ! --------- gas fractions ---------------------------------------------------
     ! --------- mixture of dry air + water vapor + other volcanic gases ---------
     
-    gas_mass_fraction = ( f_(1)  * ( 1.0_wp - liquid_water_mass_fraction          &
+    gas_mass_fraction = ( f_(1)  * ( 1.0_wp - liquid_water_mass_fraction        &
          - ice_mass_fraction ) - rhoB_solid_tot_w_r2 ) / f_(1)
 
-    gas_volume_fraction = 1.0_wp - solid_tot_volume_fraction -                    &
+    gas_volume_fraction = 1.0_wp - solid_tot_volume_fraction -                  &
          liquid_water_volume_fraction - ice_volume_fraction
 
     volcgas_mix_volume_fraction = volcgas_mix_mass_fraction * ( rho_mix /       &
          rhovolcgas_mix )
-
-    IF ( aggregation_flag ) CALL update_aggregation(t_mix,visc_atm,&
-        liquid_water_mass_fraction , ice_mass_fraction )
     
     IF ( verbose_level .GE. 1 ) THEN
        

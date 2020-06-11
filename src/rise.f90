@@ -40,7 +40,7 @@ CONTAINS
     USE mixture_module, ONLY : gas_mass_fraction , rho_mix, mass_flow_rate ,    &
          rgasmix , rvolcgas_mix ,water_vapor_mass_fraction ,                    &
          volcgas_mix_mass_fraction , water_mass_fraction ,                      &
-         liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction
+         liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction 
 
     USE parameters_2d, ONLY : x_source, y_source, r_source, vol_flux_source ,   &
          u_source, v_source, dr_dz
@@ -49,7 +49,8 @@ CONTAINS
     
     USE particles_module, ONLY : n_part , n_sections , mom , phiL , phiR , n_mom
     USE particles_module, ONLY : solid_partial_mass_fraction ,                  &
-         particle_loss_rate , cum_particle_loss_rate
+         particle_loss_rate , cum_particle_loss_rate , &
+         bin_partial_mass_fraction
 
     USE plume_module, ONLY: s , u , v , w , x , y , z , vent_height , r , log10_mfr
     USE solver_module, ONLY: dz, dz0, f, ftemp, rhs, rhstemp , rhs1 , rhs2 
@@ -99,7 +100,7 @@ CONTAINS
     REAL(wp) :: eps_sb
 
 
-    INTEGER :: idx
+    INTEGER :: idx , idx1 , idx2
 
     REAL(wp) :: rho_mix_init , rho_mix_final
 
@@ -366,10 +367,12 @@ CONTAINS
 
     main_loop: DO
 
+       ! WRITE(*,*) 'z,dz',z,dz
+       
        f_stepold = f
 
        CALL unlump(f)
-
+       
        rho_atm_old = rho_atm
        r_old = r
        z_old = z
@@ -403,23 +406,72 @@ CONTAINS
        z_temp = z
 
        RungeKutta:DO i_RK = 1,n_RK
-   
+          
           DO i=1,itotal
 
-             ftemp(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:n_RK)               &
-                  * A_RK(i_RK,1:n_RK) )
+             ftemp(i) = f_stepold(i) + dz * SUM( rhs_RK(i,1:i_RK-1)             &
+                  * A_RK(i_RK,1:i_RK-1) )
 
           END DO
 
+          ! compute the partial mass fraction on each bin
+          DO i_part=1,n_part
+
+             DO i_sect=1,n_sections
+
+                idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+          
+                bin_partial_mass_fraction(i_sect,i_part) = ftemp(idx2)
+
+             END DO
+
+          END DO
+
+          bin_partial_mass_fraction = bin_partial_mass_fraction /               &
+               SUM( bin_partial_mass_fraction )
+          
+          DO i_part=1,n_part
+             
+             DO i_sect=1,n_sections
+
+                idx1 = 8+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+                idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+
+                ! check on negative mass fractions
+                IF ( bin_partial_mass_fraction(i_sect,i_part) .LT. 0.0_wp) THEN
+
+                   ! if the negative value is small, set to zero
+                   IF (bin_partial_mass_fraction(i_sect,i_part) .GT.-1.0e-3_wp) &
+                        THEN
+                                            
+                      ftemp(idx1:idx2) = 0.0_wp
+
+                   ELSE
+
+                      ! if error is large decrease the integration step
+                      dz = 0.5_wp * dz
+                      z = z_temp
+                      f = f_stepold
+                      CYCLE main_loop
+                     
+                   END IF
+                   
+                END IF
+                
+             END DO
+
+          END DO
+          
           ! the height is updated to compute the correct values of the
           ! atnospheric variables within unlump (where zmet is called)
           z = z_temp + dz * D_RK(i_RK)
-          
+
           CALL unlump( ftemp )
 
-          ! ----- Check on the solution to reduce step-size condition -------------
+          ! ----- Check on the solution to reduce step-size condition -----------
 
-          IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair , rvolcgas_mix) ) ) THEN
+          IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair,rvolcgas_mix) ) ) &
+               THEN
 
              dz = 0.5_wp * dz
              z = z_temp
@@ -482,11 +534,15 @@ CONTAINS
 
        IF ( errmax .GT. 1.0_wp ) THEN
 
+          !WRITE(*,*) 'errmax',errmax
+          !WRITE(*,*) f5th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !WRITE(*,*) f4th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !WRITE(*,*) f_stepold(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !READ(*,*)
+
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
           z = z_temp
-          !WRITE(*,*) 'z,dz',z,dz
-          !READ(*,*)
           f = f_stepold
 
           ! go to the next iteration
@@ -496,6 +552,55 @@ CONTAINS
 
        f(1:itotal) = f5th(1:itotal)
 
+       ! compute the partial mass fraction on each bin
+       DO i_part=1,n_part
+          
+          DO i_sect=1,n_sections
+             
+             idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+             
+             bin_partial_mass_fraction(i_sect,i_part) = f(idx2)
+             
+          END DO
+          
+       END DO
+       
+       bin_partial_mass_fraction = bin_partial_mass_fraction /               &
+            SUM( bin_partial_mass_fraction )
+       
+       DO i_part=1,n_part
+          
+          DO i_sect=1,n_sections
+             
+             idx1 = 8+0+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+             idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
+             
+             ! check on negative mass fractions
+             IF ( bin_partial_mass_fraction(i_sect,i_part) .LT. 0.0_wp) THEN
+                
+                ! if the negative value is small, set to zero
+                IF (bin_partial_mass_fraction(i_sect,i_part) .GT. -1.0e-3_wp ) THEN
+                   
+                   f(idx1:idx2) = 0.0_wp
+
+                ELSE
+
+                   WRITE(*,*) 'z,dz,i_part,i_sect',z,dz,i_part,i_sect
+                   ! if error is large decrease the integration step
+                   dz = 0.5_wp * dz
+                   z = z_temp
+                   f = f_stepold
+                   CYCLE main_loop
+                   
+                END IF
+                
+             END IF
+             
+          END DO
+          
+       END DO
+       
+       
        ! the height is updated to compute the correct values of the
        ! atnospheric variables within unlump (where zmet is called)
        z = z_temp + dz
@@ -516,7 +621,7 @@ CONTAINS
 
              IF ( w .LE. 0.0_wp) THEN
 
-                WRITE(*,*) 'WARNING: negative velocit w= ',w
+                WRITE(*,*) 'WARNING: negative velocity w= ',w
 
              ELSE
 
