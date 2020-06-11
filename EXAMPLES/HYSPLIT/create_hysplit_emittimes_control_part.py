@@ -295,7 +295,7 @@ if os.path.isfile(str(plume_hy)):
 
         # convert from m to lat lon	  
         lon_col = vent_lon + ((x*10**-3)/float(100))
-        lat_col = vent_lat - ((y*10**-3)/float(100))
+        lat_col = vent_lat + ((y*10**-3)/float(100))
 
         b.append([lat_col, lon_col, height, emission_area])
 
@@ -309,7 +309,7 @@ if os.path.isfile(str(plume_hy)):
         a = np.loadtxt(umbrella_file,skiprows=1)
         a = np.asarray(a)
 
-        lat_new = vent_lat - ((a[1]*10**-3)/float(100))
+        lat_new = vent_lat + ((a[1]*10**-3)/float(100))
         lon_new = vent_lon + ((a[0]*10**-3)/float(100))
         emission_area_new = np.pi * a[2]**(2)
         h_avg = a[3]
@@ -455,7 +455,7 @@ for i in range(2,n_runs,1):
 
             # convert from m to lat lon	  
             lon_col = vent_lon + ((x*10**-3)/float(100))
-            lat_col = vent_lat - ((y*10**-3)/float(100))
+            lat_col = vent_lat + ((y*10**-3)/float(100))
 
             b.append([lat_col, lon_col, height,emission_area])
 
@@ -469,7 +469,7 @@ for i in range(2,n_runs,1):
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
 
-            lat_new = vent_lat - ((a[1]*10**-3)/float(100))
+            lat_new = vent_lat + ((a[1]*10**-3)/float(100))
             lon_new = vent_lon + ((a[0]*10**-3)/float(100))
             emission_area_new = np.pi * a[2]**(2)
             h_avg = a[3]
@@ -661,7 +661,7 @@ if ( n_runs > 1):
 
             # convert from m to lat lon	  
             lon_col = vent_lon + ((x*10**-3)/float(100))
-            lat_col = vent_lat - ((y*10**-3)/float(100))
+            lat_col = vent_lat + ((y*10**-3)/float(100))
 
             b.append([lat_col, lon_col, height,emission_area])
 
@@ -675,7 +675,7 @@ if ( n_runs > 1):
             a = np.loadtxt(umbrella_file,skiprows=1)
             a = np.asarray(a)
 
-            lat_new = vent_lat - ((a[1]*10**-3)/float(100))
+            lat_new = vent_lat + ((a[1]*10**-3)/float(100))
             lon_new = vent_lon + ((a[0]*10**-3)/float(100))
             emission_area_new = np.pi * a[2]**(2)
             h_avg = a[3]
