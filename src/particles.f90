@@ -76,11 +76,17 @@ MODULE particles_module
   !> Density at phi=phi1
   REAL(wp), ALLOCATABLE :: rho1(:)
 
+  !> Shape factor at phi=phi1
+  REAL(wp), ALLOCATABLE :: shape1(:)
+  
   !> Second diameter for the density function
   REAL(wp), ALLOCATABLE :: phi2(:)
 
   !> Density at phi=phi2
   REAL(wp), ALLOCATABLE :: rho2(:)
+
+  !> Shape factor at phi=phi2
+  REAL(wp), ALLOCATABLE :: shape2(:)
 
   !> Heat capacity of particle phases
   REAL(wp), ALLOCATABLE :: cp_part(:)
@@ -139,6 +145,9 @@ MODULE particles_module
   !> Particle densities at quadrature points
   REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: rho_quad
 
+  !> Particle densities at quadrature points
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: shape_quad
+
   !> Particle settling velocities at quadrature points
   REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: set_vel_quad
 
@@ -187,7 +196,14 @@ CONTAINS
 
   SUBROUTINE allocate_particles
 
+    USE, intrinsic :: iso_fortran_env
+    USE, intrinsic :: ieee_arithmetic
+
     IMPLICIT NONE
+
+    REAL(wp) :: notSet
+
+    notSet = ieee_value(0.0_wp, ieee_quiet_nan)
 
     ALLOCATE ( solid_partial_mass_fraction(1:n_part) )
     ALLOCATE ( solid_partial_mass_fraction0(1:n_part) )
@@ -213,10 +229,19 @@ CONTAINS
     ALLOCATE ( shape_factor(n_part) )
     ALLOCATE ( phi1(n_part) )
     ALLOCATE ( rho1(n_part) )
+    ALLOCATE ( shape1(n_part) )
     ALLOCATE ( phi2(n_part) )
     ALLOCATE ( rho2(n_part) )
+    ALLOCATE ( shape2(n_part) )
 
     ALLOCATE ( cp_part(n_part) )
+
+    phi1(1:n_part) = notSet
+    phi2(1:n_part) = notSet
+    
+    shape_factor(1:n_part) = notSet
+    shape1(1:n_part) = notSet
+    shape2(1:n_part) = notSet
 
     !Allocation of arrays for quadrature variables
     ALLOCATE ( m_quad(n_nodes,n_sections,n_part) )
@@ -227,6 +252,7 @@ CONTAINS
     ALLOCATE ( diam_quad(n_nodes,n_sections,n_part) )
     ALLOCATE ( vol_quad(n_nodes,n_sections,n_part) )
     ALLOCATE ( rho_quad(n_nodes,n_sections,n_part) )
+    ALLOCATE ( shape_quad(n_nodes,n_sections,n_part) )
     ALLOCATE ( set_vel_quad(n_nodes,n_sections,n_part) )
     
     ! Allocation of arrays for aggregation
@@ -279,8 +305,10 @@ CONTAINS
     DEALLOCATE ( shape_factor )
     DEALLOCATE ( phi1 )
     DEALLOCATE ( rho1 )
+    DEALLOCATE ( shape1 )
     DEALLOCATE ( phi2 )
     DEALLOCATE ( rho2 )
+    DEALLOCATE ( shape2 )
 
     DEALLOCATE ( cp_part )
 
@@ -619,6 +647,62 @@ CONTAINS
 
   END FUNCTION particles_density
 
+  !******************************************************************************
+  !> \brief Particle shape factor
+  !
+  !> This function evaluates the shape factor of a particle given the size (phi).
+  !> \param[in]   i_part   particle phase index 
+  !> \param[in]   phi      particle size (Krumbein phi scale)
+  !> \date 22/10/2013
+  !> @author 
+  !> Mattia de' Michieli Vitturi
+  !******************************************************************************
+
+  FUNCTION particles_shape(i_part,phi)
+    !
+    IMPLICIT NONE
+
+    REAL(wp) :: particles_shape
+
+    INTEGER, INTENT(IN) :: i_part
+    REAL(wp), INTENT(IN) :: phi
+
+    REAL(wp) :: phi_temp,shape_temp
+    
+    IF ( phi1(i_part) .GT. phi2(i_part) ) THEN
+
+       phi_temp = phi1(i_part)
+       shape_temp = shape1(i_part)
+
+       phi1(i_part) = phi2(i_part)
+       shape1(i_part) = shape2(i_part)
+
+       phi2(i_part) = phi_temp
+       shape2(i_part) = shape_temp
+
+    END IF
+       
+    IF ( phi .LE. phi1(i_part) ) THEN
+
+       particles_shape = shape1(i_part)
+
+    ELSEIF ( phi .LE. phi2(i_part) ) THEN
+
+
+       particles_shape = shape1(i_part) + ( phi - phi1(i_part) ) /              &
+            ( phi2(i_part) - phi1(i_part) ) * ( shape2(i_part) - shape1(i_part) )
+
+    ELSE
+
+       particles_shape = shape2(i_part)
+
+    END IF
+    
+    RETURN
+
+  END FUNCTION particles_shape
+
+  
   !******************************************************************************
   !> \brief Particles aggregation
   !
@@ -1034,7 +1118,8 @@ CONTAINS
              ! Settling velocities at the quadrature points
              set_vel_quad(i_node,i_sect,i_part) =                               &
                   particles_settling_velocity( diam_quad(i_node,i_sect,i_part), &
-                  rho_quad(i_node,i_sect,i_part) , shape_factor(i_part) )
+                  rho_quad(i_node,i_sect,i_part) ,                              &
+                  shape_quad(i_node,i_sect,i_part) )
 
           END DO
           
@@ -1217,6 +1302,7 @@ CONTAINS
     REAL(wp) :: diam(n_nodes,n_sections)
     REAL(wp) :: Mi(n_nodes,n_sections)
     REAL(wp) :: rho_p(1:n_nodes,1:n_sections)
+    REAL(wp) :: shape_p(1:n_nodes,1:n_sections)
     REAL(wp) :: cond1(n_nodes,n_sections), cond2(n_nodes,n_sections)
     REAL(wp) :: cond3(n_nodes,n_sections)
     
@@ -1230,17 +1316,19 @@ CONTAINS
        ! convert from Krumbein scale to meters
        diam1 = 1.E-3_wp * 2.0_wp**( - phi2(i_part) )
        ! compute the volume from diameter and shape factor
-       Vol1 = shape_factor(i_part) * diam1**3
+       ! Vol1 = shape_factor(i_part) * diam1**3
+       Vol1 = shape2(i_part) * diam1**3
        ! compute the mass from volume and density
        M1 = Vol1 * rho2(i_part)
 
        ! convert from Krumbein scale to meters
        diam2 = 1.E-3_wp * 2.0_wp**( - phi1(i_part) )
        ! compute the volume from diameter and shape factor
-       Vol2 = shape_factor(i_part) * diam2**3
+       ! Vol2 = shape_factor(i_part) * diam2**3
+       Vol2 = shape1(i_part) * diam2**3
        ! compute the mass from volume and density
        M2 = Vol2 * rho1(i_part)
-
+       
        ! Initialize the functions for the bisection method
        f1 = m_quad(1:n_nodes,1:n_sections,i_part) - M1
        f2 = m_quad(1:n_nodes,1:n_sections,i_part) - M2
@@ -1267,6 +1355,13 @@ CONTAINS
              WRITE(*,*) f2(1:n_nodes,i_sect)
              
           END DO
+
+          WRITE(*,*) 'f1*f2'
+          DO i_sect=1,n_sections
+             
+             WRITE(*,*) f1(1:n_nodes,i_sect)*f2(1:n_nodes,i_sect)
+             
+          END DO
           
           READ(*,*)
 
@@ -1280,7 +1375,13 @@ CONTAINS
           
           phi  = 0.5_wp * (phiL+phiR)
           diam = 1.E-3_wp * 2.0_wp**( - phi )
-          Vol = shape_factor(i_part) * diam**3
+          ! Vol = shape_factor(i_part) * diam**3
+
+          shape_p = shape1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -  &
+               phi1(i_part) ) * ( shape2(i_part) - shape1(i_part) )
+          shape_p = 0.6_wp
+          Vol = shape_p * diam**3
+
           rho_p = rho1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -      &
                phi1(i_part) ) * ( rho2(i_part) - rho1(i_part) )
     
@@ -1310,12 +1411,14 @@ CONTAINS
        ! the output of the bilinear iterations is the density
        rho_quad(1:n_nodes,1:n_sections,i_part) = rho_p
 
+       shape_quad(1:n_nodes,1:n_sections,i_part) = shape_p
+       
        ! we compute the volume from mass and density
        vol_quad(1:n_nodes,1:n_sections,i_part) = m_quad(:,:,i_part) / rho_p
 
        ! the diameter in m is computed from volume and shapefactor
        diam_quad(1:n_nodes,1:n_sections,i_part) = ( vol_quad(:,:,i_part)        &
-            / shape_factor(i_part) )**( 1.0_wp/3.0_wp )
+            / shape_quad(1:n_nodes,1:n_sections,i_part) )**( 1.0_wp/3.0_wp )
 
        ! the diameter in m is converted to phi
        phi_quad(1:n_nodes,1:n_sections,i_part) =                                &
@@ -1348,7 +1451,7 @@ CONTAINS
           END IF
        
     END DO
-
+    
     RETURN
     
   END SUBROUTINE phiFromM
@@ -1412,10 +1515,10 @@ CONTAINS
                       kernel_ji(j_node,i_node) = particles_beta( temp , visc ,  &
                            diam_quad(j_node,j_sect,j_part) ,                    &
                            diam_quad(i_node,i_sect,i_part) ,                    &
-                           rho_quad(j_node,j_sect,j_part) , &
-                           rho_quad(i_node,i_sect,i_part) , &
-                           set_vel_quad(j_node,j_sect,j_part) , &
-                           set_vel_quad(i_node,i_sect,i_part) , &
+                           rho_quad(j_node,j_sect,j_part) ,                     &
+                           rho_quad(i_node,i_sect,i_part) ,                     &
+                           set_vel_quad(j_node,j_sect,j_part) ,                 &
+                           set_vel_quad(i_node,i_sect,i_part) ,                 &
                            lw_vf , ice_vf , solid_mf )
 
                    END DO

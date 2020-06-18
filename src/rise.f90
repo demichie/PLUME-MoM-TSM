@@ -170,7 +170,7 @@ CONTAINS
     CALL initialize_mixture
 
     IF ( aggregation_flag ) CALL init_aggregation
-
+    
     IF ( dakota_flag ) THEN
     
        description = 'Initial MFR'
@@ -243,7 +243,7 @@ CONTAINS
        END IF
 
     END DO
-
+    
     !
     ! ... Lump physical variables 
     !
@@ -254,6 +254,8 @@ CONTAINS
     ! ... start plume rise marching loop
     ! ----------------------------------------------------
     !
+
+    
     dz = dz0
 
     particle_loss_rate(1:n_part,1:n_sections) = 0.0_wp
@@ -367,8 +369,6 @@ CONTAINS
 
     main_loop: DO
 
-       ! WRITE(*,*) 'z,dz',z,dz
-       
        f_stepold = f
 
        CALL unlump(f)

@@ -32,7 +32,7 @@ MODULE inpout
     USE particles_module, ONLY : solid_partial_mass_fraction , phi1 , rho1 ,    &
          phi2 , rho2 , cp_part , settling_model , distribution ,                &
          solid_mass_fraction0 , shape_factor , bin_partial_mass_fraction ,      &
-         solid_partial_mass_fraction0 
+         solid_partial_mass_fraction0 , shape1 , shape2
 
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
@@ -154,8 +154,8 @@ MODULE inpout
   NAMELIST / mom_parameters / n_part , n_mom , n_nodes , n_sections
 
   NAMELIST / particles_parameters / phi_min , delta_phi , distribution ,        &
-       solid_partial_mass_fraction , phi1 , rho1 , phi2 , rho2 , cp_part ,      &
-       shape_factor , particles_loss , settling_model
+       solid_partial_mass_fraction , phi1 , rho1 , phi2 , rho2 , shape1 ,       &
+       shape2 , cp_part , shape_factor , particles_loss , settling_model
   
   NAMELIST / inversion_parameters / height_obj , r_min , r_max , n_values ,     &
        w_min , w_max , nbl_stop
@@ -329,6 +329,8 @@ CONTAINS
        RHO1 = 2000.0_wp
        PHI2 = 4.0_wp
        RHO2 = 2600.0_wp
+       SHAPE1 = 1.0_wp
+       SHAPE2 = 1.0_wp
        SHAPE_FACTOR = 1.0_wp
        CP_PART = 1100.0_wp
        PARTICLES_LOSS= .true.
@@ -447,7 +449,7 @@ CONTAINS
 
     USE particles_module, ONLY: particles_density , allocate_particles ,        &
          deallocate_particles , eval_quad_values , init_quadrature_points ,     &
-         phiFromM
+         phiFromM, particles_shape
 
     IMPLICIT NONE
 
@@ -520,6 +522,7 @@ CONTAINS
     INTEGER :: ip
 
     REAL(wp) :: rhop
+    REAL(wp) :: shapep
 
     NAMELIST / bin_parameters / bin_partial_mass_fraction
     
@@ -704,6 +707,8 @@ CONTAINS
     ELSE
 
        WRITE(*,*) 'Problem with namelist PARTICLES_PARAMETERS'
+       WRITE(*,*)
+       WRITE(*,particles_parameters)      
        STOP
 
     END IF
@@ -723,22 +728,87 @@ CONTAINS
        WRITE(*,"(100F6.2)") phiR
 
     END IF
-
+    
     ! Compute the mass instervals for the different particles (1,n_part)
     DO i_part = 1,n_part
 
        M(1,i_part) = 0.0_wp
 
+       ! check on phi1 and phi2
+       IF ( isSet(phi1(i_part)) .AND. isSet(phi2(i_part)) ) THEN 
+       
+          IF ( phi1(i_part) .GT. phi2(i_part) ) THEN
+             
+             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(*,*) 'Please check the input file'
+             WRITE(*,*) 'phi1 MUST BE SMALLER THAN phi2'
+             WRITE(*,*) 'phi1',phi1
+             WRITE(*,*) 'phi2',phi2
+             STOP
+             
+          END IF
+
+       ELSE
+
+          WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+          WRITE(*,*) 'Please check the input file'
+          WRITE(*,*) 'phi1',phi1
+          WRITE(*,*) 'phi2',phi2
+          STOP
+          
+       END IF
+          
+       IF ( isSet(shape_factor(i_part)) ) THEN
+          
+          IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN 
+             
+             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(*,*) 'Please check the input file'
+             WRITE(*,*) 'Shape factor',shape_factor
+             WRITE(*,*) 'Shape1',shape1
+             WRITE(*,*) 'Shape2',shape2
+             WRITE(*,*) 'IF SHAPE_FACTOR is defined, SHAPE1 and SHAPE2' 
+             WRITE(*,*) 'are not used'
+             STOP
+             
+          ELSE
+                
+             shape1(i_part) = shape_factor(i_part)
+             shape2(i_part) = shape_factor(i_part)
+             
+          END IF
+          
+       ELSE
+          
+          IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN
+
+             
+          ELSE
+             
+             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(*,*) 'Please check the input file'
+             WRITE(*,*) 'Shape factor',shape_factor
+             WRITE(*,*) 'Shape1',shape1
+             WRITE(*,*) 'Shape2',shape2
+             REWIND(inp_unit)
+             STOP
+             
+          END IF
+          
+       END IF
+       
        DO i_sect = 1,n_sections
 
           diam = 1.E-3_wp * 2.0_wp**( - phiR(i_sect) )
           rhop = particles_density( i_part,phiR(i_sect) )
-          M(i_sect+1,i_part) = rhop * (shape_factor(i_part) * diam**3)
+          shapep = particles_shape( i_part,phiR(i_sect) )
+       
+          M(i_sect+1,i_part) = rhop * (shapep * diam**3)
 
        END DO
-
+       
     END DO
-
+    
     CALL init_quadrature_points
 
     distribution = lower(distribution)

@@ -524,7 +524,7 @@ CONTAINS
             'Initial MER [kgs-1] computed from r0 and w0 =',mass_flow_rate
 
     END IF
-
+    
     IF ( verbose_level .GE. 1 ) THEN
 
        WRITE(*,*) 'cpsolid',cpsolid
