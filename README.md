@@ -1,37 +1,42 @@
-## Welcome to GitHub Pages
+# Welcome to PLUME-MoM-TSM
 
-You can use the [editor on GitHub](https://github.com/demichie/PLUME-MoM-TSM/edit/gh-pages/README.md) to maintain and preview the content for your website in Markdown files.
+PLUME-MoM-TSM is a FORTRAN90 code designed to solve the equations for a steady-state integral volcanic plume model, describing the rise in the atmosphere of a mixture of gas and volcanic ash during an eruption. 
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+The model describes the steady-state dynamics of a plume in a 3-D coordinate system, and the two-size moment (TSM) method is adopted to describe changes in grain-size distribution along the plume associated with particle loss from plume margins and with particle aggregation. For this reason, the new version is named PLUME-MoM-TSM. 
 
-### Markdown
+For the first time in a plume model, the full Smoluchowski coagulation equation is solved, allowing to quantify the formation of aggregates during the rise of the plume. In addition, PLUME-MOM-TSM allows to model the phase change of water, which can be either magmatic, added at the vent as liquid from external sources, or incorporated through ingestion of moist atmospheric air. 
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Finally, the code includes the possibility to simulate the initial spreading of the umbrella cloud intruding from the volcanic column into the atmosphere. A transient shallow water system of equations models the intrusive gravity current, allowing to compute the upwind spreading.
 
-```markdown
-Syntax highlighted code block
+### Authors and Contributors
 
-# Header 1
-## Header 2
-### Header 3
+Mattia de' Michieli Vitturi (@demichie)
 
-- Bulleted
-- List
+Federica Pardini (@federicapardini
 
-1. Numbered
-2. List
+### Installation and execution
 
-**Bold** and _Italic_ and `Code` text
+Download the PLUME-MoM-TSM package and create the executable with the following commands from a terminal:
 
-[Link](url) and ![Image](src)
-```
+>./configure
+>
+>make
+>
+>make install
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+This will create the executable and copy it in the bin folder. You can test the executable copying it in the EXAMPLES folder and running it.
 
-### Jekyll Themes
+### Documentation
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/demichie/PLUME-MoM-TSM/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+A wiki page describing the model is available at:
 
-### Support or Contact
+[https://github.com/demichie/PLUME-MoM-TSM/wiki](https://github.com/demichie/PLUME-MoM-TSM/wiki) 
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Doxygen generated documentation of the code can be found at:
+
+[http://demichie.github.io/PLUME-MoM-TSM/html/](http://demichie.github.io/PLUME-MoM-TSM/html/) 
+
+### Acknowledgments
+
+The development of PLUME-MoM-TSM has been partially funded by the Italian MIUR project Premiale Ash-RESILIENCE, the MIUR FISR project "Sale Operative Integrate e Reti di Monitoraggio del Futuro", and the European project EUROVOLC (grant number 731070). The authors also thank Alessandro Tadini, Kyle Mohr and Silvia Giansante for testing of the code and for the feedbacks provided.
+
