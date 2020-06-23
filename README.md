@@ -24,7 +24,7 @@ To test the code copy or link the executable from the bin folder in the EXAMPLES
 
 A Phyton3 script (plot_plume.py) is provided in the UTILS folder to plot the results.
 
-## Authors###
+## Authors
 
 M. de' Michieli Vitturi, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
 
