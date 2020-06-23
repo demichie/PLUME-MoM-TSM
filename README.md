@@ -1,4 +1,10 @@
-# PLUME-MoM
+# Welcome to PLUME-MoM-TSM
+
+&nbsp;
+
+<img src="https://cdn.rawgit.com/wiki/demichie/PLUME-MoM-TSM/svgs/Home/logoNEW.svg?invert_in_darkmode" align=middle width=617.85445pt/>
+
+
 Volcanic plume integral model based on the method of moments
 
 To compile:
