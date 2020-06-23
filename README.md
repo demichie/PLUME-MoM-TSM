@@ -28,5 +28,5 @@ A Phyton3 script (plot_plume.py) is provided in the UTILS folder to plot the res
 
 M. de' Michieli Vitturi, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
 
-F. Pardini, School of Earth, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
+F. Pardini, Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Pisa, Pisa, Italy.
 
