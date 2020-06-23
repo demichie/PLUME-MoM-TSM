@@ -5,24 +5,24 @@
 <img src="https://cdn.rawgit.com/wiki/demichie/PLUME-MoM-TSM/svgs/Home/logoNEW.svg?invert_in_darkmode" align=middle width=617.85445pt/>
 
 
-Volcanic plume integral model based on the method of moments
+PLUME-MoM-TSM is a volcanic plume integral model based on the method of moments
 
 To compile:
 
-./configure
+> ./configure
 
-make
+> make
 
-make install
+> make install
 
 
 The executable is copied in the bin folder.
 
-To test the code copy the executable from the bin folder in the EXAMPLES folder and:
+To test the code copy or link the executable from the bin folder in the EXAMPLES folders and:
 
-./PLUMEMoM
+> ./PLUMEMoM
 
-A Phyton script (plot_solution.m) is provided to plot the results.
+A Phyton3 script (plot_plume.py) is provided in the UTILS folder to plot the results.
 
 ## Authors###
 
