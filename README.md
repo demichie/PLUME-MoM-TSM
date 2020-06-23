@@ -10,7 +10,9 @@ PLUME-MoM-TSM is a volcanic plume integral model based on the method of moments
 To compile:
 
 > ./configure
+
 > make
+
 > make install
 
 
