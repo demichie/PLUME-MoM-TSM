@@ -1,1 +1,4 @@
 theme: jekyll-theme-cayman
+show_downloads: "true"
+title: PLUME-MoM-TSM
+description: Volcanic plume integral model based on the TSM method of moments
