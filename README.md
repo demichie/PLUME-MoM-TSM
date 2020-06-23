@@ -1,10 +1,5 @@
 # Welcome to PLUME-MoM-TSM
 
-&nbsp;
-
-<img src="https://cdn.rawgit.com/wiki/demichie/PLUME-MoM-TSM/svgs/Home/logoNEW.svg?invert_in_darkmode" align=middle width=617.85445pt/>
-
-
 PLUME-MoM-TSM is a FORTRAN90 code designed to solve the equations for a steady-state integral volcanic plume model, describing the rise in the atmosphere of a mixture of gas and volcanic ash during an eruption. 
 
 The model describes the steady-state dynamics of a plume in a 3-D coordinate system, and the two-size moment (TSM) method is adopted to describe changes in grain-size distribution along the plume associated with particle loss from plume margins and with particle aggregation. For this reason, the new version is named PLUME-MoM-TSM. 
