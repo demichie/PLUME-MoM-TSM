@@ -17,7 +17,7 @@ Finally, the code includes the possibility to simulate the initial spreading of 
 
 Mattia de' Michieli Vitturi (@demichie)
 
-Federica Pardini (@federicapardini
+Federica Pardini (@federicapardini)
 
 ### Installation and execution
 
