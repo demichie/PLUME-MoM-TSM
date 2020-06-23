@@ -1,14 +1,25 @@
 !********************************************************************************
 !> \mainpage   PLUME-MoM-TSM
-!> PLUME-MoM-TSM is a numerical code for the steady-state plume model, describing  
-!> the rise in the atmosphere of a mixture of gas and volcanic ash during an  
-!> eruption. The system of equation is formally the same of that presented in 
-!> Barsotti et al. 2008, i.e. the equations we formulate describe the same 
-!> conservation principles (conservation of mass, momentum and energy).
-!> In this model, instead of assuming a finite number of particle sizes, a 
-!> continuous distribution of particles size is considered and the mothod of
-!> moments (Marchisio and Fox, 2013) is adopted to track the moments of the 
-!> particle size distribution along the eruptive column.
+!> PLUME-MoM-TSM is a FORTRAN90 code designed to solve the equations for a
+!> steady-state integral volcanic plume model, describing the rise in the
+!> atmosphere of a mixture of gas and volcanic ash during an eruption.
+!>
+!> The model describes the steady-state dynamics of a plume in a 3-D coordinate
+!> system, and the two-size moment (TSM) method is adopted to describe changes
+!> in grain-size distribution along the plume associated with particle loss from
+!> plume margins and with particle aggregation. For this reason, the new version
+!> is named PLUME-MoM-TSM.
+!> For the first time in a plume model, the full Smoluchowski coagulation
+!> equation is solved, allowing to quantify the formation of aggregates during
+!> the rise of the plume. In addition, PLUME-MOM-TSM allows to model the phase
+!> change of water, which can be either magmatic, added at the vent as liquid
+!> from external sources, or incorporated through ingestion of moist atmospheric
+!> air.
+!>
+!> The code also includes the possibility to simulate the initial spreading
+!> of the umbrella cloud intruding from the volcanic column into the atmosphere.
+!> A transient shallow water system of equations models the intrusive gravity
+!> current, allowing to compute the upwind spreading.
 !> Version 1.0:\n
 !> 
 !> Github project page: http://demichie.github.io/PLUME-MoM-TSM/
