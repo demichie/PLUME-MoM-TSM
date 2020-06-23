@@ -1,0 +1,6 @@
+<map id="solver_2d::eval_speeds" name="solver_2d::eval_speeds">
+<area shape="rect" id="node2" href="$namespacesolver__2d.html#a7f17c548fa0f025b2dc40b27605d4ef7" title="Time&#45;step computation. " alt="" coords="436,5,572,32"/>
+<area shape="rect" id="node4" href="$namespacesolver__2d.html#a797351372403f49c3a01d79301a7e204" title="Semidiscrete finite volume central scheme. " alt="" coords="212,57,388,98"/>
+<area shape="rect" id="node3" href="$namespacesw__umbrella.html#a8452fa56a03c131e513b1cd5ead870c2" title="sw_umbrella::solve\l_umbrella" alt="" coords="620,27,755,69"/>
+<area shape="rect" id="node5" href="$namespacesolver__2d.html#aed3f7dbc437442d0fd6521af6eafc8cd" title="Runge&#45;Kutta integration. " alt="" coords="438,57,570,98"/>
+</map>

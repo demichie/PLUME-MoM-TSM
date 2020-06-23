@@ -22,11 +22,12 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="logoNEW.svg"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">PLUME-MoM-TSM
-   &#160;<span id="projectnumber">0.9</span>
+   &#160;<span id="projectnumber">1.0</span>
    </div>
-   <div id="projectbrief">templategithubproject</div>
+   <div id="projectbrief">VolcanicPlumeModel</div>
   </td>
  </tr>
  </tbody>
@@ -41,6 +42,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="namespaces.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Types&#160;List</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -80,7 +82,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">PLUME-MoM-TSM </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>PLUME-MoM-TSM is a numerical code for the steady-state plume model, describing the rise in the atmosphere of a mixture of gas and volcanic ash during an eruption. The system of equation is formally the same of that presented in Barsotti et al. 2008, i.e. the equations we formulate describe the same conservation principles (conservation of mass, momentum and energy). In this model, instead of assuming a finite number of particle sizes, a continuous distribution of particles size is considered and the mothod of moments (Marchisio and Fox, 2013) is adopted to track the moments of the particle size distribution along the eruptive column. Version 1.0:<br />
+<div class="textblock"><p>PLUME-MoM-TSM is a FORTRAN90 code designed to solve the equations for a steady-state integral volcanic plume model, describing the rise in the atmosphere of a mixture of gas and volcanic ash during an eruption. The model describes the steady-state dynamics of a plume in a 3-D coordinate system, and the two-size moment (TSM) method is adopted to describe changes in grain-size distribution along the plume associated with particle loss from plume margins and with particle aggregation. For this reason, the new version is named PLUME-MoM-TSM. For the first time in a plume model, the full Smoluchowski coagulation equation is solved, allowing to quantify the formation of aggregates during the rise of the plume. In addition, PLUME-MOM-TSM allows to model the phase change of water, which can be either magmatic, added at the vent as liquid from external sources, or incorporated through ingestion of moist atmospheric air.</p>
+<p>The code also includes the possibility to simulate the initial spreading of the umbrella cloud intruding from the volcanic column into the atmosphere. A transient shallow water system of equations models the intrusive gravity current, allowing to compute the upwind spreading. Version 1.0:<br />
  Github project page: <a href="http://demichie.github.io/PLUME-MoM-TSM/">http://demichie.github.io/PLUME-MoM-TSM/</a> <br />
  </p><dl class="section author"><dt>Author</dt><dd>Mattia de' Michieli Vitturi (*) <br />
  (*) Istituto Nazionale di Geofisica e vulcanologia, sezione di Pisa<br />
@@ -98,7 +101,7 @@ Federica Pardini (*) <br />
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue May 28 2019 09:53:31 for PLUME-MoM-TSM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jun 23 2020 12:46:01 for PLUME-MoM-TSM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

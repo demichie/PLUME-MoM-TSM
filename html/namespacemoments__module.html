@@ -22,11 +22,12 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="logoNEW.svg"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">PLUME-MoM-TSM
-   &#160;<span id="projectnumber">0.9</span>
+   &#160;<span id="projectnumber">1.0</span>
    </div>
-   <div id="projectbrief">templategithubproject</div>
+   <div id="projectbrief">VolcanicPlumeModel</div>
   </td>
  </tr>
  </tbody>
@@ -41,6 +42,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li class="current"><a href="namespaces.html"><span>Modules</span></a></li>
+      <li><a href="annotated.html"><span>Data&#160;Types&#160;List</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -95,12 +97,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions/Subroutines</h2></td></tr>
-<tr class="memitem:a227ec52d639cb08369baab557d04d0d0"><td class="memItemLeft" align="right" valign="top">real *8 function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#a227ec52d639cb08369baab557d04d0d0">beta_function</a> (z, w)</td></tr>
-<tr class="memdesc:a227ec52d639cb08369baab557d04d0d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Beta function.  <a href="#a227ec52d639cb08369baab557d04d0d0">More...</a><br /></td></tr>
-<tr class="separator:a227ec52d639cb08369baab557d04d0d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c8074b5192355987362ed6963fd0dd7"><td class="memItemLeft" align="right" valign="top">real *8 function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#a8c8074b5192355987362ed6963fd0dd7">gammln</a> (xx)</td></tr>
-<tr class="memdesc:a8c8074b5192355987362ed6963fd0dd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gamma function logarithm.  <a href="#a8c8074b5192355987362ed6963fd0dd7">More...</a><br /></td></tr>
-<tr class="separator:a8c8074b5192355987362ed6963fd0dd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2747158671873b3a4d073da1a4c5a22"><td class="memItemLeft" align="right" valign="top">real(wp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#ab2747158671873b3a4d073da1a4c5a22">beta_function</a> (z, w)</td></tr>
+<tr class="memdesc:ab2747158671873b3a4d073da1a4c5a22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Beta function.  <a href="#ab2747158671873b3a4d073da1a4c5a22">More...</a><br /></td></tr>
+<tr class="separator:ab2747158671873b3a4d073da1a4c5a22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea4d75cfca3517997322fc43d81986a6"><td class="memItemLeft" align="right" valign="top">real(wp) function&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#aea4d75cfca3517997322fc43d81986a6">gammln</a> (xx)</td></tr>
+<tr class="memdesc:aea4d75cfca3517997322fc43d81986a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gamma function logarithm.  <a href="#aea4d75cfca3517997322fc43d81986a6">More...</a><br /></td></tr>
+<tr class="separator:aea4d75cfca3517997322fc43d81986a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a630a3f59e73a1da5bc370feef61f5fca"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#a630a3f59e73a1da5bc370feef61f5fca">gaulegf</a> (x1, x2, x, w, n)</td></tr>
 <tr class="separator:a630a3f59e73a1da5bc370feef61f5fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ed6005c1ee55f2aa121a560d3fbb914"><td class="memItemLeft" align="right" valign="top">subroutine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacemoments__module.html#a4ed6005c1ee55f2aa121a560d3fbb914">linear_reconstruction</a> (Ml, Mr, mom, Ma, Mb, alfa, beta, gamma1, gamma2)</td></tr>
@@ -125,20 +127,20 @@ Variables</h2></td></tr>
 <p>This module contains the procedures and the variables for the method of moments. </p><dl class="section date"><dt>Date</dt><dd>22/10/2013 </dd></dl>
 <dl class="section author"><dt>Author</dt><dd>Mattia de' Michieli Vitturi </dd></dl>
 </div><h2 class="groupheader">Function/Subroutine Documentation</h2>
-<a class="anchor" id="a227ec52d639cb08369baab557d04d0d0"></a>
+<a class="anchor" id="ab2747158671873b3a4d073da1a4c5a22"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">real*8 function moments_module::beta_function </td>
+          <td class="memname">real(wp) function moments_module::beta_function </td>
           <td>(</td>
-          <td class="paramtype">real*8, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>z</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>w</em>&#160;</td>
         </tr>
         <tr>
@@ -160,28 +162,28 @@ Variables</h2></td></tr>
 <dl class="section date"><dt>Date</dt><dd>22/10/2013 </dd></dl>
 <dl class="section author"><dt>Author</dt><dd>Mattia de' Michieli Vitturi </dd></dl>
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00043">43</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00045">45</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 <p><div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespacemoments__module_a227ec52d639cb08369baab557d04d0d0_cgraph.png" border="0" usemap="#namespacemoments__module_a227ec52d639cb08369baab557d04d0d0_cgraph" alt=""/></div>
-<map name="namespacemoments__module_a227ec52d639cb08369baab557d04d0d0_cgraph" id="namespacemoments__module_a227ec52d639cb08369baab557d04d0d0_cgraph">
-<area shape="rect" id="node2" href="namespacemoments__module.html#a8c8074b5192355987362ed6963fd0dd7" title="Gamma function logarithm. " alt="" coords="212,13,391,39"/>
+<div class="center"><img src="namespacemoments__module_ab2747158671873b3a4d073da1a4c5a22_cgraph.png" border="0" usemap="#namespacemoments__module_ab2747158671873b3a4d073da1a4c5a22_cgraph" alt=""/></div>
+<map name="namespacemoments__module_ab2747158671873b3a4d073da1a4c5a22_cgraph" id="namespacemoments__module_ab2747158671873b3a4d073da1a4c5a22_cgraph">
+<area shape="rect" id="node2" href="namespacemoments__module.html#aea4d75cfca3517997322fc43d81986a6" title="Gamma function logarithm. " alt="" coords="212,13,391,39"/>
 </map>
 </div>
 </p>
 
 </div>
 </div>
-<a class="anchor" id="a8c8074b5192355987362ed6963fd0dd7"></a>
+<a class="anchor" id="aea4d75cfca3517997322fc43d81986a6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">real*8 function moments_module::gammln </td>
+          <td class="memname">real(wp) function moments_module::gammln </td>
           <td>(</td>
-          <td class="paramtype">real*8&#160;</td>
+          <td class="paramtype">real(wp)&#160;</td>
           <td class="paramname"><em>xx</em></td><td>)</td>
           <td></td>
         </tr>
@@ -198,14 +200,14 @@ Here is the call graph for this function:</div>
 <dl class="section date"><dt>Date</dt><dd>22/10/2013 </dd></dl>
 <dl class="section author"><dt>Author</dt><dd>Mattia de' Michieli Vitturi </dd></dl>
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00073">73</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00075">75</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 <p><div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="namespacemoments__module_a8c8074b5192355987362ed6963fd0dd7_icgraph.png" border="0" usemap="#namespacemoments__module_a8c8074b5192355987362ed6963fd0dd7_icgraph" alt=""/></div>
-<map name="namespacemoments__module_a8c8074b5192355987362ed6963fd0dd7_icgraph" id="namespacemoments__module_a8c8074b5192355987362ed6963fd0dd7_icgraph">
-<area shape="rect" id="node2" href="namespacemoments__module.html#a227ec52d639cb08369baab557d04d0d0" title="Beta function. " alt="" coords="232,5,391,47"/>
+<div class="center"><img src="namespacemoments__module_aea4d75cfca3517997322fc43d81986a6_icgraph.png" border="0" usemap="#namespacemoments__module_aea4d75cfca3517997322fc43d81986a6_icgraph" alt=""/></div>
+<map name="namespacemoments__module_aea4d75cfca3517997322fc43d81986a6_icgraph" id="namespacemoments__module_aea4d75cfca3517997322fc43d81986a6_icgraph">
+<area shape="rect" id="node2" href="namespacemoments__module.html#ab2747158671873b3a4d073da1a4c5a22" title="Beta function. " alt="" coords="232,5,391,47"/>
 </map>
 </div>
 </p>
@@ -219,25 +221,25 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">subroutine moments_module::gaulegf </td>
           <td>(</td>
-          <td class="paramtype">double precision, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>x1</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double precision, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>x2</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double precision, dimension(n), intent(out)&#160;</td>
+          <td class="paramtype">real(wp), dimension(n), intent(out)&#160;</td>
           <td class="paramname"><em>x</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">double precision, dimension(n), intent(out)&#160;</td>
+          <td class="paramtype">real(wp), dimension(n), intent(out)&#160;</td>
           <td class="paramname"><em>w</em>, </td>
         </tr>
         <tr>
@@ -254,7 +256,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00136">136</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00137">137</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 <p><div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -276,55 +278,55 @@ Here is the caller graph for this function:</div>
         <tr>
           <td class="memname">subroutine moments_module::linear_reconstruction </td>
           <td>(</td>
-          <td class="paramtype">real*8, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>Ml</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(in)&#160;</td>
+          <td class="paramtype">real(wp), intent(in)&#160;</td>
           <td class="paramname"><em>Mr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, dimension(0:1), intent(in)&#160;</td>
+          <td class="paramtype">real(wp), dimension(0:1), intent(in)&#160;</td>
           <td class="paramname"><em>mom</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>Ma</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>Mb</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>alfa</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>beta</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>gamma1</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">real*8, intent(out)&#160;</td>
+          <td class="paramtype">real(wp), intent(out)&#160;</td>
           <td class="paramname"><em>gamma2</em>&#160;</td>
         </tr>
         <tr>
@@ -335,7 +337,7 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00181">181</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00178">178</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 <p><div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -365,7 +367,7 @@ Here is the caller graph for this function:</div>
 
 <p>Maximum number of moments. </p>
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00019">19</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00021">21</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 </div>
 </div>
@@ -381,7 +383,7 @@ Here is the caller graph for this function:</div>
 
 <p>Number of moments. </p>
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00022">22</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00024">24</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 </div>
 </div>
@@ -397,7 +399,7 @@ Here is the caller graph for this function:</div>
 
 <p>Number of nodes for the quadrature. </p>
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00016">16</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00018">18</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 </div>
 </div>
@@ -411,14 +413,14 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="moments_8f90_source.html#l00024">24</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
+<p>Definition at line <a class="el" href="moments_8f90_source.html#l00026">26</a> of file <a class="el" href="moments_8f90_source.html">moments.f90</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue May 28 2019 09:53:31 for PLUME-MoM-TSM by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jun 23 2020 12:45:56 for PLUME-MoM-TSM by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.11
 </small></address>

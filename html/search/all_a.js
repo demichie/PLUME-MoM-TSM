@@ -1,10 +1,10 @@
 var searchData=
 [
-  ['lat',['lat',['../namespaceinpout.html#abaf62fb659d4bc7c1813f3089b803efb',1,'inpout']]],
-  ['lettera',['lettera',['../namespaceinpout.html#a6456c47da9776d1de67128871a409560',1,'inpout']]],
-  ['linear_5freconstruction',['linear_reconstruction',['../namespacemoments__module.html#a4ed6005c1ee55f2aa121a560d3fbb914',1,'moments_module']]],
-  ['liquid_5fwater_5fmass_5ffraction',['liquid_water_mass_fraction',['../namespacemixture__module.html#a9e29afb9c24fcd2334e5af9def87a64d',1,'mixture_module']]],
-  ['log10_5fmfr',['log10_mfr',['../namespaceplume__module.html#a7bd4bfbc56aae5d93508e6dc15dfee46',1,'plume_module']]],
-  ['lower',['lower',['../namespaceinpout.html#a870b4413bb2e2b84e6cf67a96a7bbdd5',1,'inpout']]],
-  ['lump',['lump',['../namespacesolver__module.html#ab957f6304ece7b236bef65f38d1a6797',1,'solver_module']]]
+  ['k_5fb',['k_b',['../namespacevariables.html#a61625708c49296cd22471635b7f3688d',1,'variables']]],
+  ['k_5fcent',['k_cent',['../namespacesolver__2d.html#a471eb6ea8718554771e7772f5d1e54f5',1,'solver_2d']]],
+  ['k_5fsource',['k_source',['../namespacegeometry__2d.html#a190f2a6160ab00c16c8643dce7bf2cb7',1,'geometry_2d']]],
+  ['k_5fsource_5fs',['k_source_s',['../namespacegeometry__2d.html#aa9664bd26adb4cdbd2b1a2960bd58217',1,'geometry_2d']]],
+  ['k_5fstag_5fx',['k_stag_x',['../namespacesolver__2d.html#a2bf915ca363d4586b8d13cf095dfc2af',1,'solver_2d']]],
+  ['k_5fstag_5fy',['k_stag_y',['../namespacesolver__2d.html#ab2f51b7a1c2f70eb25f67cb474b6b520',1,'solver_2d']]],
+  ['kernel_5faggr',['kernel_aggr',['../namespaceparticles__module.html#ab07c85b20c658d4f5a47339c73c89bca',1,'particles_module']]]
 ];

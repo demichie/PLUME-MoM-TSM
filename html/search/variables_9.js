@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['kernel_5faggr',['kernel_aggr',['../namespaceparticles__module.html#a11d730b75187fd4e114402d1d98d7313',1,'particles_module']]]
+  ['j_5fcent',['j_cent',['../namespacesolver__2d.html#a1a36b6d986a3e3fa75f615cc0ef5f23e',1,'solver_2d']]],
+  ['j_5fsource',['j_source',['../namespacegeometry__2d.html#ac8946fcb79ffe6a723c571ef95d929ee',1,'geometry_2d']]],
+  ['j_5fsource_5fw',['j_source_w',['../namespacegeometry__2d.html#af93534438c05257daeb696e8cb52ca59',1,'geometry_2d']]],
+  ['j_5fstag_5fx',['j_stag_x',['../namespacesolver__2d.html#a2625f169e1cf148c755405340f966324',1,'solver_2d']]],
+  ['j_5fstag_5fy',['j_stag_y',['../namespacesolver__2d.html#a4b8a6e7e48519762e6338b43822987c5',1,'solver_2d']]]
 ];
