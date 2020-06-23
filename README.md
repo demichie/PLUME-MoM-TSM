@@ -38,5 +38,5 @@ Doxygen generated documentation of the code can be found at:
 
 ### Acknowledgments
 
-The development of PLUME-MoM-TSM has been partially funded by the Italian MIUR project Premiale Ash-RESILIENCE, the MIUR FISR project "Sale Operative Integrate e Reti di Monitoraggio del Futuro", and the European project EUROVOLC (grant number 731070). The authors also thank Alessandro Tadini, Kyle Mohr and Silvia Giansante for testing of the code and for the feedbacks provided.
+*The development of PLUME-MoM-TSM has been partially funded by the Italian MIUR project Premiale Ash-RESILIENCE, the MIUR FISR project "Sale Operative Integrate e Reti di Monitoraggio del Futuro", and the European project EUROVOLC (grant number 731070). The authors also thank Alessandro Tadini, Kyle Mohr and Silvia Giansante for testing of the code and for the feedbacks provided.*
 
