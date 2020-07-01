@@ -51,7 +51,18 @@ print ( ' ' )
 print ( "Run name :",runname )
 print ( ' ' )         
 
+line_split = []
+num_rows_to_skip = 0
 f = open(filename)
+lines=f.readlines()
+
+for i in range(100):
+    line = lines[i].split("\n",1)[0]
+    if line[0].isdigit() == False:
+        line_split +=line.split()
+        num_rows_to_skip +=1
+    else:
+        break
 
 # find day and time from filename
 und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
@@ -63,10 +74,6 @@ day = filename[und_where[-2]+1:und_where[-1]]
 print ( ' ' )           
 print ( ' ---> day and time ',day,' ',time,' ' )
 print ( ' ' )
-
-data = f.read()
-first_line = data.split('\n', 1)[0]
-line_split = first_line.split()
 
 m = []        
 
@@ -115,7 +122,7 @@ print ( 'Number of particle classes :',npart )
 print ( 'Number of atmospheric levels :',n_levels - 1 )
 print ( ' ' )
 
-a = np.loadtxt(filename, skiprows = 1)
+a = np.loadtxt(filename, skiprows = num_rows_to_skip)
          
 if a.shape[0] == 0 :
          
@@ -265,38 +272,40 @@ else:
                 np.savetxt(output_file, np.flipud(loading_i), \
                        header=header, fmt='%.3E',comments='')
 
-                # Create a new figure
-                f = plt.figure(i)
-                plt.rcParams["font.size"] = 8.0
-                cmap = plt.get_cmap('rainbow')
-                norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+                if mass_in_the_air > 0:
+
+                    # Create a new figure
+                    f = plt.figure(i)
+                    plt.rcParams["font.size"] = 8.0
+                    cmap = plt.get_cmap('rainbow')
+                    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
             
-                sm = Map(g.grid, factor=1, countries=False)
-                sm.set_rgb(ggl_img)  # add the background rgb image
-                sm.visualize()
+                    sm = Map(g.grid, factor=1, countries=False)
+                    sm.set_rgb(ggl_img)  # add the background rgb image
+                    sm.visualize()
 
-                # Zero-loading pixels should not be plotted
-                loading_i[loading_i==0.0] = np.nan
-                Zm = np.ma.masked_where(np.isnan(loading_i),loading_i)
+                    # Zero-loading pixels should not be plotted
+                    loading_i[loading_i==0.0] = np.nan
+                    Zm = np.ma.masked_where(np.isnan(loading_i),loading_i)
 
-                x, y = sm.grid.transform(Lon_stag, Lat_stag)
-                plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.70,zorder=1)
-                plt.pcolormesh(Lon_stag, Lat_stag,loading_i, cmap=cmap, norm=norm,alpha=1.0)
+                    x, y = sm.grid.transform(Lon_stag, Lat_stag)
+                    plt.pcolormesh(x,y,Zm, cmap=cmap, norm=norm,alpha=0.70,zorder=1)
+                    plt.pcolormesh(Lon_stag, Lat_stag,loading_i, cmap=cmap, norm=norm,alpha=1.0)
 
-                xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
-                plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
+                    xvent, yvent = sm.grid.transform(vent_lon, vent_lat)
+                    plt.plot(xvent, yvent,"^m",markersize=1,zorder=2)
 
-                plt.xlim(left=np.amin(x))
-                plt.xlim(right=np.amax(x))
-                plt.ylim(bottom=np.amax(y))
-                plt.ylim(top=np.amin(y))
-                plt.grid()
-                plt.title('CL'+str(i+1).zfill(2)+'\nH: '+str(H_LEVELS[j,0])+' - '+str(H_LEVELS[j+1,0])+' m\n'+'%.1e'%mass_in_the_air+' kg')
-                clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
-                clb.set_label('conc. (kg/m$^3$)', labelpad=-40, y=1.05, rotation=0)
+                    plt.xlim(left=np.amin(x))
+                    plt.xlim(right=np.amax(x))
+                    plt.ylim(bottom=np.amax(y))
+                    plt.ylim(top=np.amin(y))
+                    plt.grid()
+                    plt.title('CL'+str(i+1).zfill(2)+'\nH: '+str(H_LEVELS[j,0])+' - '+str(H_LEVELS[j+1,0])+' m\n'+'%.1e'%mass_in_the_air+' kg')
+                    clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
+                    clb.set_label('conc. (kg/m$^3$)', labelpad=-40, y=1.05, rotation=0)
 
-                f.savefig(runname+'_CL'+str(i+1).zfill(2)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_AIR.pdf', bbox_inches='tight')
-                plt.close()
+                    f.savefig(runname+'_CL'+str(i+1).zfill(2)+'_H_'+str(H_LEVELS[j,0])+'_'+str(H_LEVELS[j+1,0])+'_'+day+'_'+time+'_AIR.pdf', bbox_inches='tight')
+                    plt.close()
             
         column = column + n_levels
 
