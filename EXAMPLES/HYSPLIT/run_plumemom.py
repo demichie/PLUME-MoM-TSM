@@ -37,8 +37,6 @@ cp_part=np.ones(npart)*cp_part
 rho1 = np.ones(npart)*rho1
 rho2 = np.ones(npart)*rho2
 
-shapefactor = np.ones(npart)*shapefactor
-
 mu = np.ones(npart)*mu
 sigma = np.ones(npart)*sigma
 
@@ -69,7 +67,17 @@ filedata = filedata.replace("{phi2}", ",".join(np.char.mod('%4f', phi2)) )
 filedata = filedata.replace("{rho1}", ",".join(np.char.mod('%4f', rho1)) )
 filedata = filedata.replace("{rho2}", ",".join(np.char.mod('%4f', rho2)) )
 
-filedata = filedata.replace("{shapefactor}", ",".join(np.char.mod('%4f', shapefactor)) )
+if 'shapefactor' in locals():
+    shapefactor = np.ones(npart)*shapefactor
+    filedata = filedata.replace("{shapefactor}", ",".join(np.char.mod('%4f', shapefactor)) )
+    filedata = filedata.replace("{shape1}", "NaN" )
+    filedata = filedata.replace("{shape2}", "NaN" )
+else:
+    shape1 = np.ones(npart)*shape1
+    shape2 = np.ones(npart)*shape2
+    filedata = filedata.replace("{shape1}", ",".join(np.char.mod('%4f', shape1)) )
+    filedata = filedata.replace("{shape2}", ",".join(np.char.mod('%4f', shape2)) )
+    filedata = filedata.replace("{shapefactor}", "NaN" )
 
 filedata = filedata.replace("{cp_part}", ",".join(np.char.mod('%4f', cp_part)) )
 

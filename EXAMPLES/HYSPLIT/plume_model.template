@@ -26,6 +26,8 @@
  RHO2= {rho2}         ,
  CP_PART=  {cp_part}     ,
  SHAPE_FACTOR=  {shapefactor}   ,
+ SHAPE1=  {shape1}   ,
+ SHAPE2=  {shape2}   ,
  PARTICLES_LOSS=T,
  SETTLING_MODEL="textor    ",
  /

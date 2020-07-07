@@ -8,6 +8,7 @@ import math as math
 from collections import Counter
 
 from part_density import calc_density
+from shape_factor import calc_shapefactor
 from input_file import *
 
 def round_minutes(dt, direction, resolution):
@@ -92,7 +93,6 @@ duration_hhhh = '{0:04}'.format(int(str(d2.strftime("%H"))))
 hours = []
 
 startime_count_0 = starttime_hhmm
-print ( starttime_hhmm )
 startime_count_hour0 = starttime_hhmm.replace(minute=0, second=0, microsecond=0) 
 hours.append(startime_count_hour0)
 
@@ -118,7 +118,7 @@ diam = 2.0**(-np.asarray(diam_phi))
 density = calc_density(diam_phi)/1000
 
 # we assume that all the particles have the same shapefactor
-shapefactor = np.ones(npart)*shapefactor
+shapefactor = calc_shapefactor(diam_phi)
 
 particles_settling_velocity = []
 
@@ -132,8 +132,8 @@ for i in range(npart):
 
         diam_mt = diam[j]/1000.0
 
-        k1 = shapefactor[i]**(-0.828)
-        k2 = 2.0 * np.sqrt( 1.07 - shapefactor[i] )
+        k1 = shapefactor[i,j]**(-0.828)
+        k2 = 2.0 * np.sqrt( 1.07 - shapefactor[i,j] )
 
         # print ( 'k1,k2',k1,k2 )
 
@@ -363,7 +363,7 @@ if os.path.isfile(str(plume_hy)):
 
     with open('EMITTIMES.part','a') as emittimes:	
 
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')
 
         for h in range(len(data3)):
             emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
@@ -882,12 +882,12 @@ file_control.writelines('%d\n'%npart)
 for i in range(npart):
     for j in range(n_sections):
         # the diameter should be converted to microns (as required by hysplit) from millimeters
-        if ( shapefactor[i] < 1.0 ):
-            file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],-shapefactor[i]))#50.0 6.0 1.0
+        if ( shapefactor[i,j] < 1.0 ):
+            file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],-shapefactor[i,j]))#50.0 6.0 1.0
         #file_control.writelines('%f %f %f \n'%(0,0,0))#50.0 6.0 1.0
         else:
         #file_control.writelines('%f %f %f \n'%(0,0,0))#50.0 6.0 1.0
-            file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],shapefactor[i]))#50.0 6.0 1.0        
+            file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],shapefactor[i,j]))#50.0 6.0 1.0        
         # Deposition velocity (m/s), Pollutant molecular weight (Gram/Mole), Surface Reactivity Ratio, Diffusivity  Ratio, Effective Henry's Constant
         file_control.writelines('0.0 0.0 0.0 0.0 0.0 \n')#0 0.0 0.0 0.0 0.0
         # file_control.writelines('1.0 0.0 0.0 0.0 0.0 \n')#0 0.0 0.0 0.0 0.0
