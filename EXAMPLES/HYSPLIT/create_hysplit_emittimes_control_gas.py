@@ -106,8 +106,6 @@ dict_h = Counter(hours)
 maximum = max(dict_h, key=dict_h.get)  
 num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within each hour
 
-print(num_occurrence)
-
 released_mass=0
 
 
