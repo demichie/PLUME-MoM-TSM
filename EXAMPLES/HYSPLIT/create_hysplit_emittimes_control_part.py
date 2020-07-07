@@ -363,9 +363,7 @@ if os.path.isfile(str(plume_hy)):
 
     with open('EMITTIMES.part','a') as emittimes:	
 
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')
-
-        print(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence))	
+        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
 
         for h in range(len(data3)):
             emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
