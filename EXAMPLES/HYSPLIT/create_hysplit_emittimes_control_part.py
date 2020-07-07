@@ -93,13 +93,14 @@ hours = []
 
 startime_count_0 = starttime_hhmm
 print ( starttime_hhmm )
-hours.append(startime_count_0.hour)
+startime_count_hour0 = starttime_hhmm.replace(minute=0, second=0, microsecond=0) 
+hours.append(startime_count_hour0)
 
 for i in range(n_runs-1):
 
     startime_count = startime_count_0 + datetime.timedelta(seconds=deltat_plumemom)
-     
-    hours.append(startime_count.hour)
+    startime_count_hour = startime_count.replace(minute=0, second=0, microsecond=0) 
+    hours.append(startime_count_hour)
     startime_count_0 = startime_count
 
 dict_h = Counter(hours)
@@ -362,7 +363,9 @@ if os.path.isfile(str(plume_hy)):
 
     with open('EMITTIMES.part','a') as emittimes:	
 
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
+        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')
+
+        print(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence))	
 
         for h in range(len(data3)):
             emittimes.write(timei_str_mm+' '+duration_hhmm+' '+

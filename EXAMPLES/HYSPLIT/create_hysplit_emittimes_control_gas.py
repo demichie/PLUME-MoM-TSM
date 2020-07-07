@@ -92,18 +92,21 @@ hours = []
 
 startime_count_0 = starttime_hhmm
 print ( starttime_hhmm )
-hours.append(startime_count_0.hour)
+startime_count_hour0 = starttime_hhmm.replace(minute=0, second=0, microsecond=0) 
+hours.append(startime_count_hour0)
 
 for i in range(n_runs-1):
 
     startime_count = startime_count_0 + datetime.timedelta(seconds=deltat_plumemom)
-     
-    hours.append(startime_count.hour)
+    startime_count_hour = startime_count.replace(minute=0, second=0, microsecond=0)      
+    hours.append(startime_count_hour)
     startime_count_0 = startime_count
 
 dict_h = Counter(hours)
 maximum = max(dict_h, key=dict_h.get)  
 num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within each hour
+
+print(num_occurrence)
 
 released_mass=0
 
