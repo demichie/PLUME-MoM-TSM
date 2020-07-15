@@ -63,11 +63,13 @@ lines=f.readlines()
 
 for i in range(100):
     line = lines[i].split("\n",1)[0]
-    if line[0].isdigit() == False:
+    to_check= line[0:3].strip()
+    if to_check.isdigit() == False:
         line_split +=line.split()
         num_rows_to_skip +=1
     else:
         break
+
 # find day and time from filename
 und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
 dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])

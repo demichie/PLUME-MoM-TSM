@@ -58,7 +58,8 @@ lines=f.readlines()
 
 for i in range(100):
     line = lines[i].split("\n",1)[0]
-    if line[0].isdigit() == False:
+    to_check= line[0:3].strip()
+    if to_check.isdigit() == False:
         line_split +=line.split()
         num_rows_to_skip +=1
     else:
