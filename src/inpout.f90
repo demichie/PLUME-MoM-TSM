@@ -3248,12 +3248,12 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                   &
+          WRITE(*,110) x_top , y_top , z_top ,                   &
                    cloud_solid(1:n_tot)
  
       END IF
 
-        WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
+        WRITE(hy_unit,110) x_top , y_top , z_top ,                   &
                    cloud_solid(1:n_tot)
 
     ELSE
@@ -3383,12 +3383,12 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,210) x_top+dx , y_top+dy , z_top+dz ,                   &
+          WRITE(*,210) x_top , y_top , z_top ,                   &
                    cloud_gas(1:n_gas)
  
        END IF
 
-       WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top+dz ,                   &
+       WRITE(hy_unit_volcgas,210) x_top , y_top , z_top ,                   &
                    cloud_gas(1:n_gas)
     ELSE
 
