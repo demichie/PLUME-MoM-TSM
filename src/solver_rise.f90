@@ -110,7 +110,7 @@ CONTAINS
   
   SUBROUTINE rate
 
-    USE meteo_module, ONLY: u_atm , rho_atm , ta , cpair , rair , gamma_m ,     &
+    USE meteo_module, ONLY: u_atm , rho_atm , ta , T_ref , cpair , rair , gamma_m ,     &
          cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , u_wind , v_wind
 
     USE mixture_module, ONLY: rho_mix , t_mix , rgasmix , rho_gas ,             &
@@ -276,7 +276,7 @@ CONTAINS
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
     rhs1(5) = 2.0_wp * r * ueps * rho_atm * ( cpair * ta * ( 1.0_wp - sphu_atm )    &
-         + sphu_atm * ( h_wv0 - c_wv * ta ) + gi * z                            &
+         + sphu_atm * ( h_wv0 + c_wv * (ta -  T_ref)) + gi * z                            &
          + 0.5_wp * u_atm**2 ) - prob_factor * 2.0_wp * r * ( t_mix * cp_solid_term &
          + 0.5_wp * mag_u**2 * solid_term)                                    &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
