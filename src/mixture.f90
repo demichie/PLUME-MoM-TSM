@@ -601,7 +601,7 @@ CONTAINS
 
           ! --- CASE3: for t_mix < T_ref - 40: water vapour and ice ---------------
 
-       ELSEIF ( t_mix .LT. (T_ref - 40.0_wp) ) THEN
+       ELSEIF ( t_mix .LE. (T_ref - 40.0_wp) ) THEN
 
           CALL eval_temp_wv_ice(enth,pa,cpsolid)
 
