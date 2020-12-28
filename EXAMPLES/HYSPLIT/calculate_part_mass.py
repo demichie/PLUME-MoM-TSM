@@ -44,9 +44,9 @@ with open(fname) as f:
          header = []
          with open(filename) as f:
              lines = f.readlines()
-
              for line in lines:
-                 if line[0].isdigit() == False:
+                 to_check= line[0:3].strip()
+                 if to_check.isdigit() == False:
                      header = header + line.split()
                      #print header 
                      count = count + 1
