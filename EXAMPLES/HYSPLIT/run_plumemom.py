@@ -356,21 +356,41 @@ for i in range(n_runs):
     if 'vent_velocity' in locals():
 
         filedata = filedata.replace("{vent_velocity}", str(vent_velocity[i]) )
-        run_flag = 1
+        #run_flag = 1
 
     if 'vent_radius' in locals():
 
         filedata = filedata.replace("{vent_radius}", str(vent_radius[i]) )
-        run_flag = 1
+        #run_flag = 1
 
-
-    
     f.write(filedata)
     f.close()
 
     if run_flag == 0:
+        # create empty .hy and .swu file when run_flag = 0
+        plume_hy = runname + '_{0:03}'.format(i+1)+'.hy'
+        file_hy=open(plume_hy,'w') 
+        file_hy.writelines("Hysplit file for no emission \n")
+        file_hy.writelines("%f %f %f"%(0,0,vent_height))
+        for t in range(int(npart*n_sections)):            
+            file_hy.writelines(" %f "%(0))
+        file_hy.close()
 
-        pass
+        if ngas > 0:
+            gas_hy = runname + '_{0:03}'.format(i+1)+'_volcgas.hy'
+            file_hy=open(gas_hy,'w') 
+            file_hy.writelines("Hysplit file for no emission \n")
+            file_hy.writelines("%f %f %f"%(0,0,vent_height))
+            for t in range(int(ngas)):            
+                file_hy.writelines(" %f "%(0))
+            file_hy.close()
+
+        if umbrella_flag == str("T"):
+            umbrella_swu = runname + '_{0:03}'.format(i+1)+'.swu'
+            file_swu=open(umbrella_swu,'w') 
+            file_swu.writelines("Umbrella cloud file for no emission \n")
+            file_swu.writelines("%f %f %f %f"%(vent_lon,vent_lon,0,0))
+            file_swu.close()
 
     else:
 
@@ -382,7 +402,6 @@ for i in range(n_runs):
 
         write_atm(timei_str)
 
-
         # append the atmospheric data to the input file
         filenames = ['plume_model.temp2', 'atm.txt']
         with open('plume_model.inp', 'w') as outfile:
@@ -393,7 +412,6 @@ for i in range(n_runs):
 
         subprocess.call("mv profile_01.txt atm_profile_"+str(i+1).zfill(3)+".dat", shell=True)         
         subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
-
 
 #subprocess.call("rm plume_model.temp1", shell=True) 
 #subprocess.call("rm plume_model.temp2", shell=True) 
