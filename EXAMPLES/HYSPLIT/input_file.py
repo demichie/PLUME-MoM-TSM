@@ -82,7 +82,7 @@ SI_TYPE = 0 # Avg:0 Now:1 Max:2
 SI_HOUR = 0 # hrs 
 SI_MINUTE = 5 # min 
 
-#HEIGHT OF EACH CONCENTRATION LEVEL (m-msl)
+#HEIGHT OF EACH CONCENTRATION LEVEL (m-agl)
 H_LEVELS = '0 30000'  
 
 # particle parameters

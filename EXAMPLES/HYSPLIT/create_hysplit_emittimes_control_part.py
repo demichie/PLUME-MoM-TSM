@@ -371,20 +371,9 @@ if os.path.isfile(str(plume_hy)):
                    str(data3[h,2]) + ' ' + str(emission_rate[h]) +
                    ' '+str(data3[h,3])+' 0.0\n')
 
-
 else:
 
-    data3 = np.zeros((max_lines*npart*n_sections,5))
-
-    with open('EMITTIMES.part','a') as emittimes:
-
-        emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')
-
-        for h in range(len(data3)):
-            emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                   str(vent_lat) + ' ' + str(vent_lon) + ' ' +
-                   str(vent_height) + ' ' + str("0") +
-                   ' 0.0 0.0\n')
+    pass
 
 """
 
@@ -533,12 +522,11 @@ for i in range(2,n_runs,1):
 
             else:
 
-
                 if timei.hour != timei_old.hour:
 
 
                     for hs in dict_h: 
-                        if hs == timei_old.hour:
+                        if hs.hour == timei_old.hour:
                             num_occurrence_done = int(dict_h[hs])
                             num_occurrence_to_append = num_occurrence - num_occurrence_done
                             data3_to_append = np.zeros((max_lines*npart*n_sections*num_occurrence_to_append,4))
@@ -572,43 +560,7 @@ for i in range(2,n_runs,1):
 
     else:
 
-
-        data3 = np.zeros((max_lines*npart*n_sections,5)) 
-
-        with open('EMITTIMES.part','a') as emittimes:
-
-
-            if deltat_plumemom >= 3600:
-
-                emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')
-
-
-            else:
-
-
-                if timei.hour != timei_old.hour:
-                    for h1 in range(len(data3_to_append)):
-
-                        emittimes.write(timei_str_old+' '+duration_hhmm+' '+
-                                           str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
-                                           str(vent_height)+' 0.0 0.0 0.0\n')
-
-
-                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
-
-
-                else:
-  
-                    pass
-
-            for h in range(len(data3)):
-    
-                emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                           str(vent_lat) + ' ' + str(vent_lon) + ' ' +
-                           str(vent_height) + ' ' + str(0) +
-                           ' 0.0 0.0\n')
-
-        timei_old = timei
+        pass
 
 
 """
@@ -740,10 +692,8 @@ if ( n_runs > 1):
 
 
                 if timei.hour != timei_old.hour:
-
                     for hs in dict_h: 
-                        if hs == timei_old.hour:
-
+                        if hs.hour == timei_old.hour:
                             num_occurrence_done = int(dict_h[hs])
                             num_occurrence_to_append = num_occurrence - num_occurrence_done
 
@@ -770,50 +720,15 @@ if ( n_runs > 1):
                     str(data3[h,2]) + ' ' + str(emission_rate[h]) +
                     ' '+str(data3[h,3])+' 0.0\n')
 
+
         timei_old = timei
 
     else:
 
-
-        data3 = np.zeros((max_lines*npart*n_sections,4)) 
-
-        with open('EMITTIMES.part','a') as emittimes:
-
-
-            if deltat_plumemom >= 3600:
-
-                emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3))+'\n')
-
-
-            else:
-
-
-                if timei.hour != timei_old.hour:
-                    for h1 in range(len(data3_to_append)):
-
-                        emittimes.write(timei_str_old+' '+duration_hhmm+' '+
-                                           str(vent_lat) + ' ' + str(vent_lon) +'  '+ 
-                                           str(vent_height)+' 0.0 0.0 0.0\n')
-
-
-                    emittimes.write(timei_str+' '+duration_hhhh+' '+str(len(data3)*num_occurrence)+'\n')	
-
-
-                else:
-  
-                    pass
-
-            for h in range(len(data3)):
-    
-                emittimes.write(timei_str_mm+' '+duration_hhmm+' '+
-                           str(vent_lat) + ' ' + str(vent_lon) + ' ' +
-                           str(vent_height) + ' ' + str(0) +
-                           ' 0.0 0.0\n')
-
-        timei_old = timei
+        pass
 
 for hs in dict_h: 
-    if hs == timei_old.hour:
+    if hs.hour == timei_old.hour:
 
         num_occurrence_done = int(dict_h[hs])
         num_occurrence_to_append = num_occurrence - num_occurrence_done
