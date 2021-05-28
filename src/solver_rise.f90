@@ -275,10 +275,10 @@ CONTAINS
 
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
-    rhs1(5) = 2.0_wp * r * ueps * rho_atm * ( cpair * ta * ( 1.0_wp - sphu_atm )    &
-         + sphu_atm * ( h_wv0 + c_wv * (ta -  T_ref)) + gi * z                            &
-         + 0.5_wp * u_atm**2 ) - prob_factor * 2.0_wp * r * ( t_mix * cp_solid_term &
-         + 0.5_wp * mag_u**2 * solid_term)                                    &
+    rhs1(5) = 2.0_wp * r * ueps * rho_atm * ( cpair * ta * ( 1.0_wp - sphu_atm )&
+         + sphu_atm * ( h_wv0 + c_wv * (ta -  T_ref) ) + gi * z + 0.5_wp        &
+         * u_atm**2 ) - prob_factor * 2.0_wp * r * ( t_mix * cp_solid_term      &
+         + 0.5_wp * mag_u**2 * solid_term)                                      &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
          
     !---- X integration dx/dz = (dx/dt)*(dt/dz) = u/w

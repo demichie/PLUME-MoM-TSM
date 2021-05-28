@@ -767,8 +767,8 @@ CONTAINS
     IF ( temp0 .GT. 29.65_wp ) THEN
 
        el = 611.2_wp * EXP( 17.67_wp * ( temp0 - 273.16_wp ) / ( temp0 - 29.65_wp ) )
-       f0 = ( pres - el ) * wv_mol_fract - el * ( da_mol_fract                  &
-            + volcgas_mix_mol_fract )
+
+       f0 = pres * wv_mol_fract - el 
 
     ELSE
 
@@ -825,8 +825,8 @@ CONTAINS
     IF ( temp2 .GT. 29.65_wp ) THEN
 
        el = 611.2_wp * EXP( 17.67_wp * ( temp2-273.16_wp ) / ( temp2 - 29.65_wp ) )
-       f2 = ( pres - el ) * wv_mol_fract - el * da_mol_fract                    &
-            - el * volcgas_mix_mol_fract
+
+       f2 = pres * wv_mol_fract - el 
 
     ELSE
 
@@ -922,8 +922,8 @@ CONTAINS
 
              el = 611.2_wp * EXP( 17.67_wp * ( temp1 - 273.16_wp )                &
                   / ( temp1 - 29.65_wp ) )
-             f1 = ( pres - el ) * wv_mol_fract - el * da_mol_fract - el *       &
-                  volcgas_mix_mol_fract
+
+             f1 = pres * wv_mol_fract - el 
 
           END IF
 
@@ -1344,7 +1344,7 @@ CONTAINS
 
        es = 611.22_wp * ( 10.0_wp**es )
 
-       f0 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
+       f0 = pres * wv_mol_fract - es 
 
     END IF
 
@@ -1417,7 +1417,7 @@ CONTAINS
 
        es = 611.22_wp * ( 10.0_wp**es )
 
-       f2 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
+       f2 = pres * wv_mol_fract - es 
 
     END IF
 
@@ -1513,7 +1513,7 @@ CONTAINS
 
           es = 611.22_wp * (10.0_wp**es)
 
-          f1 = ( pres - es ) * wv_mol_fract - es * da_mol_fract - es * volcgas_mix_mol_fract
+          f1 = pres * wv_mol_fract - es 
 
 
 
@@ -1539,7 +1539,7 @@ CONTAINS
 
           END IF
 
-          IF ( ABS(temp2-temp0) .LT. 1.0E-3_wp ) THEN
+          IF ( ABS(temp2-temp0) .LT. 1.0E-5_wp ) THEN
 
              t_mix = temp1
 
@@ -1551,7 +1551,7 @@ CONTAINS
              ! WRITE(*,*)'t_mix 1',t_mix
              EXIT find_temp2
 
-          ELSEIF ( ABS(ice_mf2 - ice_mf0) .LT. 1.0E-7_wp ) THEN
+          ELSEIF ( ABS(ice_mf2 - ice_mf0)/ice_mf0 .LT. 1.0E-5_wp ) THEN
 
              t_mix = temp1
 

@@ -36,9 +36,9 @@ CONTAINS
   SUBROUTINE plumerise
 
     ! external variables
-    USE meteo_module, ONLY : rho_atm , rair , u_wind , v_wind
+    USE meteo_module, ONLY : rho_atm , rair , u_wind , v_wind , pa
     USE mixture_module, ONLY : gas_mass_fraction , rho_mix, mass_flow_rate ,    &
-         rgasmix , rvolcgas_mix ,water_vapor_mass_fraction ,                    &
+         rgasmix , rvolcgas_mix ,water_vapor_mass_fraction , t_mix ,            &
          volcgas_mix_mass_fraction , water_mass_fraction ,                      &
          liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction 
 
@@ -928,6 +928,8 @@ CONTAINS
           WRITE(*,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
           WRITE(*,*) 'Neutral buoyance level height above sea level [m] =',        &
                height_nbl + ( z - plume_height )
+          WRITE(*,*) 'Plume temperature [K]',t_mix
+          WRITE(*,*) 'Pressure [Pa]',pa
           WRITE(*,*) 'Plume density at neutral buoyancy level [kg/m3]',rho_nbl
           WRITE(*,*) 'Atmospheric density at top height [kg/m3]',rho_atm
           WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
