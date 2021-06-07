@@ -961,6 +961,11 @@ CONTAINS
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part) /                  &
                SUM( mom(1,:,i_part) )
+          IF ( verbose_level .GE. 1 ) THEN
+             WRITE(*,"(30ES8.1)") mom(0,n_sections:1:-1,i_part)
+             WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part)
+          END IF
+
           WRITE(*,*)
           
        END DO

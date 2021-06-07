@@ -474,7 +474,7 @@ CONTAINS
               
     END IF
 
-    ! ... Air viscosity ( Armienti et al. 1988)
+    ! ... Air dynamic viscosity ( Armienti et al. 1988)
     Cs = 120.0_wp
     visc_atm = visc_atm0 * ( 288.15_wp + Cs ) / ( ta + Cs ) * ( ta / 288.15_wp )**1.5_wp
 

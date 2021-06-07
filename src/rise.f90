@@ -107,10 +107,11 @@ CONTAINS
     REAL(wp) :: delta_rho
 
     REAL(wp) :: x_nbl , y_nbl , wind_nbl , w_nbl, u_nbl, v_nbl, theta_nbl
-    REAL(wp) :: u_wind_nbl , v_wind_nbl
+    REAL(wp) :: u_wind_nbl , v_wind_nbl 
     REAL(wp) :: deltarho_min
 
     
+    REAL(wp) :: rho_atm_nbl
     REAL(wp) :: rho_atm_old
     REAL(wp) :: z_old
     REAL(wp) :: z_temp
@@ -657,6 +658,7 @@ CONTAINS
           ELSE
 
              rho_nbl = rho_mix
+             rho_atm_nbl = rho_atm
              height_nbl = z - vent_height
              radius_nbl = r
              
@@ -751,8 +753,10 @@ CONTAINS
                  
        ! ----- Exit condition ---------------------------------------------------
 
-       IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-5_wp ) ) THEN
+       IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-7_wp ) ) THEN
 
+          WRITE(*,*) 'Vertical velocity [m/s]',w
+          WRITE(*,*) 'Integration step dz [m]',dz
           EXIT main_loop
 
        END IF
@@ -931,6 +935,8 @@ CONTAINS
           WRITE(*,*) 'Plume temperature [K]',t_mix
           WRITE(*,*) 'Pressure [Pa]',pa
           WRITE(*,*) 'Plume density at neutral buoyancy level [kg/m3]',rho_nbl
+          WRITE(*,*) 'Atmoshepric density at neutral buoyancy level [kg/m3]',      &
+               rho_atm_nbl
           WRITE(*,*) 'Atmospheric density at top height [kg/m3]',rho_atm
           WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
           WRITE(*,*) 'Vertical gradient of radius at nbl: dr/dz [m/m] =', dr_dz
@@ -979,6 +985,9 @@ CONTAINS
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") partial_mf(n_sections:1:-1)
+          IF ( verbose_level .GE. 1 ) THEN
+             WRITE(*,"(30ES8.1)") mom(0,n_sections:1:-1,i_part)
+          END IF
           WRITE(*,*)
           WRITE(*,*) 'Phi mean',phi_mean
           !READ(*,*)

@@ -1967,6 +1967,14 @@ CONTAINS
 
              END IF
 
+          ELSEIF ( aggregation_model.EQ.'constant') THEN
+
+             IF ( .not.isSet(particles_beta0) ) THEN
+
+                particles_beta0 = 1.0_wp
+
+             END IF
+                
           ELSEIF ( aggregation_model.NE.'brownian') THEN
 
              WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'

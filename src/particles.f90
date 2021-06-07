@@ -156,6 +156,9 @@ MODULE particles_module
 
   !> Values of linear reconstructions at quadrature points
   REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: f_quad
+
+  !> Derivative of mass at quadrature points
+  ! REAL(wp), ALLOCATABLE, DIMENSION(:,:,:) :: d_Mi_d_diam_quad
   
   !> Particle temperature for aggregation (Costa model)
   REAL(wp) :: t_part
@@ -254,6 +257,8 @@ CONTAINS
     ALLOCATE ( rho_quad(n_nodes,n_sections,n_part) )
     ALLOCATE ( shape_quad(n_nodes,n_sections,n_part) )
     ALLOCATE ( set_vel_quad(n_nodes,n_sections,n_part) )
+
+    !ALLOCATE ( d_Mi_d_diam_quad(n_nodes,n_sections,n_part) )
     
     ! Allocation of arrays for aggregation
     ALLOCATE ( aggregation_array(n_part) )
@@ -319,6 +324,8 @@ CONTAINS
 
     DEALLOCATE ( set_vel_quad )
 
+    !DEALLOCATE ( d_Mi_d_diam_quad )
+    
     ! Allocation of arrays for aggregation
     DEALLOCATE ( aggregation_array )
     DEALLOCATE ( aggregate_porosity )
@@ -430,7 +437,7 @@ CONTAINS
 
     ELSEIF ( settling_model .EQ. 'ganser' ) THEN 
 
-       Vinit = diam**2 * gi * ( rhop - rho_atm ) / (18.0_wp*visc_atm)
+       Vinit = diam**2 * gi * ( rhop - rho_atm ) / ( 18.0_wp * visc_atm )
 
        DO i=1,10
 
@@ -442,14 +449,14 @@ CONTAINS
 
           REYNOLDSK1K2 = REYNOLDS * K1 * K2
 
-          CD1 = K2 * 24.0_wp / REYNOLDSK1K2  *                                     &
+          CD1 = K2 * 24.0_wp / REYNOLDSK1K2  *                                  &
                ( 1.0_wp + 0.1118_wp * REYNOLDSK1K2**0.6567_wp )
 
           CD2 = 0.4305_wp * K2 / ( 1.0_wp + 3305.0_wp / REYNOLDSK1K2 )
 
           CD = CD1 + CD2
 
-          VG_GANSER = ( ( 4.0_wp * gi * diam * ( rhop - rho_atm ) )                &
+          VG_GANSER = ( ( 4.0_wp * gi * diam * ( rhop - rho_atm ) )             &
                / ( 3.0_wp * CD * rho_atm) )**0.5_wp
 
           REYNOLDS = rho_atm * VG_GANSER * diam / visc_atm
@@ -518,7 +525,7 @@ CONTAINS
           ! For intermediate Reyonlds numbers, 100<Re<1000, the drag coefficient 
           ! is linearly interpolated between Cd_100 and Cd_1000
 
-          Cd_interp = Cd_100 + ( Rey1 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp ) *                &
+          Cd_interp = Cd_100 + ( Rey1 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp ) * &
                ( Cd_1000 - Cd_100)
           Us = SQRT( 2.0_wp * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
 
@@ -537,7 +544,7 @@ CONTAINS
 
        ELSEIF ( ( Rey2 .GT. 100.0_wp ) .AND. ( Rey2 .LE. 1000.0_wp ) ) THEN 
 
-          Cd_interp = Cd_100 + ( Rey2 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp )                  &
+          Cd_interp = Cd_100 + ( Rey2 - 100.0_wp ) / ( 1000.0_wp - 100.0_wp )   &
                * ( Cd_1000 - Cd_100 )
 
           Us = SQRT( 2.0_wp * mass * gi / ( Cd_interp * rho_atm * A_cs ) )
@@ -757,7 +764,7 @@ CONTAINS
 
     CASE ( 'brownian' )
 
-       particles_beta = ( 2.0_wp * k_b * temp ) / ( 3.0_wp * visc ) *               &
+       particles_beta = ( 2.0_wp * k_b * temp ) / ( 3.0_wp * visc ) *           &
             ( diam_i + diam_j ) ** 2 / ( diam_i * diam_j ) 
 
     CASE ( 'sum' )
@@ -772,8 +779,8 @@ CONTAINS
 
        ELSE
        
-          particles_beta = aggregation_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j, &
-               lw_vf,ice_vf,solid_mf,temp,visc)
+          particles_beta = aggregation_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,   &
+               Vs_j,lw_vf,ice_vf,solid_mf,temp,visc) * particles_beta0
 
        END IF
           
@@ -944,7 +951,7 @@ CONTAINS
     END IF
 
     ! Eq. 3, first term Costa et al. JGR 2010
-    beta_B = 2.0_wp / 3.0_wp * k_b * temp / visc * ( diam_i + diam_j )**2           &
+    beta_B = 2.0_wp / 3.0_wp * k_b * temp / visc * ( diam_i + diam_j )**2       &
          / ( diam_i*diam_j ) 
 
     ! Value from Table 1 (Costa 2010)
@@ -956,7 +963,9 @@ CONTAINS
     ! Eq. 3, third term Costa et al. JGR 2010
     beta_DS = pi_g / 4.0_wp * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
 
-    ! WRITE(*,*) 'beta_B,beta_S,beta_DS',beta_B,beta_S, beta_DS
+    !WRITE(*,*) ' diam_i , diam_j',diam_i , diam_j
+    !WRITE(*,*) 'beta_B,beta_S,beta_DS',beta_B,beta_S, beta_DS
+    !READ(*,*)
 
     collision_kernel = beta_B + beta_S + beta_DS
 
@@ -1394,16 +1403,16 @@ CONTAINS
           cond2 = merge( 1.0_wp , 0.0_wp , f*f1 .LT. 0.0_wp )
           cond3 = merge( 1.0_wp , 0.0_wp , f1 .GT. 0.0_wp )
           
-          phiR = cond1 * ( cond2 * phi + (1.0_wp-cond2) * phiR ) +                &
+          phiR = cond1 * ( cond2 * phi + (1.0_wp-cond2) * phiR ) +              &
                (1.0_wp-cond1) * ( cond3*phiR + (1.0_wp-cond3)*phi )
 
-          f2 = cond1 * ( cond2 * f + (1.0_wp-cond2) * f2 ) +                      &
+          f2 = cond1 * ( cond2 * f + (1.0_wp-cond2) * f2 ) +                    &
                (1.0_wp-cond1) * ( cond3 * f2 + (1.0_wp-cond3) * f )
           
-          phiL = cond1 * ( (1.0_wp-cond2) * phi + cond2 * phiL ) +                &
+          phiL = cond1 * ( (1.0_wp-cond2) * phi + cond2 * phiL ) +              &
                (1.0_wp-cond1) * ( (1.0_wp-cond3) * phiL + cond3 * phi )
 
-          f1 = cond1 * ( (1.0_wp-cond2) * f + cond2 * f1 ) +                      &
+          f1 = cond1 * ( (1.0_wp-cond2) * f + cond2 * f1 ) +                    &
                (1.0_wp-cond1) * ( (1.0_wp-cond3) * f1 + cond3 * f )
           
        END DO
@@ -1422,8 +1431,29 @@ CONTAINS
 
        ! the diameter in m is converted to phi
        phi_quad(1:n_nodes,1:n_sections,i_part) =                                &
-            - LOG(1.E3_wp * diam_quad(1:n_nodes,1:n_sections,i_part)) / LOG(2.0_wp)
+            - LOG(1.E3_wp * diam_quad(1:n_nodes,1:n_sections,i_part))           &
+            / LOG(2.0_wp)
 
+!!$       cond1 = merge( 1.0_wp , 0.0_wp , phi_quad(1:n_nodes,1:n_sections,i_part) &
+!!$            .GT. phi1(i_part) )
+!!$       cond2 = merge( 1.0_wp , 0.0_wp , phi_quad(1:n_nodes,1:n_sections,i_part) &
+!!$            .LT. phi2(i_part) )
+!!$       
+!!$       d_Mi_d_diam_quad(1:n_nodes,1:n_sections,i_part) =                        &
+!!$            3.0_wp * diam_quad(1:n_nodes,1:n_sections,i_part)**2                &
+!!$            * shape_quad(1:n_nodes,1:n_sections,i_part)                         &
+!!$            * rho_quad(1:n_nodes,1:n_sections,i_part)                           &
+!!$            + diam_quad(1:n_nodes,1:n_sections,i_part)**3                       &
+!!$            * shape_quad(1:n_nodes,1:n_sections,i_part)                         &
+!!$            * cond1 * cond2 * ( rho1(i_part) - rho2(i_part) )                   &
+!!$            / ( phi1(i_part) - phi2(i_part) )                                   &
+!!$            / ( - diam_quad(1:n_nodes,1:n_sections,i_part) * log(2.0_wp) )      &
+!!$            + diam_quad(1:n_nodes,1:n_sections,i_part)**3                       &
+!!$            * rho_quad(1:n_nodes,1:n_sections,i_part)                           &
+!!$            * cond1 * cond2 * ( shape1(i_part) - shape2(i_part) )               &
+!!$            / ( phi1(i_part) - phi2(i_part) )                                   &
+!!$            / ( - diam_quad(1:n_nodes,1:n_sections,i_part) * log(2.0_wp) )   
+       
        DO i_sect=1,n_sections
        
           DO j=1,n_nodes
@@ -1439,16 +1469,18 @@ CONTAINS
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'phi'
-          WRITE(*,"(100ES8.1)") phi_quad(1:n_nodes,1:n_sections,i_part)
+          WRITE(*,"(100ES9.1)") phi_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'diam'
-          WRITE(*,"(100ES8.1)") diam_quad(1:n_nodes,1:n_sections,i_part)
+          WRITE(*,"(100ES9.1)") diam_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'vol'
-          WRITE(*,"(100ES8.1)") vol_quad(1:n_nodes,1:n_sections,i_part)
+          WRITE(*,"(100E9.1)") vol_quad(1:n_nodes,1:n_sections,i_part)
           WRITE(*,*) 'rho'
-          WRITE(*,"(100ES8.1)") rho_quad(1:n_nodes,1:n_sections,i_part)
-          READ(*,*)
-
-          END IF
+          WRITE(*,"(100ES9.1)") rho_quad(1:n_nodes,1:n_sections,i_part)
+          WRITE(*,*) 'dM_ddiam'
+          !WRITE(*,"(100ES9.1)") d_Mi_d_diam_quad(1:n_nodes,1:n_sections,i_part)
+          !READ(*,*)
+          
+       END IF
        
     END DO
     
@@ -1525,7 +1557,7 @@ CONTAINS
 
                 END DO
                 
-                kernel_aggr(:,:,j_sect,j_part,i_sect,i_part) = kernel_ji
+                kernel_aggr(:,:,j_sect,j_part,i_sect,i_part) = kernel_ji 
 
              END DO
 
