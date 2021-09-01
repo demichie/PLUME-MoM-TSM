@@ -755,8 +755,12 @@ CONTAINS
 
        IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-7_wp ) ) THEN
 
-          WRITE(*,*) 'Vertical velocity [m/s]',w
-          WRITE(*,*) 'Integration step dz [m]',dz
+          IF ( .NOT. inversion_flag ) THEN
+             WRITE(*,*) 'Vertical velocity [m/s]',w
+             WRITE(*,*) 'Integration step dz [m]',dz
+
+          END IF
+             
           EXIT main_loop
 
        END IF
