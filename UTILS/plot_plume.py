@@ -187,14 +187,14 @@ else:
 
     for i in range(n_gas):
 
-        volcgas_mass_fraction[:,i] = results[:,12+n_part+i]
+        volcgas_mass_fraction[:,i] = results[:,12+n_part_sect+i]
 
-    volcgas_mix_mass_fraction = results[:,12+n_part+n_gas]
+    volcgas_mix_mass_fraction = results[:,12+n_part_sect+n_gas]
 
-#print volcgas_mass_fraction
+# print(volcgas_mass_fraction)
 
 volcgas_mass_fraction_tot = np.sum(volcgas_mass_fraction, axis = 1)
-volcgas_mass_fraction_tot=volcgas_mass_fraction_tot.reshape((-1,1))
+volcgas_mass_fraction_tot = volcgas_mass_fraction_tot.reshape((-1,1))
 
 gas_mass_fraction = np.zeros((results.shape[0],1))
 

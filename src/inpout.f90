@@ -2054,8 +2054,18 @@ CONTAINS
     
     IF ( n_gas .GT. 0.0_wp ) THEN
 
-       READ(inp_unit, volcgas_parameters) 
+       READ(inp_unit, volcgas_parameters,IOSTAT=ios) 
+       
+       IF ( ios .NE. 0 ) THEN
+          
+          WRITE(*,*) 'IOSTAT=',ios
+          WRITE(*,*) 'ERROR: problem with namelist VOLCGAS_PARAMETERS'
+          WRITE(*,*) 'Please check the input file'
+          WRITE(*,volcgas_parameters) 
+          STOP
 
+       END IF
+       
        IF ( ANY( rvolcgas(1:n_gas) ==-1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
