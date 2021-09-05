@@ -370,6 +370,12 @@ CONTAINS
 
     main_loop: DO
 
+       IF ( verbose_level .GE. 1 ) THEN
+          
+          WRITE(*,*) 'z = ',z,' dz = ',dz
+
+       END IF
+       
        f_stepold = f
 
        CALL unlump(f)
@@ -396,6 +402,7 @@ CONTAINS
 
        ELSE
 
+          ! right-hand side terms associated to aggregation
           rhs2(1:itotal) = 0.0_wp
 
        END IF
@@ -450,6 +457,15 @@ CONTAINS
                    ELSE
 
                       ! if error is large decrease the integration step
+                      IF ( verbose_level .GT. 0 ) THEN
+
+                         WRITE(*,*) 'WARNING: negative solid fraction'
+                         WRITE(*,*) 'z = ',z
+                         WRITE(*,*) 'reducing step-size dz= ',dz
+                         READ(*,*)
+
+                      END IF
+                      
                       dz = 0.5_wp * dz
                       z = z_temp
                       f = f_stepold
@@ -492,6 +508,7 @@ CONTAINS
 
                 END IF
 
+                WRITE(*,*) 'z = ',z
                 WRITE(*,*) 'reducing step-size dz= ',dz
                 READ(*,*) 
 
@@ -546,6 +563,15 @@ CONTAINS
           z = z_temp
           f = f_stepold
 
+          IF ( verbose_level .GT. 0 ) THEN
+             
+             WRITE(*,*) 'WARNING: failed check for accuracy of RK45'
+             WRITE(*,*) 'z = ',z
+             WRITE(*,*) 'reducing step-size dz = ',dz
+             READ(*,*)
+             
+          END IF
+          
           ! go to the next iteration
           CYCLE main_loop
 
@@ -586,7 +612,16 @@ CONTAINS
 
                 ELSE
 
-                   WRITE(*,*) 'z,dz,i_part,i_sect',z,dz,i_part,i_sect
+                   IF ( verbose_level .GT. 0 ) THEN
+
+                      WRITE(*,*) 'WARNING: negative solid fraction'
+                      WRITE(*,*) 'reducing step-size dz= ',dz
+                      WRITE(*,*) 'z,dz,i_part,i_sect',z,dz,i_part,i_sect
+                      READ(*,*)
+
+                   END IF
+
+                   
                    ! if error is large decrease the integration step
                    dz = 0.5_wp * dz
                    z = z_temp
@@ -749,7 +784,7 @@ CONTAINS
        END IF
 
        ! limit the integration step
-       dz = MIN( dz, 50.0_wp )
+       dz = MIN( dz, 20.0_wp )
                  
        ! ----- Exit condition ---------------------------------------------------
 
@@ -989,7 +1024,7 @@ CONTAINS
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") partial_mf(n_sections:1:-1)
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
              WRITE(*,"(30ES8.1)") mom(0,n_sections:1:-1,i_part)
           END IF
           WRITE(*,*)

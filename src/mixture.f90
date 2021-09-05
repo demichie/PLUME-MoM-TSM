@@ -208,7 +208,7 @@ CONTAINS
 
     REAL(wp) :: C0
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 
        WRITE(*,*) '--------- initialize_mixture ----------'
@@ -284,7 +284,7 @@ CONTAINS
 
     solid_tot_mass_fraction = solid_tot_mass_fraction * erupted_mass_fraction
     
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'solid_tot_mass_fraction',solid_tot_mass_fraction
        WRITE(*,*) 'water_mass_fraction', water_mass_fraction
@@ -317,7 +317,7 @@ CONTAINS
        alfa_s(i_part) = solid_partial_mass_fraction(i_part) *                   &
             rho_solid_tot_avg / rho_solid_avg(i_part)
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'rho_solid_avg',rho_solid_avg(i_part)
@@ -453,7 +453,7 @@ CONTAINS
 
     CALL eval_quad_values
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'rhowv',rhowv
        WRITE(*,*) 'rhovolcgas_mix',rhovolcgas_mix
@@ -525,7 +525,7 @@ CONTAINS
 
     END IF
     
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'cpsolid',cpsolid
        WRITE(*,*) 'rho_atm',rho_atm

@@ -655,7 +655,7 @@ CONTAINS
        rvolcgas_mix = rvolcgas_mix / SUM(volcgas_mass_fraction(1:n_gas)) 
        cpvolcgas_mix = cpvolcgas_mix / SUM(volcgas_mass_fraction(1:n_gas)) 
        
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 3 ) THEN
           
           WRITE(*,*) 'rvolcgas_mix :', rvolcgas_mix
           WRITE(*,*) 'cpvolcgas_mix :', cpvolcgas_mix
@@ -710,7 +710,7 @@ CONTAINS
             * w_quad(:,:,i_part) * m_quad(:,:,i_part) / rho_quad(:,:,i_part) )  &
             / SUM(f_quad(:,:,i_part)* w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'rhoB_solid_w_r2',idx1,rhoB_solid_w_r2(i_part)
@@ -737,7 +737,7 @@ CONTAINS
 
     CALL eval_temp(enth,pa,cpsolid)
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*)
        WRITE(*,*) 't_mix',t_mix
@@ -758,7 +758,7 @@ CONTAINS
     liquid_water_mass_fraction = water_mass_fraction-water_vapor_mass_fraction  &
          - ice_mass_fraction
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'liquid_water_mass_fraction',liquid_water_mass_fraction
        
@@ -784,7 +784,7 @@ CONTAINS
 
     END IF
        
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,*)
        WRITE(*,*) '*********************** UNLUMP ***********************'
@@ -815,7 +815,7 @@ CONTAINS
 
     r = SQRT( w_r2 / w )
     
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,*)
        WRITE(*,*) 'w_r2,r,w',w_r2,r,w
@@ -838,7 +838,7 @@ CONTAINS
     CALL eval_particles_moments
 
     
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,*) '*********** SUM(alfa_s(1:n_part))' ,                         &
             SUM(alfa_s_w_r2(1:n_part))/w_r2
@@ -896,7 +896,7 @@ CONTAINS
     volcgas_mix_volume_fraction = volcgas_mix_mass_fraction * ( rho_mix /       &
          rhovolcgas_mix )
     
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) ''
        WRITE(*,*) '************** UNLUMPED VARIABLES **************'
@@ -961,7 +961,7 @@ CONTAINS
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part) /                  &
                SUM( mom(1,:,i_part) )
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
              WRITE(*,"(30ES8.1)") mom(0,n_sections:1:-1,i_part)
              WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part)
           END IF

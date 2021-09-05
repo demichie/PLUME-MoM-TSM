@@ -478,12 +478,14 @@ CONTAINS
     Cs = 120.0_wp
     visc_atm = visc_atm0 * ( 288.15_wp + Cs ) / ( ta + Cs ) * ( ta / 288.15_wp )**1.5_wp
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'Height (asl) = ',z
        WRITE(*,*) 'Ambient temperature (K) = ',Ta
        WRITE(*,*) 'Ambient pressure (Pa) = ', pa
-       WRITE(*,*) 'Dry atmosphere density (kg m-3) = ',rho_dry
+       IF ( read_atm_profile .EQ. 'standard' ) THEN 
+          WRITE(*,*) 'Dry atmosphere density (kg m-3) = ',rho_dry
+       END IF
        WRITE(*,*) 'Moist atmosphere density (kg m-3) = ',rho_atm
        WRITE(*,*) 'Atmosphere viscosity = ',visc_atm
        WRITE(*,*) 'Wind speed (m s-1) = ',u_atm

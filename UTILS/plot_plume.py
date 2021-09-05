@@ -50,17 +50,17 @@ with open(bakfile) as fp:
        if "N_SECTIONS" in line:
            n_sections_str= line.replace('N_SECTIONS=','')
            n_sections_str= n_sections_str.replace(',','')
-           n_sections = np.int(n_sections_str)
+           n_sections = int(n_sections_str)
            print("n_sections",n_sections)
        if "PHI_MIN" in line:
            phi_min_str = line.replace('PHI_MIN=','')
            phi_min_str = phi_min_str.replace(',','')
-           phi_min = np.float(phi_min_str)
+           phi_min = float(phi_min_str)
            print("phi_min",phi_min)
        if "DELTA_PHI" in line:
            delta_phi_str = line.replace('DELTA_PHI=','')
            delta_phi_str = delta_phi_str.replace(',','')
-           delta_phi = np.float(delta_phi_str)
+           delta_phi = float(delta_phi_str)
            print("delta_phi",delta_phi)
 
        if "AGGREGATION_FLAG" in line:

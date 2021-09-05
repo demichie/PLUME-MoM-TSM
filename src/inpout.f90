@@ -556,7 +556,7 @@ CONTAINS
        WRITE(bak_unit, control_parameters)
        REWIND(inp_unit)
     
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read control_parameters: done'
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read control_parameters: done'
 
     ELSE
 
@@ -621,7 +621,7 @@ CONTAINS
           
        END IF
        
-       IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
+       IF ( verbose_level.GE.2 ) WRITE(*,*) 'read inversion_parameters: done'
        WRITE(bak_unit, inversion_parameters)
        write_flag = .FALSE.
        REWIND(inp_unit)
@@ -638,7 +638,7 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
        
        WRITE(bak_unit, entrainment_parameters)       
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read entrainment_parameters: done'
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read entrainment_parameters: done'
 
        IF ( .NOT.isSet(alpha_inp) ) THEN
 
@@ -680,11 +680,11 @@ CONTAINS
 
        WRITE(bak_unit, mom_parameters)
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read MoM_parameters: done'
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read MoM_parameters: done'
 
        CALL allocate_particles
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'allocated particles parameters'
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'allocated particles parameters'
 
        REWIND(inp_unit)
 
@@ -701,7 +701,7 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
 
        WRITE(bak_unit, particles_parameters)
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read particles_parameters: done'
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read particles_parameters: done'
        REWIND(inp_unit)
 
     ELSE
@@ -721,7 +721,7 @@ CONTAINS
 
     END DO
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'grain size sections:'
        WRITE(*,"(100F6.2)") phiL
@@ -823,7 +823,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, lognormal_parameters)
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read lognormal_parameters: done'
+          IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read lognormal_parameters: done'
           REWIND(inp_unit)
 
        ELSE
@@ -840,7 +840,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, bin_parameters)
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read bin_parameters: done'
+          IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read bin_parameters: done'
           REWIND(inp_unit)
 
           DO i_part=1,n_part
@@ -1489,7 +1489,7 @@ CONTAINS
 
        READ(inp_unit,*) n_atm_profile
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'n_atm_profile',n_atm_profile
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'n_atm_profile',n_atm_profile
 
        ALLOCATE( atm_profile(7,n_atm_profile) )
        ALLOCATE( atm_profile0(7,n_atm_profile) )
@@ -1508,7 +1508,7 @@ CONTAINS
           atm_profile(6,i) = atm_profile(6,i) * wind_mult_coeff
           atm_profile(7,i) = atm_profile(7,i) * wind_mult_coeff
 
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) i,atm_profile(1,i)
+          IF ( verbose_level .GE. 2 ) WRITE(*,*) i,atm_profile(1,i)
 
        END DO
 
@@ -1648,7 +1648,7 @@ CONTAINS
        
     END IF
     
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read atm_parameters: done'
+    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read atm_parameters: done'
 
     READ(inp_unit,initial_values,IOSTAT=ios)
        
@@ -1920,7 +1920,7 @@ CONTAINS
     z = vent_height
 
 
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read initial_parameters: done'
+    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read initial_parameters: done'
 
     ! ----- AGGREGATION
     IF ( aggregation_flag ) THEN
@@ -2156,7 +2156,7 @@ CONTAINS
     
     END IF
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
 
@@ -2182,7 +2182,7 @@ CONTAINS
 
     END IF
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'rvolcgas_mix :', rvolcgas_mix
        WRITE(*,*) 'cpvolcgas_mix :', cpvolcgas_mix
@@ -2204,7 +2204,7 @@ CONTAINS
             solid_partial_mass_fraction(1:n_part)                               &
             / SUM( solid_partial_mass_fraction(1:n_part) )
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) '         Modified solid mass fractions :',                &
                solid_partial_mass_fraction(1:n_part)
@@ -2227,7 +2227,7 @@ CONTAINS
     ! with the bulk densities of the different particles famlies
     DO i_part = 1,n_part
        
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'i_part',i_part
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'i_part',i_part
        
        DO i_sect = 1,n_sections
           
@@ -2250,7 +2250,7 @@ CONTAINS
 
        mom0(1,:,i_part) = mom0(1,:,i_part) / SUM( mom0(1,:,i_part) )
 
-       IF ( verbose_level .GE. 0 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
           
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
@@ -2281,7 +2281,7 @@ CONTAINS
             w_quad(:,:,i_part) * m_quad(:,:,i_part) / rho_quad(:,:,i_part) ) /  &
             SUM(f_quad(:,:,i_part) * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'rho avg',rho_solid_avg(i_part)
           READ(*,*)
@@ -2295,7 +2295,7 @@ CONTAINS
     rho_solid_tot_avg = 1.0_wp / SUM( solid_partial_mass_fraction(1:n_part) /   &
          rho_solid_avg(1:n_part) )
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 
        WRITE(*,*) '******* CHECK ON MASS AND VOLUME FRACTIONS *******'
@@ -2326,7 +2326,7 @@ CONTAINS
 
     END IF
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'gas_volume_fraction',gas_volume_fraction
        WRITE(*,*) 'solid_tot_volume_fraction0',solid_tot_volume_fraction0
@@ -2348,7 +2348,7 @@ CONTAINS
        ! this is the volume fraction of the particles phases in the mixture
        solid_volume_fraction0(i_part) = solid_tot_volume_fraction0 * alfa_s
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'i_part =',i_part
           WRITE(*,*) 'alfa_s',i_part,alfa_s
@@ -2366,7 +2366,7 @@ CONTAINS
     ! computed with the corrected values of the moments
     CALL eval_quad_values
     
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'gas volume fraction', gas_volume_fraction
        WRITE(*,*) 'gas mass fraction', gas_mass_fraction
@@ -2447,7 +2447,7 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
+       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
 
        limiter(n_vars+1) = limiter(2)
        limiter(n_vars+2) = limiter(3)
@@ -2461,7 +2461,7 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 0 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'Linear reconstruction and b. c. applied to variables:'
           WRITE(*,*) 'h,hu,hv'
@@ -2503,7 +2503,7 @@ CONTAINS
 
     CLOSE(bak_unit)
 
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'end subroutine reainp'
+    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'end subroutine reainp'
 
     RETURN
 
@@ -2765,7 +2765,7 @@ CONTAINS
 
     WRITE(mom_unit,*) " "
     
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) '******************'
        WRITE(*,*) 'z',z
@@ -3109,7 +3109,7 @@ CONTAINS
 
        IF ( n_cloud .EQ. 1 ) THEN
           
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
              
              WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
                   0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_part)
@@ -3152,7 +3152,7 @@ CONTAINS
              !READ(*,*)
 
 
-             IF ( verbose_level .GE. 1 ) THEN
+             IF ( verbose_level .GE. 2 ) THEN
                 
                 WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
                      0.5_wp * ( y_top + y_bot ) + dy ,                           &
@@ -3209,7 +3209,7 @@ CONTAINS
      
     IF ( n_cloud .EQ. 1 ) THEN
    
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
           
           WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top + y_bot ) ,  &
                0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
@@ -3242,7 +3242,7 @@ CONTAINS
 
           dz = 0.0_wp
           
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
              
              WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
                   0.5_wp * ( y_top + y_bot ) + dy ,                           &
@@ -3264,7 +3264,7 @@ CONTAINS
 
     IF ( umbrella_flag ) THEN
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
           
           WRITE(*,110) x_top , y_top , z_top ,                   &
                    cloud_solid(1:n_tot)
@@ -3278,7 +3278,7 @@ CONTAINS
     
        IF ( n_cloud .EQ. 1 ) THEN
 
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
           
              WRITE(*,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
           
@@ -3311,7 +3311,7 @@ CONTAINS
              dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
              dz = 0.0_wp
           
-             IF ( verbose_level .GE. 1 ) THEN
+             IF ( verbose_level .GE. 2 ) THEN
 
                 WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                      &
                    cloud_solid(1:n_tot)/n_cloud
@@ -3399,7 +3399,7 @@ CONTAINS
 
     IF ( umbrella_flag ) THEN
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
           
           WRITE(*,210) x_top , y_top , z_top ,                   &
                    cloud_gas(1:n_gas)
@@ -3412,7 +3412,7 @@ CONTAINS
 
        IF ( n_cloud .EQ. 1 ) THEN
 
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
           
              WRITE(*,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
           
@@ -3441,7 +3441,7 @@ CONTAINS
              dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
           
           
-             IF ( verbose_level .GE. 1 ) THEN
+             IF ( verbose_level .GE. 2 ) THEN
  
                 WRITE(*,210) x_top+dx , y_top+dy , z_top , cloud_gas(1:n_gas)      &
                      / n_cloud
@@ -3593,7 +3593,7 @@ CONTAINS
    
     END DO
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
        
        WRITE(*,*) 'MassL'
        WRITE(*,"(30ES8.1)") MassL

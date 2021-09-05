@@ -786,7 +786,7 @@ CONTAINS
           
     END SELECT
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,*) 'beta =',particles_beta
        WRITE(*,*) 
@@ -845,7 +845,7 @@ CONTAINS
     REAL(wp) :: beta
     REAL(wp) :: alfa
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        indent_space = indent_space + 2
        WRITE(FMT,*) indent_space
@@ -872,7 +872,7 @@ CONTAINS
 
     END IF
        
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,FMT) ' ','END aggregation_kernel'
        indent_space = indent_space - 2
@@ -940,7 +940,7 @@ CONTAINS
 
     !WRITE(*,*) 'collision_kernel'
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        indent_space = indent_space + 2
        WRITE(FMT,*) indent_space
@@ -969,7 +969,7 @@ CONTAINS
 
     collision_kernel = beta_B + beta_S + beta_DS
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,FMT) ' ','END collision_kernel'
        indent_space = indent_space - 2
@@ -1031,7 +1031,7 @@ CONTAINS
 
     REAL(wp) :: mu_liq
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        indent_space = indent_space + 2
        WRITE(FMT,*) indent_space
@@ -1081,7 +1081,7 @@ CONTAINS
     END IF
           
     
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 3 ) THEN
 
        WRITE(*,FMT) ' ','END coalescence_efficiency'
        indent_space = indent_space - 2
@@ -1154,7 +1154,7 @@ CONTAINS
 
              END IF
              
-             IF ( verbose_level .GE. 2 ) THEN
+             IF ( verbose_level .GE. 3 ) THEN
                 
                 WRITE(*,*) 'i_part,i_mom',i_part,i_mom
                 WRITE(*,*) 'abscissas', m_quad(1:n_nodes,i_sect,i_part)
@@ -1247,7 +1247,7 @@ CONTAINS
     ! Compute the quadrature abscissas and weights on the interval [-1;1]
     CALL gaulegf(-1.0_wp, 1.0_wp, x, w, n_nodes)
 
-    IF ( verbose_level .GE. 1 ) THEN
+    IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 'original quadrature points in [-1;1]'
        WRITE(*,*) x
@@ -1267,7 +1267,7 @@ CONTAINS
           m_quad(:,i_sect,i_part) = 0.5_wp * ( ( Mr - Ml ) * x + ( Mr + Ml ) )
           w_quad(:,i_sect,i_part) = 0.5_wp * ( Mr - Ml ) * w
 
-          IF ( verbose_level .GE. 1 ) THEN
+          IF ( verbose_level .GE. 2 ) THEN
 
              WRITE(*,*) 'i_part,i_sect',i_part,i_sect
              WRITE(*,*) 'Ml,Mr',Ml,Mr
@@ -1342,7 +1342,7 @@ CONTAINS
        f1 = m_quad(1:n_nodes,1:n_sections,i_part) - M1
        f2 = m_quad(1:n_nodes,1:n_sections,i_part) - M2
 
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 3 ) THEN
        
           WRITE(*,*) 'm_quad'
           DO i_sect=1,n_sections
@@ -1465,7 +1465,7 @@ CONTAINS
 
        END DO
        
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'i_part',i_part
           WRITE(*,*) 'phi'
