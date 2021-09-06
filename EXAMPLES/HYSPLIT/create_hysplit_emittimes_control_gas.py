@@ -6,6 +6,7 @@ import re
 import shutil
 import math as math
 from collections import Counter
+import math as math
 
 from input_file import *
 
@@ -153,6 +154,7 @@ if n_runs == 1:
     timei_end =  datetime.datetime.strptime(endemittime,time_format)
 
     d = datetime.datetime(2000,1,1) + (timei_end-timei)
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
     duration_hhmm = str(d.strftime("%H%M"))
 
 else:
@@ -161,11 +163,14 @@ else:
     timei_end =  starttime_round+datetime.timedelta(seconds=deltat_plumemom)
 
     d = datetime.datetime(2000,1,1) + (timei_end-timei)
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
     duration_hhmm = str(d.strftime("%H%M"))
 
 timei_old = timei
 
-print ( 'Block 1',duration_hhmm )
+T_sec = 0 # seconds from the beginnig of the emission
+
+print ( 'Block 1',duration_hhmm , t_sec )
 
 timei_str = timei.strftime("%Y %m %d %H")
 timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -173,10 +178,10 @@ timei_str_mm = timei.strftime("%Y %m %d %H %M")
 if os.path.isfile(str(plume_hy)):
 
     data=np.loadtxt(plume_hy,skiprows=1)
-    data=data.reshape((-1,int(3+(ngas))))    
+    data=data.reshape((-1,int(8+(ngas))))    
 
     # data1: array containing data from .hy file, without x,z,h
-    data1=np.delete(data, [0,1,2], 1)
+    data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
     data1 = np.flip(data1, axis=1)
 
     # array containing lat,lon, height and emission area for time i
@@ -211,7 +216,63 @@ if os.path.isfile(str(plume_hy)):
         h_avg = a[3]
         height_new = b[-1,2] + h_avg/float(2)
 
-        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud
+
+    else:
+        print("** Umbrella Fitting**")
+        r_old_nbl = data[-1,3] # radius at NBL m
+        x_old_nbl = data[-1,0]
+        y_old_nbl = data[-1,1]
+
+        d_old = np.sqrt((x_old_nbl)**2+(y_old_nbl)**2)
+
+        u_atm_nbl = data[-1,4]
+        v_atm_nbl = data[-1,5]
+        vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+        rho_mix_nbl = data[-1,6]
+        mfr_nbl = data[-1,7]
+        vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+        a_fit = 4.02*10**(-9)
+        b_fit = 14.07
+        c_fit = -0.7457
+
+        Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+        d_new_nbl = d_old + Delta_d
+
+        A_fit = 1.89*10**(-8)
+        B_fit = 13.9
+        C_fit = -0.8856
+
+        r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+        alpha_fit = 1.9*10**(-5)
+        beta_fit = 1.09*10
+        gamma_fit = -1.57
+
+        t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+        T_sec += t_sec
+
+        T_mean = int(t_sec/float(2))
+
+        f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+        r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+        d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+        alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+        x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+        y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+        lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+        lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+        height_new = b[-1,2]
+        emission_area_new = np.pi * r_t**(2)
+       
+        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
+
+ 	
 
     # add lines in order to have all the blocks with the same lenght
 
@@ -300,7 +361,7 @@ for i in range(2,n_runs,1):
 
     duration_hhmm = str(d.strftime("%H%M"))
 
-    print ( 'Block',i,duration_hhmm )
+    print ( 'Block',i,duration_hhmm,t_sec )
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -327,10 +388,10 @@ for i in range(2,n_runs,1):
         # put the data in a numpy array
         data=np.asarray(data)
         data=np.loadtxt(plume_hy,skiprows=1)
-        data=data.reshape((-1,int(3+(ngas))))    
+        data=data.reshape((-1,int(8+(ngas))))    
 
         # data1: array containing data from .hy file, without x,z,h
-        data1=np.delete(data, [0,1,2], 1)
+        data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
         data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
@@ -368,7 +429,60 @@ for i in range(2,n_runs,1):
             h_avg = a[3]
             height_new = b[-1,2] + h_avg/float(2)
 
-            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 
+
+        else:
+
+            print("** Umbrella Fitting**")
+            r_old_nbl = data[-1,3] # radius at NBL m
+            x_old_nbl = data[-1,0]
+            y_old_nbl = data[-1,1]
+ 
+            u_atm_nbl = data[-1,4]
+            v_atm_nbl = data[-1,5]
+            vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+            rho_mix_nbl = data[-1,6]
+            mfr_nbl = data[-1,7]
+            vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+            a_fit = 4.02*10**(-9)
+            b_fit = 14.07
+            c_fit = -0.7457
+
+            Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+            d_new_nbl = d_old + Delta_d
+
+            A_fit = 1.89*10**(-8)
+            B_fit = 13.9
+            C_fit = -0.8856
+
+            r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+            alpha_fit = 1.9*10**(-5)
+            beta_fit = 1.09*10
+            gamma_fit = -1.57
+
+            t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+            T_mean = T_sec + int(t_sec/float(2))
+
+            T_sec += t_sec
+
+            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+            height_new = b[-1,2]
+            emission_area_new = np.pi * r_t**(2)
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
   
         # add lines in order to have all the blocks with the same lenght
 
@@ -487,17 +601,17 @@ if ( n_runs > 1):
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
-    print ( 'Block',n_runs,duration_hhmm )
+    print ( 'Block',n_runs,duration_hhmm,t_sec )
 
     # name of the .hy file
     plume_hy = runname + '_{0:03}'.format(n_runs)+'_volcgas.hy'
     if os.path.isfile(str(plume_hy)):
 
         data=np.loadtxt(plume_hy,skiprows=1)
-        data=data.reshape((-1,int(3+(ngas))))    
+        data=data.reshape((-1,int(8+(ngas))))    
 
         # data1: array containing data from .hy file, without x,z,h
-        data1=np.delete(data, [0,1,2], 1)
+        data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
         data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
@@ -536,7 +650,59 @@ if ( n_runs > 1):
             height_new = b[-1,2] + h_avg/float(2)
   
             b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
-	
+
+        else:
+            print("** Umbrella Fitting**")
+            r_old_nbl = data[-1,3] # radius at NBL m
+            x_old_nbl = data[-1,0]
+            y_old_nbl = data[-1,1]
+
+            u_atm_nbl = data[-1,4]
+            v_atm_nbl = data[-1,5]
+            vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+            rho_mix_nbl = data[-1,6]
+            mfr_nbl = data[-1,7]
+            vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+            a_fit = 4.02*10**(-9)
+            b_fit = 14.07
+            c_fit = -0.7457
+
+            Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+            d_new_nbl = d_old + Delta_d
+
+            A_fit = 1.89*10**(-8)
+            B_fit = 13.9
+            C_fit = -0.8856
+
+            r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+            alpha_fit = 1.9*10**(-5)
+            beta_fit = 1.09*10
+            gamma_fit = -1.57
+
+            t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+            T_mean = T_sec + int(t_sec/float(2))
+
+            T_sec += t_sec
+
+            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+            height_new = b[-1,2]
+            emission_area_new = np.pi * r_t**(2)
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
+
         # add lines in order to have all the blocks with the same lenght
 
         for i in range(max_lines-len(b)):

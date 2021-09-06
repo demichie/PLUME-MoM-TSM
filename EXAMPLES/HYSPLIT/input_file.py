@@ -1,9 +1,9 @@
-hysplit_dir = "/home/federica/hysplit/trunk"
-plumemom_dir = "/home/federica/Scrivania/Codes/PLUME-MoM-TSM-master"
+hysplit_dir = "/home/ash/Scrivania/Codes/Hysplit/hysplit/tags/hysplit.v5.0.1"
+plumemom_dir = "/home/ash/Scrivania/Codes/PLUME-MoM-TSM-august_2021"
 runname = 'Etna_test'
-starttime="18 12 24 11 00" # Year,month,day,hour,minute
-endemittime = "18 12 24 12 00"
-endruntime = "18 12 24 17 00"
+starttime   = "18 12 24 12 00" # Year,month,day,hour,minute
+endemittime = "18 12 24 13 00"
+endruntime  = "18 12 24 17 00"
 deltat_plumemom = 3600  # seconds
 
 lat = 37.73   # center latitude of the grid
@@ -18,22 +18,22 @@ span_lon = 10.00   # the total span of the grid in y direction. For instance, a 
 
 vent_lat = 37.73  	# vent latitude
 vent_lon = 15.00       # vent longitude
-vent_height = 3300    # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
+vent_height = 3300   # vent height above sea level (it can be different from ground level of meteo data at vent lat,lon)
 tmix0 = 1273 # mixture temperature in Kelvin
 vent_velocity = 200.0 
 
 #options for mass flow rate or plume height (nbl - meters above the vent), select only one:
-log10_mfr = 6 
+log10_mfr = 7 
 #mfr = 1E5
 #plume_height = 6000 #plume height at nbl. inversion: search for radius given vent_velocity
 #compute mfr from vent_velocity and vent_radius: set vent_velocity and add vent_radius 
 # N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
 
 #umbrella cloud parameters
-umbrella_flag = "T"
+umbrella_flag = "F"
 t_end = 3600 # duration of the umbrella simulation (seconds)
 dt_output = 600 # saving output at dt_output time steps (seconds)
-c_d = 1 # drag coefficient
+c_d = 0.1 # drag coefficient
 steady_flag = "T" # stop the umbrella simulation when the steady state is reached
 
 # volcanic gas parameters
