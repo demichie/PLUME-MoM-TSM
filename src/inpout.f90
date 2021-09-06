@@ -2918,7 +2918,7 @@ CONTAINS
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
          mom
 
-    USE plume_module, ONLY: x , y , z , w , r , mag_u
+    USE plume_module, ONLY: x , y , z , w , r , mag_u , particles_loss
 
     USE mixture_module, ONLY: rho_mix , t_mix , atm_mass_fraction ,             &
          volcgas_mix_mass_fraction , volcgas_mass_fraction,                     &
@@ -3123,13 +3123,16 @@ CONTAINS
              !READ(*,*)
              
           END IF
-          
-          WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
-               0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
-               0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
-               0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
-               0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_part)
-          
+
+          IF ( particles_loss ) THEN
+           
+              WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
+                   0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
+                   0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
+                   0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+                   0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_part)
+          END IF
+
        ELSE
 
           CALL zmet
@@ -3174,17 +3177,20 @@ CONTAINS
                      delta_solid(1:n_tot)/n_cloud
                 
              END IF
+
+             IF ( particles_loss ) THEN
              
-             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
-                  0.5_wp * ( y_top + y_bot ) + dy ,                              &
-                  0.5_wp * ( z_top + z_bot ) + dz ,                              &
-                  0.5_wp * ( r_top + r_bot ) ,                                   &
-                  0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
-                  0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
-                  0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
-                  0.5_wp * ( mfr_top + mfr_bot ) ,                               & 
-                  delta_solid(1:n_tot)/n_cloud 
-             
+                WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                     0.5_wp * ( y_top + y_bot ) + dy ,                              &
+                     0.5_wp * ( z_top + z_bot ) + dz ,                              &
+                     0.5_wp * ( r_top + r_bot ) ,                                   &
+                     0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
+                     0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
+                     0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
+                     0.5_wp * ( mfr_top + mfr_bot ) ,                               & 
+                     delta_solid(1:n_tot)/n_cloud 
+             END IF
+
           END DO
           
        END IF
@@ -3249,13 +3255,16 @@ CONTAINS
                0.5_wp * ( mfr_top + mfr_bot ), delta_solid(1:n_tot)
           
        END IF
+
+       IF ( particles_loss ) THEN
        
-       WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
-            0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) ,          &
-            0.5_wp * ( u_atm_top + u_atm_bot ) , 0.5_wp * ( v_atm_top + v_atm_bot ) , &
-            0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
-            0.5_wp * ( mfr_top + mfr_bot ), delta_solid(1:n_tot)
-       
+          WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
+               0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) ,          &
+               0.5_wp * ( u_atm_top + u_atm_bot ) , 0.5_wp * ( v_atm_top + v_atm_bot ) , &
+               0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+               0.5_wp * ( mfr_top + mfr_bot ), delta_solid(1:n_tot)
+       END IF
+
     ELSE
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
@@ -3292,17 +3301,20 @@ CONTAINS
                   delta_solid(1:n_tot)/n_cloud
              
           END IF
+
+          IF ( particles_loss ) THEN
           
-          WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
-               0.5_wp * ( y_top + y_bot ) + dy ,                              &
-               0.5_wp * ( z_top + z_bot ) + dz ,                              &
-               0.5_wp * ( r_top + r_bot ) ,                                   &
-               0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
-               0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
-               0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
-               0.5_wp * ( mfr_top + mfr_bot ) ,                               &
-               delta_solid(1:n_tot)/n_cloud  
-                    
+             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                  0.5_wp * ( y_top + y_bot ) + dy ,                              &
+                  0.5_wp * ( z_top + z_bot ) + dz ,                              &
+                  0.5_wp * ( r_top + r_bot ) ,                                   &
+                  0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
+                  0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
+                  0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
+                  0.5_wp * ( mfr_top + mfr_bot ) ,                               &
+                  delta_solid(1:n_tot)/n_cloud  
+          END IF
+         
        END DO
        
     END IF
@@ -3320,69 +3332,6 @@ CONTAINS
     WRITE(hy_unit,110) x_top , y_top , z_top , r_top ,           &
           u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_solid(1:n_tot)
 
-
-    ! Removed 08/03/2021 FP ---- start ----
-    !IF ( umbrella_flag ) THEN
-
-    !   IF ( verbose_level .GE. 1 ) THEN
-          
-    !      WRITE(*,110) x_top , y_top , z_top , r_top ,               &
-    !               cloud_solid(1:n_tot)
- 
-    !  END IF
-
-    !    WRITE(hy_unit,110) x_top , y_top , z_top , r_top ,           &
-    !               cloud_solid(1:n_tot)
-
-    !ELSE
-    
-    !   IF ( n_cloud .EQ. 1 ) THEN
-
-    !      IF ( verbose_level .GE. 1 ) THEN
-          
-    !         WRITE(*,110) x_top , y_top , z_top , r_top,  cloud_solid(1:n_tot)
-          
-    !      END IF
-       
-    !      WRITE(hy_unit,110) x_top , y_top , z_top ,  r_top, cloud_solid(1:n_tot)
-
-    !   ELSE
-       
-    !     IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-    !         delta_angle = 2.0_wp*pi_g/n_cloud
-          
-    !      ELSE
-          
-    !         delta_angle = pi_g / ( n_cloud - 1.0_wp )
-          
-    !      END IF
-              
-    !      DO i=1,n_cloud
-          
-    !         start_angle =  ATAN2(sin_theta,cos_theta)
-    !         angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-    !      
-    !         dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-    !         dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-    !         dz = 0.0_wp
-          
-    !         IF ( verbose_level .GE. 1 ) THEN
-
-    !            WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                      &
-    !              r_top, cloud_solid(1:n_tot)/n_cloud
-    !         
-    !         END IF
-          
-    !         WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
-    !              r_top, cloud_solid(1:n_tot)/n_cloud
-    !      
-    !      END DO
-
-    !   END IF
-
-    !END IF
-    ! Removed 08/03/2021 FP ---- end ----
 
     ! WRITE(*,*) 'z_max',z_max
     WRITE(*,*) 'Solid mass released in the atmosphere (kg/s): ',SUM(solid_tot)
@@ -3477,68 +3426,6 @@ CONTAINS
 
     WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , r_top ,           &
           u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_gas(1:n_gas)
-
-    ! Removed 08/03/2021 FP ----start
-    !IF ( umbrella_flag ) THEN
-
-    !   IF ( verbose_level .GE. 1 ) THEN
-          
-    !      WRITE(*,210) x_top , y_top , z_top , r_top ,                      &
-    !               cloud_gas(1:n_gas)
- 
-    !   END IF
-
-    !   WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , r_top ,           &
-    !               cloud_gas(1:n_gas)
-    !ELSE
-
-    !   IF ( n_cloud .EQ. 1 ) THEN
-
-    !      IF ( verbose_level .GE. 1 ) THEN
-          
-    !         WRITE(*,210) x_top , y_top , z_top , r_top , cloud_gas(1:n_gas)
-          
-    !      END IF
-       
-    !      WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , r_top , cloud_gas(1:n_gas)
-       
-    !   ELSE
-       
-    !      IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-    !         delta_angle = 2.0_wp*pi_g/n_cloud
-           
-    !      ELSE
-          
-    !         delta_angle = pi_g / ( n_cloud - 1.0_wp )
-    !      
-    !      END IF
-              
-    !      DO i=1,n_cloud
-          
-    !         start_angle =  ATAN2(sin_theta,cos_theta)
-    !         angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-    !      
-    !         dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-    !         dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-    !      
-    !      
-    !         IF ( verbose_level .GE. 1 ) THEN
- 
-    !            WRITE(*,210) x_top+dx , y_top+dy , z_top , r_top , cloud_gas(1:n_gas)      &
-    !                 / n_cloud
-    !         
-    !         END IF
-    !      
-    !         WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top , r_top ,              &
-    !           cloud_gas(1:n_gas)/n_cloud
-    !      
-    !      END DO
-
-    !   END IF
-
-    !END IF
-    ! Removed 08/03/2021 FP ---- end
 
 207 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ', 1x,'     r (m)     ', &
            1x,'     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', 1x,'     rho_mix (kg/m3)     ',1x,'     mfr (kg/s)     ')
