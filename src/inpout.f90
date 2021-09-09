@@ -3118,7 +3118,7 @@ CONTAINS
                   0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
                   0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
                   0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
-                  0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_part)
+                  0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
 
              !READ(*,*)
              
@@ -3130,7 +3130,7 @@ CONTAINS
                    0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
                    0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
                    0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
-                   0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_part)
+                   0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
           END IF
 
        ELSE
