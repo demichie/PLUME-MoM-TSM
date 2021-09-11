@@ -556,7 +556,7 @@ CONTAINS
        WRITE(bak_unit, control_parameters)
        REWIND(inp_unit)
     
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read control_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read control_parameters: done'
 
     ELSE
 
@@ -621,7 +621,7 @@ CONTAINS
           
        END IF
        
-       IF ( verbose_level.GE.2 ) WRITE(*,*) 'read inversion_parameters: done'
+       IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
        WRITE(bak_unit, inversion_parameters)
        write_flag = .FALSE.
        REWIND(inp_unit)
@@ -638,7 +638,7 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
        
        WRITE(bak_unit, entrainment_parameters)       
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read entrainment_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read entrainment_parameters: done'
 
        IF ( .NOT.isSet(alpha_inp) ) THEN
 
@@ -680,11 +680,11 @@ CONTAINS
 
        WRITE(bak_unit, mom_parameters)
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read MoM_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read MoM_parameters: done'
 
        CALL allocate_particles
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'allocated particles parameters'
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'allocated particles parameters'
 
        REWIND(inp_unit)
 
@@ -701,7 +701,7 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
 
        WRITE(bak_unit, particles_parameters)
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read particles_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read particles_parameters: done'
        REWIND(inp_unit)
 
     ELSE
@@ -721,7 +721,7 @@ CONTAINS
 
     END DO
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
 
        WRITE(*,*) 'grain size sections:'
        WRITE(*,"(100F6.2)") phiL
@@ -823,7 +823,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, lognormal_parameters)
-          IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read lognormal_parameters: done'
+          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read lognormal_parameters: done'
           REWIND(inp_unit)
 
        ELSE
@@ -840,7 +840,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, bin_parameters)
-          IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read bin_parameters: done'
+          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read bin_parameters: done'
           REWIND(inp_unit)
 
           DO i_part=1,n_part
@@ -1489,7 +1489,7 @@ CONTAINS
 
        READ(inp_unit,*) n_atm_profile
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'n_atm_profile',n_atm_profile
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'n_atm_profile',n_atm_profile
 
        ALLOCATE( atm_profile(7,n_atm_profile) )
        ALLOCATE( atm_profile0(7,n_atm_profile) )
@@ -1508,7 +1508,7 @@ CONTAINS
           atm_profile(6,i) = atm_profile(6,i) * wind_mult_coeff
           atm_profile(7,i) = atm_profile(7,i) * wind_mult_coeff
 
-          IF ( verbose_level .GE. 2 ) WRITE(*,*) i,atm_profile(1,i)
+          IF ( verbose_level .GE. 1 ) WRITE(*,*) i,atm_profile(1,i)
 
        END DO
 
@@ -1648,7 +1648,7 @@ CONTAINS
        
     END IF
     
-    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read atm_parameters: done'
+    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read atm_parameters: done'
 
     READ(inp_unit,initial_values,IOSTAT=ios)
        
@@ -1920,7 +1920,7 @@ CONTAINS
     z = vent_height
 
 
-    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'read initial_parameters: done'
+    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read initial_parameters: done'
 
     ! ----- AGGREGATION
     IF ( aggregation_flag ) THEN
@@ -1967,14 +1967,6 @@ CONTAINS
 
              END IF
 
-          ELSEIF ( aggregation_model.EQ.'constant') THEN
-
-             IF ( .not.isSet(particles_beta0) ) THEN
-
-                particles_beta0 = 1.0_wp
-
-             END IF
-                
           ELSEIF ( aggregation_model.NE.'brownian') THEN
 
              WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
@@ -2054,18 +2046,8 @@ CONTAINS
     
     IF ( n_gas .GT. 0.0_wp ) THEN
 
-       READ(inp_unit, volcgas_parameters,IOSTAT=ios) 
-       
-       IF ( ios .NE. 0 ) THEN
-          
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist VOLCGAS_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,volcgas_parameters) 
-          STOP
+       READ(inp_unit, volcgas_parameters) 
 
-       END IF
-       
        IF ( ANY( rvolcgas(1:n_gas) ==-1.0_wp ) ) THEN
           
           WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
@@ -2156,7 +2138,7 @@ CONTAINS
     
     END IF
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
 
        WRITE(*,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
 
@@ -2182,7 +2164,7 @@ CONTAINS
 
     END IF
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*) 'rvolcgas_mix :', rvolcgas_mix
        WRITE(*,*) 'cpvolcgas_mix :', cpvolcgas_mix
@@ -2204,7 +2186,7 @@ CONTAINS
             solid_partial_mass_fraction(1:n_part)                               &
             / SUM( solid_partial_mass_fraction(1:n_part) )
 
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) '         Modified solid mass fractions :',                &
                solid_partial_mass_fraction(1:n_part)
@@ -2227,7 +2209,7 @@ CONTAINS
     ! with the bulk densities of the different particles famlies
     DO i_part = 1,n_part
        
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'i_part',i_part
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'i_part',i_part
        
        DO i_sect = 1,n_sections
           
@@ -2250,7 +2232,7 @@ CONTAINS
 
        mom0(1,:,i_part) = mom0(1,:,i_part) / SUM( mom0(1,:,i_part) )
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 0 ) THEN
           
           WRITE(*,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
@@ -2281,7 +2263,7 @@ CONTAINS
             w_quad(:,:,i_part) * m_quad(:,:,i_part) / rho_quad(:,:,i_part) ) /  &
             SUM(f_quad(:,:,i_part) * w_quad(:,:,i_part) * m_quad(:,:,i_part) ) )
 
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'rho avg',rho_solid_avg(i_part)
           READ(*,*)
@@ -2295,7 +2277,7 @@ CONTAINS
     rho_solid_tot_avg = 1.0_wp / SUM( solid_partial_mass_fraction(1:n_part) /   &
          rho_solid_avg(1:n_part) )
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
 
        WRITE(*,*) 
        WRITE(*,*) '******* CHECK ON MASS AND VOLUME FRACTIONS *******'
@@ -2326,7 +2308,7 @@ CONTAINS
 
     END IF
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*) 'gas_volume_fraction',gas_volume_fraction
        WRITE(*,*) 'solid_tot_volume_fraction0',solid_tot_volume_fraction0
@@ -2348,7 +2330,7 @@ CONTAINS
        ! this is the volume fraction of the particles phases in the mixture
        solid_volume_fraction0(i_part) = solid_tot_volume_fraction0 * alfa_s
 
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
 
           WRITE(*,*) 'i_part =',i_part
           WRITE(*,*) 'alfa_s',i_part,alfa_s
@@ -2366,7 +2348,7 @@ CONTAINS
     ! computed with the corrected values of the moments
     CALL eval_quad_values
     
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*) 'gas volume fraction', gas_volume_fraction
        WRITE(*,*) 'gas mass fraction', gas_mass_fraction
@@ -2447,7 +2429,7 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
+       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
 
        limiter(n_vars+1) = limiter(2)
        limiter(n_vars+2) = limiter(3)
@@ -2461,7 +2443,7 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 1 ) THEN
+       IF ( verbose_level .GE. 0 ) THEN
 
           WRITE(*,*) 'Linear reconstruction and b. c. applied to variables:'
           WRITE(*,*) 'h,hu,hv'
@@ -2503,7 +2485,7 @@ CONTAINS
 
     CLOSE(bak_unit)
 
-    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'end subroutine reainp'
+    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'end subroutine reainp'
 
     RETURN
 
@@ -2627,7 +2609,7 @@ CONTAINS
 
   SUBROUTINE write_column
 
-    USE meteo_module, ONLY: rho_atm , ta, pa
+    USE meteo_module, ONLY: rho_atm , ta, pa , u_atm , u_wind , v_wind
 
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
          mom , cum_particle_loss_rate
@@ -2705,7 +2687,8 @@ CONTAINS
 99     FORMAT(1x,'  volgas.massf ')
        
 100     FORMAT(1x,' volgasmix.massf',1x,'atm.rho(kg/m3)',1x,' MFR(kg/s)      ', &
-             1x,'atm.temp(K)   ', 1x,' atm.pres.(Pa) ')
+             1x,'atm.temp(K)   ', 1x,' atm.pres.(Pa) ', 1x,' U_atm.(m/s) ', &
+             1x,' V_atm.(m/s) ')
        
 
     END IF
@@ -2734,9 +2717,12 @@ CONTAINS
        
 102 FORMAT(1(1x,es16.9))
 
-    
+    ! Added atmospheric wind component FP
+    !WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
+    !     volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_atm
+
     WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
-         volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa
+         volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_wind , v_wind
 
     WRITE(sed_unit,*) ''
 
@@ -2765,7 +2751,7 @@ CONTAINS
 
     WRITE(mom_unit,*) " "
     
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*) '******************'
        WRITE(*,*) 'z',z
@@ -2898,13 +2884,15 @@ CONTAINS
     delta_solid(1:n_part) = 0.0_wp
    
     WRITE(hy_unit,110) 0.0_wp , 0.0_wp  , vent_height + 0.50_wp * hy_deltaz ,   &
-         delta_solid(1:n_part)
+         0.0_wp , 0.0_wp , 0.0_wp , 0.0_wp , 0.0_wp , delta_solid(1:n_part)
 
     DEALLOCATE( delta_solid )
 
     CLOSE(hy_unit)
     
-107 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ')
+107 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ',1x,       &
+          '     r (m)     ', 1x,'     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', &
+           1x,'     rho_mix (kg/m3)     ',1x,'     mfr (kg/s)     ')
     
 108 FORMAT(2x,A)
     
@@ -2924,13 +2912,13 @@ CONTAINS
   
   SUBROUTINE check_hysplit
 
-    USE meteo_module, ONLY: rho_atm , ta, pa , interp_1d_scalar
+    USE meteo_module, ONLY: rho_atm , ta, pa , interp_1d_scalar , u_wind, v_wind
     USE meteo_module, ONLY : cos_theta , sin_theta , u_atm , zmet 
 
     USE particles_module, ONLY: n_mom , n_part , solid_partial_mass_fraction ,  &
          mom
 
-    USE plume_module, ONLY: x , y , z , w , r , mag_u
+    USE plume_module, ONLY: x , y , z , w , r , mag_u , particles_loss
 
     USE mixture_module, ONLY: rho_mix , t_mix , atm_mass_fraction ,             &
          volcgas_mix_mass_fraction , volcgas_mass_fraction,                     &
@@ -2948,12 +2936,13 @@ CONTAINS
     REAL(wp) :: temp_k,mfr
     REAL(wp) :: da_mf,wv_mf,lw_mf, ice_mf, volcgas_tot_mf
     REAL(wp), ALLOCATABLE :: x_col(:) , y_col(:) , z_col(:) , r_col(:) 
-    REAL(wp), ALLOCATABLE :: mom_col(:,:) , mfr_col(:)
+    REAL(wp), ALLOCATABLE :: mom_col(:,:) , mfr_col(:) , u_atm_col(:) , v_atm_col(:) , rho_mix_col(:)
     REAL(wp), ALLOCATABLE :: volcgas_mf(:,:)
     REAL(wp), ALLOCATABLE :: solid_mass_flux(:,:) , solid_mass_loss_cum(:,:)
     REAL(wp), ALLOCATABLE :: volcgas_mass_flux(:,:) 
     REAL(wp) :: z_min , z_max , z_bot , z_top , x_top , x_bot , y_bot , y_top
-    REAL(wp) :: r_bot , r_top
+    REAL(wp) :: r_bot , r_top , rho_mix_bot , rho_mix_top , mfr_bot, mfr_top
+    REAL(wp) :: u_atm_top , u_atm_bot , v_atm_top , v_atm_bot 
     REAL(wp) :: solid_bot , solid_top
     REAL(wp) :: solid_loss_bot , solid_loss_top
     REAL(wp) :: gas_top
@@ -2977,8 +2966,9 @@ CONTAINS
 
     n_tot = n_part * n_sections
     
-    ALLOCATE( x_col(col_lines) , y_col(col_lines) , z_col(col_lines) )
-    ALLOCATE( r_col(col_lines) )
+    ALLOCATE( x_col(col_lines) , y_col(col_lines) , z_col(col_lines))
+    ALLOCATE( r_col(col_lines) , rho_mix_col(col_lines))
+    ALLOCATE (u_atm_col(col_lines), v_atm_col(col_lines))
     ALLOCATE( mom_col(n_tot,col_lines) )
     ALLOCATE( mfr_col(col_lines) )
     ALLOCATE( volcgas_mf(n_gas,col_lines) )
@@ -2991,7 +2981,7 @@ CONTAINS
 
     n_unit = n_unit + 1
     read_col_unit = n_unit
-    
+     
     OPEN(read_col_unit,FILE=col_file)
 
     READ(read_col_unit,*)
@@ -2999,15 +2989,15 @@ CONTAINS
     DO i = 1,col_lines
 
        READ(read_col_unit,111) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
-	    rho_mix , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf ,      &
+	    rho_mix_col(i) , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf ,      &
             mom_col(1:n_tot,i) , volcgas_mf(1:n_gas,i) , volcgas_tot_mf ,       &
-            rho_atm , mfr_col(i) , ta, pa
+            rho_atm , mfr_col(i) , ta, pa, u_atm_col(i) , v_atm_col(i)
 
        solid_mass_flux(1:n_tot,i) = mom_col(1:n_tot,i) * pi_g * r_col(i)**2     &
             * w
 
        volcgas_mass_flux(1:n_gas,i) = volcgas_mf(1:n_gas,i)                     &
-            * rho_mix * pi_g * r_col(i)**2 * w 
+            * rho_mix_col(i) * pi_g * r_col(i)**2 * w 
 
        !WRITE(*,*) 'Solid mass flux (kg/s): ',solid_mass_flux(1:n_tot,i)
        !WRITE(*,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
@@ -3090,11 +3080,24 @@ CONTAINS
           CALL interp_1d_scalar(z_col, x_col, z_bot, x_bot)
           CALL interp_1d_scalar(z_col, x_col, z_top, x_top)
 
-          CALL interp_1d_scalar(z_col, x_col, z_bot, y_bot)
-          CALL interp_1d_scalar(z_col, x_col, z_top, y_top)
+          CALL interp_1d_scalar(z_col, y_col, z_bot, y_bot)
+          CALL interp_1d_scalar(z_col, y_col, z_top, y_top)
 
           CALL interp_1d_scalar(z_col, r_col, z_bot, r_bot)
           CALL interp_1d_scalar(z_col, r_col, z_top, r_top)
+
+          CALL interp_1d_scalar(z_col, u_atm_col, z_bot, u_atm_bot)
+          CALL interp_1d_scalar(z_col, u_atm_col, z_top, u_atm_top)
+
+          CALL interp_1d_scalar(z_col, v_atm_col, z_bot, v_atm_bot)
+          CALL interp_1d_scalar(z_col, v_atm_col, z_top, v_atm_top)
+
+          CALL interp_1d_scalar(z_col, rho_mix_col, z_bot, rho_mix_bot)
+          CALL interp_1d_scalar(z_col, rho_mix_col, z_top, rho_mix_top)
+
+          CALL interp_1d_scalar(z_col, mfr_col, z_bot, mfr_bot)
+          CALL interp_1d_scalar(z_col, mfr_col, z_top, mfr_top)
+
           
           ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
           ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
@@ -3104,23 +3107,32 @@ CONTAINS
           CALL interp_1d_scalar(z_col, solid_mass_loss_cum(j,:), z_top, solid_loss_top)
 
           delta_solid(j) = ABS(solid_loss_top - solid_loss_bot)
-          
+           
        END DO
 
        IF ( n_cloud .EQ. 1 ) THEN
           
-          IF ( verbose_level .GE. 2 ) THEN
+          IF ( verbose_level .GE. 1 ) THEN
              
              WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
-                  0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_part)
+                  0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
+                  0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
+                  0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+                  0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
 
              !READ(*,*)
              
           END IF
-          
-          WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
-               0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
-          
+
+          IF ( particles_loss ) THEN
+           
+              WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
+                   0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
+                   0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
+                   0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+                   0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
+          END IF
+
        ELSE
 
           CALL zmet
@@ -3152,20 +3164,33 @@ CONTAINS
              !READ(*,*)
 
 
-             IF ( verbose_level .GE. 2 ) THEN
+             IF ( verbose_level .GE. 1 ) THEN
                 
                 WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
                      0.5_wp * ( y_top + y_bot ) + dy ,                           &
                      0.5_wp * ( z_top + z_bot ) + dz ,                           &
+                     0.5_wp * ( r_top + r_bot ) ,                                &
+                     0.5_wp * ( u_atm_top + u_atm_bot ) ,                        &
+                     0.5_wp * ( v_atm_top + v_atm_bot ) ,                        &
+                     0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                    &
+                     0.5_wp * ( mfr_top + mfr_bot ) ,                            & 
                      delta_solid(1:n_tot)/n_cloud
                 
              END IF
+
+             IF ( particles_loss ) THEN
              
-             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
-                  0.5_wp * ( y_top + y_bot ) + dy ,                              &
-                  0.5_wp * ( z_top + z_bot ) + dz ,                              &
-                  delta_solid(1:n_tot)/n_cloud
-             
+                WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                     0.5_wp * ( y_top + y_bot ) + dy ,                              &
+                     0.5_wp * ( z_top + z_bot ) + dz ,                              &
+                     0.5_wp * ( r_top + r_bot ) ,                                   &
+                     0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
+                     0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
+                     0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
+                     0.5_wp * ( mfr_top + mfr_bot ) ,                               & 
+                     delta_solid(1:n_tot)/n_cloud 
+             END IF
+
           END DO
           
        END IF
@@ -3185,11 +3210,23 @@ CONTAINS
        CALL interp_1d_scalar(z_col, x_col, z_bot, x_bot)
        CALL interp_1d_scalar(z_col, x_col, z_top, x_top)
        
-       CALL interp_1d_scalar(z_col, x_col, z_bot, y_bot)
-       CALL interp_1d_scalar(z_col, x_col, z_top, y_top)
+       CALL interp_1d_scalar(z_col, y_col, z_bot, y_bot)
+       CALL interp_1d_scalar(z_col, y_col, z_top, y_top)
               
        CALL interp_1d_scalar(z_col, r_col, z_bot, r_bot)
        CALL interp_1d_scalar(z_col, r_col, z_top, r_top)
+
+       CALL interp_1d_scalar(z_col, u_atm_col, z_bot, u_atm_bot)
+       CALL interp_1d_scalar(z_col, u_atm_col, z_top, u_atm_top)
+
+       CALL interp_1d_scalar(z_col, v_atm_col, z_bot, v_atm_bot)
+       CALL interp_1d_scalar(z_col, v_atm_col, z_top, v_atm_top)
+
+       CALL interp_1d_scalar(z_col, rho_mix_col, z_bot, rho_mix_bot)
+       CALL interp_1d_scalar(z_col, rho_mix_col, z_top, rho_mix_top)
+
+       CALL interp_1d_scalar(z_col, mfr_col, z_bot, mfr_bot)
+       CALL interp_1d_scalar(z_col, mfr_col, z_top, mfr_top)
           
        ! CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_bot, solid_bot)
        CALL interp_1d_scalar(z_col, solid_mass_flux(j,:), z_top, solid_top)
@@ -3209,16 +3246,25 @@ CONTAINS
      
     IF ( n_cloud .EQ. 1 ) THEN
    
-       IF ( verbose_level .GE. 2 ) THEN
+       IF ( verbose_level .GE. 1 ) THEN
           
           WRITE(*,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top + y_bot ) ,  &
-               0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
+               0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) ,          &
+               0.5_wp * ( u_atm_top + u_atm_bot ) , 0.5_wp * ( v_atm_top + v_atm_bot ) , &
+               0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+               0.5_wp * ( mfr_top + mfr_bot ), delta_solid(1:n_tot)
           
        END IF
+
+       IF ( particles_loss ) THEN
        
-       WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
-            0.5_wp * ( z_top + z_bot ) , delta_solid(1:n_tot)
-       
+          WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
+               0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) ,          &
+               0.5_wp * ( u_atm_top + u_atm_bot ) , 0.5_wp * ( v_atm_top + v_atm_bot ) , &
+               0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
+               0.5_wp * ( mfr_top + mfr_bot ), delta_solid(1:n_tot)
+       END IF
+
     ELSE
        
        IF ( u_atm .LT. 1.0D+3 ) THEN
@@ -3242,95 +3288,57 @@ CONTAINS
 
           dz = 0.0_wp
           
-          IF ( verbose_level .GE. 2 ) THEN
+          IF ( verbose_level .GE. 1 ) THEN
              
              WRITE(*,110)  0.5_wp * ( x_top + x_bot ) + dx ,                  &
                   0.5_wp * ( y_top + y_bot ) + dy ,                           &
                   0.5_wp * ( z_top + z_bot ) + dz ,                           &
+                  0.5_wp * ( r_top + r_bot ) ,                                &
+                  0.5_wp * ( u_atm_top + u_atm_bot ) ,                        &
+                  0.5_wp * ( v_atm_top + v_atm_bot ) ,                        &
+                  0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                    &
+                  0.5_wp * ( mfr_top + mfr_bot ) ,                            &
                   delta_solid(1:n_tot)/n_cloud
              
           END IF
+
+          IF ( particles_loss ) THEN
           
-          WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
-               0.5_wp * ( y_top + y_bot ) + dy ,                              &
-               0.5_wp * ( z_top + z_bot ) + dz ,                              &
-               delta_solid(1:n_tot)/n_cloud
-                    
+             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                  0.5_wp * ( y_top + y_bot ) + dy ,                              &
+                  0.5_wp * ( z_top + z_bot ) + dz ,                              &
+                  0.5_wp * ( r_top + r_bot ) ,                                   &
+                  0.5_wp * ( u_atm_top + u_atm_bot ) ,                           &
+                  0.5_wp * ( v_atm_top + v_atm_bot ) ,                           &
+                  0.5_wp * ( rho_mix_top + rho_mix_bot ) ,                       &
+                  0.5_wp * ( mfr_top + mfr_bot ) ,                               &
+                  delta_solid(1:n_tot)/n_cloud  
+          END IF
+         
        END DO
        
     END IF
 
     ! WRITE THE RELEASE AT THE TOP OF THE COLUMN (OR NBL.)
-
-    IF ( umbrella_flag ) THEN
-
-       IF ( verbose_level .GE. 2 ) THEN
-          
-          WRITE(*,110) x_top , y_top , z_top ,                   &
-                   cloud_solid(1:n_tot)
- 
-      END IF
-
-        WRITE(hy_unit,110) x_top , y_top , z_top ,                   &
-                   cloud_solid(1:n_tot)
-
-    ELSE
     
-       IF ( n_cloud .EQ. 1 ) THEN
-
-          IF ( verbose_level .GE. 2 ) THEN
+    ! Added 08/03/2021 FP
+    IF ( verbose_level .GE. 1 ) THEN
           
-             WRITE(*,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
-          
-          END IF
-       
-          WRITE(hy_unit,110) x_top , y_top , z_top , cloud_solid(1:n_tot)
-          ! Write data for umbrella cloud initialization
-          !OPEN(112, file = 'NBL.hy', status = 'replace')  
-          !WRITE(112,*) x_top , y_top , z_top , cloud_solid(1:n_tot)       
-          !CLOSE(112)
-
-       ELSE
-       
-          IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-             delta_angle = 2.0_wp*pi_g/n_cloud
-          
-          ELSE
-          
-             delta_angle = pi_g / ( n_cloud - 1.0_wp )
-          
-          END IF
-              
-          DO i=1,n_cloud
-          
-             start_angle =  ATAN2(sin_theta,cos_theta)
-             angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-          
-             dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-             dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-             dz = 0.0_wp
-          
-             IF ( verbose_level .GE. 2 ) THEN
-
-                WRITE(*,110) x_top+dx , y_top+dy , z_top+dz ,                      &
-                   cloud_solid(1:n_tot)/n_cloud
-             
-             END IF
-          
-             WRITE(hy_unit,110) x_top+dx , y_top+dy , z_top+dz ,                   &
-                  cloud_solid(1:n_tot)/n_cloud
-          
-          END DO
-
-       END IF
-
+          WRITE(*,110) x_top , y_top , z_top , r_top ,               &
+                   u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_solid(1:n_tot)
+ 
     END IF
+
+    WRITE(hy_unit,110) x_top , y_top , z_top , r_top ,           &
+          u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_solid(1:n_tot)
+
 
     ! WRITE(*,*) 'z_max',z_max
     WRITE(*,*) 'Solid mass released in the atmosphere (kg/s): ',SUM(solid_tot)
 
-107 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ')
+107 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ', 1x,'     r (m)     ', 1x, &
+           '     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', 1x,'     rho_mix (kg/m3)     ', &
+           1x,'     mfr (kg/s)     ')
     
 108 FORMAT(2x,A)
     
@@ -3383,12 +3391,23 @@ CONTAINS
        CALL interp_1d_scalar(z_col, x_col, z_bot, x_bot)
        CALL interp_1d_scalar(z_col, x_col, z_top, x_top)
        
-       CALL interp_1d_scalar(z_col, x_col, z_bot, y_bot)
-       CALL interp_1d_scalar(z_col, x_col, z_top, y_top)
+       CALL interp_1d_scalar(z_col, y_col, z_bot, y_bot)
+       CALL interp_1d_scalar(z_col, y_col, z_top, y_top)
               
        CALL interp_1d_scalar(z_col, r_col, z_bot, r_bot)
        CALL interp_1d_scalar(z_col, r_col, z_top, r_top)
-          
+
+       CALL interp_1d_scalar(z_col, u_atm_col, z_bot, u_atm_bot)
+       CALL interp_1d_scalar(z_col, u_atm_col, z_top, u_atm_top)
+
+       CALL interp_1d_scalar(z_col, v_atm_col, z_bot, v_atm_bot)
+       CALL interp_1d_scalar(z_col, v_atm_col, z_top, v_atm_top)
+
+       CALL interp_1d_scalar(z_col, rho_mix_col, z_bot, rho_mix_bot)
+       CALL interp_1d_scalar(z_col, rho_mix_col, z_top, rho_mix_top)
+
+       CALL interp_1d_scalar(z_col, mfr_col, z_bot, mfr_bot)
+       CALL interp_1d_scalar(z_col, mfr_col, z_top, mfr_top)
        
        cloud_gas(j) = gas_top
 
@@ -3397,67 +3416,19 @@ CONTAINS
     !WRITE(*,*) 'cloud_gas(j) : ',gas_top
     !WRITE(*,*) 'cloud_gas(1:n_gas) : ',cloud_gas(1:n_gas)
 
-    IF ( umbrella_flag ) THEN
-
-       IF ( verbose_level .GE. 2 ) THEN
+    ! Added 08/03/2021 FP
+    IF ( verbose_level .GE. 1 ) THEN
           
-          WRITE(*,210) x_top , y_top , z_top ,                   &
-                   cloud_gas(1:n_gas)
+          WRITE(*,210) x_top , y_top , z_top , r_top ,               &
+                  u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_gas(1:n_gas)
  
-       END IF
-
-       WRITE(hy_unit_volcgas,210) x_top , y_top , z_top ,                   &
-                   cloud_gas(1:n_gas)
-    ELSE
-
-       IF ( n_cloud .EQ. 1 ) THEN
-
-          IF ( verbose_level .GE. 2 ) THEN
-          
-             WRITE(*,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
-          
-          END IF
-       
-          WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , cloud_gas(1:n_gas)
-       
-       ELSE
-       
-          IF ( u_atm .LT. 1.0D+3 ) THEN
-          
-             delta_angle = 2.0_wp*pi_g/n_cloud
-           
-          ELSE
-          
-             delta_angle = pi_g / ( n_cloud - 1.0_wp )
-          
-          END IF
-              
-          DO i=1,n_cloud
-          
-             start_angle =  ATAN2(sin_theta,cos_theta)
-             angle_release = (i-1) * delta_angle - 0.5_wp*pi_g
-          
-             dx = 0.5* ( r_bot + r_top ) * COS(start_angle + angle_release)
-             dy = 0.5* ( r_bot + r_top ) * SIN(start_angle + angle_release)
-          
-          
-             IF ( verbose_level .GE. 2 ) THEN
- 
-                WRITE(*,210) x_top+dx , y_top+dy , z_top , cloud_gas(1:n_gas)      &
-                     / n_cloud
-             
-             END IF
-          
-             WRITE(hy_unit_volcgas,210) x_top+dx , y_top+dy , z_top ,              &
-               cloud_gas(1:n_gas)/n_cloud
-          
-          END DO
-
-       END IF
-
     END IF
 
-207 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ')
+    WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , r_top ,           &
+          u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_gas(1:n_gas)
+
+207 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ', 1x,'     r (m)     ', &
+           1x,'     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', 1x,'     rho_mix (kg/m3)     ',1x,'     mfr (kg/s)     ')
     
 208 FORMAT(2x,A)
     
@@ -3593,7 +3564,7 @@ CONTAINS
    
     END DO
 
-    IF ( verbose_level .GE. 2 ) THEN
+    IF ( verbose_level .GE. 1 ) THEN
        
        WRITE(*,*) 'MassL'
        WRITE(*,"(30ES8.1)") MassL

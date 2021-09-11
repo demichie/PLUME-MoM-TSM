@@ -218,6 +218,9 @@ with open('meteo_ground_elev.txt', 'r') as f:
  
 print ( 'EMITTIMES: z_ground',z_ground )
 
+#initialize umbrella radius
+r_t = 0
+
 #***************CREATE EMITTIMES and CONTROL FOR PARTICLES DISPERSION************************
 
 with open('EMITTIMES.part','w') as emittimes:    
@@ -258,6 +261,7 @@ if n_runs == 1:
     timei_end =  datetime.datetime.strptime(endemittime,time_format)
 
     d = datetime.datetime(2000,1,1) + (timei_end-timei)
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
     duration_hhmm = str(d.strftime("%H%M"))
 
 else:
@@ -266,11 +270,14 @@ else:
     timei_end =  starttime_round+datetime.timedelta(seconds=deltat_plumemom)
 
     d = datetime.datetime(2000,1,1) + (timei_end-timei)
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
     duration_hhmm = str(d.strftime("%H%M"))
 
 timei_old = timei
 
-print ( 'Block 1',duration_hhmm )
+T_sec = 0 # seconds from the beginnig of the emission
+
+print ( 'Block 1',duration_hhmm, t_sec )
 
 timei_str = timei.strftime("%Y %m %d %H")
 timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -278,10 +285,10 @@ timei_str_mm = timei.strftime("%Y %m %d %H %M")
 if os.path.isfile(str(plume_hy)):
 
     data=np.loadtxt(plume_hy,skiprows=1)
-    data=data.reshape((-1,int(3+(npart*n_sections))))    
+    data=data.reshape((-1,int(8+(npart*n_sections))))    
 
     # data1: array containing data from .hy file, without x,z,h
-    data1=np.delete(data, [0,1,2], 1)
+    data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
     data1 = np.flip(data1, axis=1)
 
     # array containing lat,lon, height and emission area for time i
@@ -317,6 +324,119 @@ if os.path.isfile(str(plume_hy)):
         height_new = b[-1,2] + h_avg/float(2)
 
         b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+
+    else:
+        print("** Umbrella Fitting**")
+        r_old_nbl = data[-1,3] # radius at NBL m
+        x_old_nbl = data[-1,0]
+        y_old_nbl = data[-1,1]
+
+        d_old = np.sqrt((x_old_nbl)**2+(y_old_nbl)**2)
+
+        u_atm_nbl = data[-1,4]
+        v_atm_nbl = data[-1,5]
+        vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+        rho_mix_nbl = data[-1,6]
+        mfr_nbl = data[-1,7]
+        vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+        a_fit = 4.02*10**(-9)
+        b_fit = 14.07
+        c_fit = -0.7457
+
+        Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+        d_new_nbl = d_old + Delta_d
+
+        A_fit = 1.89*10**(-8)
+        B_fit = 13.9
+        C_fit = -0.8856
+
+        r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+        alpha_fit = 1.9*10**(-5)
+        beta_fit = 1.09*10
+        gamma_fit = -1.57
+
+        t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+        T_sec += t_sec # seconds from the beginning of the emission
+
+        T_mean = int(t_sec/float(2)) # time at which the fitted values are calculated
+
+        f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+        r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+        d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+        alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+        x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+        y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+        lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+        lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+        height_new = b[-1,2]
+        emission_area_new = np.pi * r_t**(2)
+       
+        """
+        print("old values")
+        print("d_old ",d_old)
+        print("r_old ",r_old_nbl)
+        print("u_atm_nbl ",u_atm_nbl)
+        print("rho_mix_nbl ",rho_mix_nbl)
+        print("mfr_nbl ",mfr_nbl)
+        print("vfr_nbl ",vfr_nbl)
+        print("alpha ",alpha)
+        print("new values")
+        print("Delta_d ",Delta_d)
+        print("d_new_nbl ",d_new_nbl)
+        print("x_new_nbl ",x_new_nbl)
+        print("y_new_nbl ",y_new_nbl)
+        print("r_new_nbl ",r_new_nbl)
+        print("new coordinates")
+        print("lat_new ",lat_new)
+        print("lon_new ",lon_new)
+        print("t_steady_fit ",t_steady_fit)
+        print("f_t ",f_t)
+        print("r_t ",r_t)
+        print("d_t ",d_t)
+        """
+
+        umbr_fit = runname + '_{0:03}'.format(1)+'.umbrfit'
+        with open(umbr_fit,"w") as file:
+
+            file.writelines("Plume properties at NBL \n")
+            file.writelines("u_atm_nbl           [m/s]    %f \n"%(u_atm_nbl))
+            file.writelines("v_atm_nbl           [m/s]    %f \n"%(v_atm_nbl))
+            file.writelines("rho_mix_nbl         [kg/m3]  %f \n"%(rho_mix_nbl))
+            file.writelines("mfr_nbl             [kg/s]   %f \n"%(mfr_nbl))
+            file.writelines("vfr_nbl             [m3/s]   %f \n"%(vfr_nbl))
+            file.writelines("\n")
+
+            file.writelines("Old Values \n")
+            file.writelines("r_old_nbl           [m]      %f \n"%(r_old_nbl))
+            file.writelines("d_old_nbl           [m]      %f \n"%(d_old))
+            file.writelines("\n")
+
+            file.writelines("Fitted Values at steady state\n")
+            file.writelines("r_new_nbl           [m]      %f \n"%(r_new_nbl))
+            file.writelines("d_new_nbl           [m]      %f \n"%(d_new_nbl))
+            file.writelines("t_steady_fit        [s]      %f \n"%(t_steady_fit))
+            file.writelines("\n")
+
+            file.writelines("Fitted Values at time t \n")
+            file.writelines("t                   [s]      %f \n"%(T_mean)) 
+            file.writelines("r_t                 [m]      %f \n"%(r_t))
+            file.writelines("d_t                 [m]      %f \n"%(d_t))
+            file.writelines("f_t                 -        %f \n"%(f_t))
+
+            file.writelines("lat_new             [deg]    %f \n"%(lat_new))
+            file.writelines("lon_new             [deg]    %f \n"%(lon_new))
+            file.writelines("height_new          [m]      %f \n"%(height_new))
+            file.writelines("emission_area_new   [m2]     %f \n"%(emission_area_new))
+
+        file.close()
+
+        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
 
     # add lines in order to have all the blocks with the same lenght
 
@@ -396,10 +516,11 @@ for i in range(2,n_runs,1):
 
 
     d = datetime.datetime(2000,1,1) + ( min(endemittime_hhmm,timei_end) - timei )
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
 
     duration_hhmm = str(d.strftime("%H%M"))
 
-    print ( 'Block',i,duration_hhmm )
+    print ( 'Block',i,duration_hhmm,t_sec)
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
@@ -426,10 +547,10 @@ for i in range(2,n_runs,1):
         # put the data in a numpy array
         data=np.asarray(data)
         data=np.loadtxt(plume_hy,skiprows=1)
-        data=data.reshape((-1,int(3+(npart*n_sections))))    
+        data=data.reshape((-1,int(8+(npart*n_sections))))    
 
         # data1: array containing data from .hy file, without x,z,h
-        data1=np.delete(data, [0,1,2], 1)
+        data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
         data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
@@ -465,7 +586,113 @@ for i in range(2,n_runs,1):
             h_avg = a[3]
             height_new = b[-1,2] + h_avg/float(2)
 
-            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud
+        else:
+
+            print("** Umbrella Fitting**")
+            r_old_nbl = data[-1,3] # radius at NBL m
+            x_old_nbl = data[-1,0]
+            y_old_nbl = data[-1,1]
+ 
+            u_atm_nbl = data[-1,4]
+            v_atm_nbl = data[-1,5]
+            vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+            rho_mix_nbl = data[-1,6]
+            mfr_nbl = data[-1,7]
+            vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+            a_fit = 4.02*10**(-9)
+            b_fit = 14.07
+            c_fit = -0.7457
+
+            Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+            d_new_nbl = d_old + Delta_d
+
+            A_fit = 1.89*10**(-8)
+            B_fit = 13.9
+            C_fit = -0.8856
+
+            r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+            alpha_fit = 1.9*10**(-5)
+            beta_fit = 1.09*10
+            gamma_fit = -1.57
+
+            t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+            T_mean = T_sec + int(t_sec/float(2))
+
+            T_sec += t_sec
+
+            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+            height_new = b[-1,2]
+            emission_area_new = np.pi * r_t**(2)
+
+            """
+            print("old values")
+            print("d_old ",d_old)
+            print("r_old ",r_old_nbl)
+            print("alpha ",alpha)
+            print("new values")
+            print("d_new_nbl ",d_new_nbl)
+            print("x_new_nbl ",x_new_nbl)
+            print("y_new_nbl ",y_new_nbl)
+            print("r_new_nbl ",r_new_nbl)
+            print("new coordinates")
+            print("lat_new ",lat_new)
+            print("lon_new ",lon_new)
+            print("t_steady_fit ",t_steady_fit)
+            print("f_t ",f_t)
+            print("r_t ",r_t)
+            print("d_t ",d_t)
+            """
+
+            umbr_fit = runname + '_{0:03}'.format(i)+'.umbrfit'
+            with open(umbr_fit,"w") as file:
+
+                file.writelines("Plume properties at NBL \n")
+                file.writelines("u_atm_nbl           [m/s]    %f \n"%(u_atm_nbl))
+                file.writelines("v_atm_nbl           [m/s]    %f \n"%(v_atm_nbl))
+                file.writelines("rho_mix_nbl         [kg/m3]  %f \n"%(rho_mix_nbl))
+                file.writelines("mfr_nbl             [kg/s]   %f \n"%(mfr_nbl))
+                file.writelines("vfr_nbl             [m3/s]   %f \n"%(vfr_nbl))
+                file.writelines("\n")
+
+                file.writelines("Old Values \n")
+                file.writelines("r_old_nbl           [m]      %f \n"%(r_old_nbl))
+                file.writelines("d_old_nbl           [m]      %f \n"%(d_old))
+                file.writelines("\n")
+
+                file.writelines("Fitted Values at steady state\n")
+                file.writelines("r_new_nbl           [m]      %f \n"%(r_new_nbl))
+                file.writelines("d_new_nbl           [m]      %f \n"%(d_new_nbl))
+                file.writelines("t_steady_fit        [s]      %f \n"%(t_steady_fit))
+                file.writelines("\n")
+
+                file.writelines("Fitted Values at time t \n")
+                file.writelines("t                   [s]      %f \n"%(T_mean)) 
+                file.writelines("r_t                 [m]      %f \n"%(r_t))
+                file.writelines("d_t                 [m]      %f \n"%(d_t))
+                file.writelines("f_t                 -        %f \n"%(f_t))
+
+                file.writelines("lat_new             [deg]    %f \n"%(lat_new))
+                file.writelines("lon_new             [deg]    %f \n"%(lon_new))
+                file.writelines("height_new          [m]      %f \n"%(height_new))
+                file.writelines("emission_area_new   [m2]     %f \n"%(emission_area_new))
+
+            file.close()
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
   
         # add lines in order to have all the blocks with the same lenght
 
@@ -583,22 +810,24 @@ if ( n_runs > 1):
     timei_end = endemittime_round
 
     d = datetime.datetime(2000,1,1) + (endemittime_hhmm-timei)
+    t_sec = (d - datetime.datetime(2000,1,1)).total_seconds()
+
     duration_hhmm = str(d.strftime("%H%M"))
 
     timei_str = timei.strftime("%Y %m %d %H")
     timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
-    print ( 'Block',n_runs,duration_hhmm )
+    print ( 'Block',n_runs,duration_hhmm,t_sec)
 
     # name of the .hy file
     plume_hy = runname + '_{0:03}'.format(n_runs)+'.hy'
     if os.path.isfile(str(plume_hy)):
 
         data=np.loadtxt(plume_hy,skiprows=1)
-        data=data.reshape((-1,int(3+(npart*n_sections))))    
+        data=data.reshape((-1,int(8+(npart*n_sections))))    
 
         # data1: array containing data from .hy file, without x,z,h
-        data1=np.delete(data, [0,1,2], 1)
+        data1=np.delete(data, [0,1,2,3,4,5,6,7], 1)
         data1 = np.flip(data1, axis=1)
 
         # array containing lat,lon and height for time i
@@ -623,6 +852,15 @@ if ( n_runs > 1):
 
         if umbrella_flag == str("T") :
 
+            r_old_nbl = data[-1,3] # radius at NBL m
+            x_old_nbl = data[-1,0]
+            y_old_nbl = data[-1,1]
+
+            x_old_vent = data[0,0]
+            y_old_vent = data[0,1]
+
+            d_old = np.sqrt((x_old_nbl-x_old_vent)**2+(y_old_nbl-y_old_vent)**2)
+
             umbrella_file = runname + '_{0:03}'.format(n_runs)+'.swu'
  
             a = np.loadtxt(umbrella_file,skiprows=1)
@@ -634,8 +872,114 @@ if ( n_runs > 1):
             h_avg = a[3]
             height_new = b[-1,2] + h_avg/float(2)
 
-            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 
 
+        else:
+
+            print("** Umbrella Fitting**")
+            r_old_nbl = data[-1,3] # radius at NBL m
+            x_old_nbl = data[-1,0]
+            y_old_nbl = data[-1,1]
+
+            u_atm_nbl = data[-1,4]
+            v_atm_nbl = data[-1,5]
+            vel_atm_nbl = ( u_atm_nbl**2 + v_atm_nbl**2 )**(0.5)
+            rho_mix_nbl = data[-1,6]
+            mfr_nbl = data[-1,7]
+            vfr_nbl = mfr_nbl /float(rho_mix_nbl)
+
+            a_fit = 4.02*10**(-9)
+            b_fit = 14.07
+            c_fit = -0.7457
+
+            Delta_d = a_fit * (vel_atm_nbl)**(c_fit)*(np.log10(vfr_nbl))**(b_fit)
+            d_new_nbl = d_old + Delta_d
+
+            A_fit = 1.89*10**(-8)
+            B_fit = 13.9
+            C_fit = -0.8856
+
+            r_new_nbl = A_fit*(vel_atm_nbl)**(C_fit)*(np.log10(vfr_nbl))**(B_fit)
+
+            alpha_fit = 1.9*10**(-5)
+            beta_fit = 1.09*10
+            gamma_fit = -1.57
+
+            t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
+
+            T_mean = T_sec + int(t_sec/float(2))
+
+            T_sec += t_sec
+
+            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+
+            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+            height_new = b[-1,2]
+            emission_area_new = np.pi * r_t**(2)
+
+            """
+            print("old values")
+            print("d_old ",d_old)
+            print("r_old ",r_old_nbl)
+            print("alpha ",alpha)
+            print("new values")
+            print("d_new_nbl ",d_new_nbl)
+            print("x_new_nbl ",x_new_nbl)
+            print("y_new_nbl ",y_new_nbl)
+            print("r_new_nbl ",r_new_nbl)
+            print("new coordinates")
+            print("lat_new ",lat_new)
+            print("lon_new ",lon_new)
+            print("t_steady_fit ",t_steady_fit)
+            print("f_t ",f_t)
+            print("r_t ",r_t)
+            print("d_t ",d_t)
+            """
+
+            umbr_fit = runname + '_{0:03}'.format(n_runs)+'.umbrfit'
+            with open(umbr_fit,"w") as file:
+
+                file.writelines("Plume properties at NBL \n")
+                file.writelines("u_atm_nbl           [m/s]    %f \n"%(u_atm_nbl))
+                file.writelines("v_atm_nbl           [m/s]    %f \n"%(v_atm_nbl))
+                file.writelines("rho_mix_nbl         [kg/m3]  %f \n"%(rho_mix_nbl))
+                file.writelines("mfr_nbl             [kg/s]   %f \n"%(mfr_nbl))
+                file.writelines("vfr_nbl             [m3/s]   %f \n"%(vfr_nbl))
+                file.writelines("\n")
+
+                file.writelines("Old Values \n")
+                file.writelines("r_old_nbl           [m]      %f \n"%(r_old_nbl))
+                file.writelines("d_old_nbl           [m]      %f \n"%(d_old))
+                file.writelines("\n")
+
+                file.writelines("Fitted Values at steady state\n")
+                file.writelines("r_new_nbl           [m]      %f \n"%(r_new_nbl))
+                file.writelines("d_new_nbl           [m]      %f \n"%(d_new_nbl))
+                file.writelines("t_steady_fit        [s]      %f \n"%(t_steady_fit))
+                file.writelines("\n")
+
+                file.writelines("Fitted Values at time t \n")
+                file.writelines("t                   [s]      %f \n"%(T_mean)) 
+                file.writelines("r_t                 [m]      %f \n"%(r_t))
+                file.writelines("d_t                 [m]      %f \n"%(d_t))
+                file.writelines("f_t                 -        %f \n"%(f_t))
+
+                file.writelines("lat_new             [deg]    %f \n"%(lat_new))
+                file.writelines("lon_new             [deg]    %f \n"%(lon_new))
+                file.writelines("height_new          [m]      %f \n"%(height_new))
+                file.writelines("emission_area_new   [m2]     %f \n"%(emission_area_new))
+
+            file.close()
+
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
 	
         # add lines in order to have all the blocks with the same lenght
 
