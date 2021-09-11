@@ -734,7 +734,16 @@ CONTAINS
 
        update_z = .TRUE.
        z = z + dz
-       
+
+       IF ( verbose_level .GE. 1 ) THEN
+
+          WRITE(*,*) 'rho_mix',rho_mix
+          WRITE(*,*) 'rho_atm',rho_atm
+          WRITE(*,*) 'w',w
+          READ(*,*)
+
+       END IF
+          
        ! Compute the rate of particle loss due to settling from plume margin
        DO i_part=1,n_part
 

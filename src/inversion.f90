@@ -149,7 +149,7 @@ CONTAINS
     DO i=0,n_values-1
 
        r0 = r_min * (r_max/r_min)**( i / (n_values-1.0_wp) )
-       ! WRITE(*,*) 'r0',r0
+       ! WRITE(*,*) 'r0 =',r0
        CALL velocity_search(w_opt,search_flag)
        WRITE(*,101) r0,w_opt,opt_mfr,opt_height,search_flag, opt_regime
 
@@ -200,6 +200,7 @@ CONTAINS
     w0_init = SQRT(w_max*w_min)
     w0 = w0_init
 
+    ! WRITE(*,*) 'w0 = ',w0
     CALL plumerise
 
     IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
@@ -239,7 +240,7 @@ CONTAINS
     search_interval:DO iter_interval=1,4
     
        w0 = (mult_fact**iter_interval)*w0_init
-       
+       ! WRITE(*,*) 'w0 = ',w0
        CALL plumerise
 
        IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
