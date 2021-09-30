@@ -371,7 +371,7 @@ for i in range(n_runs):
         plume_hy = runname + '_{0:03}'.format(i+1)+'.hy'
         file_hy=open(plume_hy,'w') 
         file_hy.writelines("Hysplit file for no emission \n")
-        file_hy.writelines("%f %f %f"%(0,0,vent_height))
+        file_hy.writelines("%f %f %f %f %f %f %f %f"%(0,0,vent_height,-999,-999,-999,-999,-999))
         for t in range(int(npart*n_sections)):            
             file_hy.writelines(" %f "%(0))
         file_hy.close()
@@ -380,7 +380,7 @@ for i in range(n_runs):
             gas_hy = runname + '_{0:03}'.format(i+1)+'_volcgas.hy'
             file_hy=open(gas_hy,'w') 
             file_hy.writelines("Hysplit file for no emission \n")
-            file_hy.writelines("%f %f %f"%(0,0,vent_height))
+            file_hy.writelines("%f %f %f %f %f %f %f %f"%(0,0,vent_height,-999,-999,-999,-999,-999))
             for t in range(int(ngas)):            
                 file_hy.writelines(" %f "%(0))
             file_hy.close()

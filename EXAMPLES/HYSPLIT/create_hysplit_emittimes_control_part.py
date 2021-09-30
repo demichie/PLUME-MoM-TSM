@@ -363,19 +363,32 @@ if os.path.isfile(str(plume_hy)):
 
         T_mean = int(t_sec/float(2)) # time at which the fitted values are calculated
 
-        f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
 
-        r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
-        d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+        if r_new_nbl==0 and t_steady_fit==0 and Delta_d==0:
+            vfr_nbl = 0
+            d_new_nbl = 0
+            d_old = 0
+            f_t = 0
+            r_t = 0
+            d_t = 0
+            lat_new = vent_lat
+            lon_new = vent_lon
+            height_new = 0
+            emission_area_new = 0
+        else:
+            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
 
-        alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-        x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-        y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
 
-        lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
-        lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
-        height_new = b[-1,2]
-        emission_area_new = np.pi * r_t**(2)
+            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+            height_new = b[-1,2]
+            emission_area_new = np.pi * r_t**(2)
        
         """
         print("old values")
@@ -619,24 +632,38 @@ for i in range(2,n_runs,1):
             gamma_fit = -1.57
 
             t_steady_fit =  alpha_fit*(vel_atm_nbl)**(gamma_fit)*(np.log10(vfr_nbl))**(beta_fit)
-
+            
             T_mean = T_sec + int(t_sec/float(2))
 
             T_sec += t_sec
 
-            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+            if r_new_nbl==0 and t_steady_fit==0 and Delta_d==0:
+                vfr_nbl = 0
+                d_new_nbl = 0
+                d_old = 0
+                f_t = 0
+                r_t = 0
+                d_t = 0
+                lat_new = vent_lat
+                lon_new = vent_lon
+                height_new = 0
+                emission_area_new = 0
 
-            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
-            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+            else:
 
-            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+                f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
 
-            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
-            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
-            height_new = b[-1,2]
-            emission_area_new = np.pi * r_t**(2)
+                r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+                d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+                alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+                x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+                y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+                lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+                lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+                height_new = b[-1,2]
+                emission_area_new = np.pi * r_t**(2)
 
             """
             print("old values")
@@ -911,19 +938,33 @@ if ( n_runs > 1):
 
             T_sec += t_sec
 
-            f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
+            if r_new_nbl==0 and t_steady_fit==0 and Delta_d==0:
+                vfr_nbl = 0
+                d_new_nbl = 0
+                d_old = 0
+                f_t = 0
+                r_t = 0
+                d_t = 0
+                lat_new = vent_lat
+                lon_new = vent_lon
+                height_new = 0
+                emission_area_new = 0
 
-            r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
-            d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+            else:
 
-            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+                f_t =  2.0/float(np.pi)*np.arctan(13.6*T_mean/float(t_steady_fit))
 
-            lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
-            lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
-            height_new = b[-1,2]
-            emission_area_new = np.pi * r_t**(2)
+                r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
+                d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
+
+                alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
+                x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
+                y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+
+                lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
+                lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
+                height_new = b[-1,2]
+                emission_area_new = np.pi * r_t**(2)
 
             """
             print("old values")
