@@ -160,7 +160,8 @@ CONTAINS
     USE moments_module, ONLY : n_nodes , n_mom , n_sections
 
     USE particles_module, ONLY: n_part , solid_partial_mass_fraction , mom ,    &
-         distribution , cp_part , mom0 , solid_partial_mass_fraction0
+         distribution , cp_part , mom0 , solid_partial_mass_fraction0 ,         &
+         log10_bin_mass_flow_rate
 
     USE particles_module, ONLY: cpsolid , solid_mass_fraction ,                 &
          solid_mass_fraction0

@@ -32,7 +32,7 @@ MODULE inpout
     USE particles_module, ONLY : solid_partial_mass_fraction , phi1 , rho1 ,    &
          phi2 , rho2 , cp_part , settling_model , distribution ,                &
          solid_mass_fraction0 , shape_factor , bin_partial_mass_fraction ,      &
-         solid_partial_mass_fraction0 , shape1 , shape2
+         solid_partial_mass_fraction0 , shape1 , shape2 , log10_bin_mass_flow_rate
 
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
@@ -155,7 +155,7 @@ MODULE inpout
 
   NAMELIST / particles_parameters / phi_min , delta_phi , distribution ,        &
        solid_partial_mass_fraction , phi1 , rho1 , phi2 , rho2 , shape1 ,       &
-       shape2 , cp_part , shape_factor , particles_loss , settling_model
+       shape2 , cp_part , shape_factor , particles_loss , settling_model 
   
   NAMELIST / inversion_parameters / height_obj , r_min , r_max , n_values ,     &
        w_min , w_max , nbl_stop
@@ -329,8 +329,8 @@ CONTAINS
        RHO1 = 2000.0_wp
        PHI2 = 4.0_wp
        RHO2 = 2600.0_wp
-       SHAPE1 = 1.0_wp
-       SHAPE2 = 1.0_wp
+       !SHAPE1 = 1.0_wp
+       !SHAPE2 = 1.0_wp
        SHAPE_FACTOR = 1.0_wp
        CP_PART = 1100.0_wp
        PARTICLES_LOSS= .true.
@@ -358,7 +358,9 @@ CONTAINS
        SPHU_ATM0 = 0.0_wp 
        U_MAX =  5.0_wp     
        Z_R =  1000.0_wp     
-       EXP_WIND =  0.0_wp     
+       EXP_WIND =  0.0_wp  
+       P_ATM0 = 101325.0_wp
+       T_ATM0 = 388.0_wp   
 
        !---------- parameters of the INITIAL_VALUES namelist --------------------
        R0= 50.0_wp     
@@ -525,6 +527,9 @@ CONTAINS
     REAL(wp) :: shapep
 
     NAMELIST / bin_parameters / bin_partial_mass_fraction
+
+    ! 20/04/2022 FP
+    NAMELIST / solid_mass_flow_rate_parameters / log10_bin_mass_flow_rate
     
     IF ( write_flag ) THEN
 
@@ -856,6 +861,34 @@ CONTAINS
           WRITE(*,*) 'Please check the input file'
           WRITE(*,*)
           WRITE(*,bin_parameters) 
+          STOP          
+          
+       END IF
+
+    ! 20/04/2022 FP
+    ELSEIF ( distribution .EQ. 'solid' ) THEN
+
+       READ(inp_unit, solid_mass_flow_rate_parameters,IOSTAT=io)
+
+       IF ( io .EQ. 0 ) THEN
+
+          WRITE(bak_unit, solid_mass_flow_rate_parameters)
+          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read solid_mass_flow_rate_parameters: done'
+          REWIND(inp_unit)
+
+          DO i_part=1,n_part
+             bin_partial_mass_fraction(1:n_sections,i_part) =                   &
+                  10.0_wp**(log10_bin_mass_flow_rate(1:n_sections,i_part)) /              &
+                  SUM(10.0_wp**(log10_bin_mass_flow_rate(1:n_sections,i_part)))
+             
+          END DO
+             
+       ELSE
+          
+          WRITE(*,*) 'Problem reading namelist SOLID_MASS_FLOW_RATE_PARAMETERS'
+          WRITE(*,*) 'Please check the input file'
+          WRITE(*,*)
+          WRITE(*,solid_mass_flow_rate_parameters) 
           STOP          
           
        END IF
@@ -1671,7 +1704,27 @@ CONTAINS
        REWIND(inp_unit)
        
     END IF
-    
+
+    ! 20/04/2022 
+    IF  (distribution .EQ. "solid")  THEN
+      
+      IF ( isSet(mfr0)  .OR. isSet(log10_mfr) ) THEN
+
+          WRITE(*,*) 'ERROR: problem with INITIAL_VALUES'
+          WRITE(*,*) 'for distribution = solid '
+          WRITE(*,*) 'Please set LOG10_MFR= NaN and MFR0= NaN'
+          STOP
+
+      ELSE
+         
+          mfr0 = SUM(10.0_wp**(log10_bin_mass_flow_rate(1:n_sections,1:n_part))) / &
+                 ( 1.0_wp - water_mass_fraction0 - SUM( volcgas_mass_fraction0(1:n_gas)))  
+          WRITE(*,*) "MFR0 from solid distribution [kg/s]",mfr0
+
+      END IF
+
+    END IF
+
     IF ( inversion_flag ) THEN
 
        IF ( isSet(mfr0) ) THEN
@@ -1849,7 +1902,7 @@ CONTAINS
 
        END IF
 
-       IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(r0) ) ) THEN 
+       IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(r0) ) .AND. ( distribution .NE. "solid" ) ) THEN 
        
           WRITE(*,*) ''
           WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
@@ -1875,7 +1928,7 @@ CONTAINS
 
        END IF
 
-       IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(w0) ) ) THEN 
+       IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(w0) ) .AND. ( distribution .NE. "solid" )) THEN 
 
           WRITE(*,*) ''
           WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
@@ -1892,8 +1945,7 @@ CONTAINS
           
        END IF
 
-    ELSEIF ( ( .NOT.isSet(log10_mfr) ).AND. ( .NOT.isSet(r0) ) .AND.                &
-         ( .NOT.isSet(w0) ) ) THEN
+    ELSEIF ( ( .NOT.isSet(log10_mfr) ) .AND. ( .NOT.isSet(r0) ) .AND. ( .NOT.isSet(w0) )  .AND. ( distribution .NE. 'solid' )) THEN
        
        WRITE(*,*) ''
        WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
@@ -2220,7 +2272,7 @@ CONTAINS
              mom0(1,i_sect,i_part) = normpdf(phiR(i_sect), mu_lognormal(i_part),&
                   sigma_lognormal(i_part) )
              
-          ELSEIF ( distribution .EQ. 'bin' ) THEN
+          ELSEIF ( (distribution .EQ. 'bin') .OR. (distribution .EQ. 'solid')) THEN
              
              ! assign the moments of order 1 (mass) from the values read in
              ! input

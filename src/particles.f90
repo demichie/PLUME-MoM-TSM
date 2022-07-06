@@ -43,6 +43,9 @@ MODULE particles_module
   !> mass fraction of the bins of particle with respect to the total solid
   REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: bin_partial_mass_fraction
 
+  !> mass flow rate of the bins of particle - 20/04/2022
+  REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: log10_bin_mass_flow_rate
+
   !> rate of particles lost from the plume in the integration steps ( kg s^-1)
   REAL(wp), ALLOCATABLE, DIMENSION(:,:) :: particle_loss_rate
   
@@ -106,6 +109,7 @@ MODULE particles_module
   !> Ditribution of the particles:\n
   !> - 'lognormal' => lognormal distribution
   !> - 'bin'  => user defined partition in bins
+  !> - 'solid'  => user defined partial solid mass flow rates
   !> .
   CHARACTER(LEN=20) :: distribution
 
@@ -217,6 +221,9 @@ CONTAINS
 
     ALLOCATE ( bin_partial_mass_fraction(1:n_sections,1:n_part) )
 
+    !20/04/2022
+    ALLOCATE ( log10_bin_mass_flow_rate(1:n_sections,1:n_part) )
+
     ALLOCATE ( particle_loss_rate(1:n_part,1:n_sections) )
     ALLOCATE ( cum_particle_loss_rate(1:n_part,1:n_sections) )
     
@@ -295,6 +302,9 @@ CONTAINS
     DEALLOCATE ( solid_volume_fraction )
 
     DEALLOCATE ( bin_partial_mass_fraction )
+
+    !20/04/2022 FP
+    DEALLOCATE ( log10_bin_mass_flow_rate )
 
     DEALLOCATE ( particle_loss_rate , cum_particle_loss_rate )
     
