@@ -39,7 +39,7 @@ CONTAINS
     USE meteo_module, ONLY : rho_atm , rair , u_wind , v_wind , pa
     USE mixture_module, ONLY : gas_mass_fraction , rho_mix, mass_flow_rate ,    &
          rgasmix , rvolcgas_mix ,water_vapor_mass_fraction , t_mix ,            &
-         volcgas_mix_mass_fraction , water_mass_fraction ,                      &
+         volcgas_mix_mass_fraction , water_mass_fraction , rho_gas ,            &
          liquid_water_mass_fraction, dry_air_mass_fraction, ice_mass_fraction 
 
     USE parameters_2d, ONLY : x_source, y_source, r_source, vol_flux_source ,   &
@@ -469,6 +469,14 @@ CONTAINS
 
           CALL unlump( ftemp )
 
+          
+          ! WRITE(*,*) 'i_RK,rho_mix',i_RK,rho_mix
+          ! WRITE(*,*) 'rho_gas',rho_gas
+          ! WRITE(*,*) 'f',f
+          ! WRITE(*,*) 't_mix',t_mix
+          ! WRITE(*,*) 'rgasmix',rgasmix
+          ! WRITE(*,*) 'w',w
+
           ! ----- Check on the solution to reduce step-size condition -----------
 
           IF ( ( w .LE. 0.0_wp) .OR. ( rgasmix .LT.  MIN(rair,rvolcgas_mix) ) ) &
@@ -702,10 +710,14 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
+          WRITE(*,*) 'z',z
+          ! WRITE(*,*) 'f',f
           WRITE(*,*) 'rho_mix',rho_mix
           WRITE(*,*) 'rho_atm',rho_atm
           WRITE(*,*) 'w',w
-          READ(*,*)
+          IF (.NOT.(rho_mix < 1.33)) THEN
+             READ(*,*)
+          END IF
 
        END IF
           
@@ -762,12 +774,20 @@ CONTAINS
                  
        ! ----- Exit condition ---------------------------------------------------
 
+
        IF ( ( w .LE. 1.0E-5_wp ) .OR. ( dz .LE. 1.0E-7_wp ) ) THEN
+          
+          IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'Vertical velocity [m/s]',w
-          WRITE(*,*) 'Integration step dz [m]',dz
+             WRITE(*,*) 'Vertical velocity [m/s]',w
+             WRITE(*,*) 'Integration step dz [m]',dz
+             WRITE(*,*) 'rho_mix',rho_mix
+             WRITE(*,*) 'rho_atm',rho_atm
+             
+          END IF
+          
           EXIT main_loop
-
+          
        END IF
 
     END DO main_loop

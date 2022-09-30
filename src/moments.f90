@@ -211,13 +211,31 @@ CONTAINS
        gamma1 = (N*Ml - 2*M + N*Mr)/(M - N*Ml)
        gamma2 = 0.0_wp
 
+       IF ( gamma1 .LT. 0.0_wp ) THEN
+
+          alfa = 0.0_wp
+          beta = 0.0_wp
+          gamma1 = 0.0_wp
+          gamma2 = 0.0_wp
+
+       END IF
+
     ELSEIF ( M/N .GT. Mmax ) THEN
     
        alfa = 0.0_wp
        beta = (N*(M - N*Ml))/((Ml - Mr)*(M - N*Mr))
        gamma1 = 0.0_wp
        gamma2 = (N*Ml - 2*M + N*Mr)/(M - N*Mr)
-    
+
+       IF ( gamma2 .LT. 0.0_wp ) THEN
+
+          alfa = 0.0_wp
+          beta = 0.0_wp
+          gamma1 = 0.0_wp
+          gamma2 = 0.0_wp
+
+       END IF
+       
     ELSE
     
        alfa = (2.0_wp*(N*Ml - 3.0_wp*M + 2.0_wp*N*Mr))/(Ml - Mr)**2

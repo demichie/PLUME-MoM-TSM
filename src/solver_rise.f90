@@ -693,12 +693,13 @@ CONTAINS
           idx2 = 8+n_mom-1+(i_part-1)*n_sections*n_mom+(i_sect-1)*n_mom
           
           mom(0:1,i_sect,i_part) = f_(idx1:idx2)
-          
+
        END DO
 
        rhoB_solid_w_r2(i_part) = SUM(mom(1,:,i_part))
               
     END DO
+
     
     ! compute the values of f_quad with the uncorrected moments
     CALL eval_quad_values
@@ -713,11 +714,19 @@ CONTAINS
        IF ( verbose_level .GE. 2 ) THEN
 
           WRITE(*,*) 'i_part',i_part
-          WRITE(*,*) 'rhoB_solid_w_r2',idx1,rhoB_solid_w_r2(i_part)
+          WRITE(*,*) 'rhoB_solid_w_r2',rhoB_solid_w_r2(i_part)
           WRITE(*,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
           WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
           WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)
-          WRITE(*,*) 'f_quad(:,1,i_part)',f_quad(:,1,i_part)
+
+          DO i_sect=1,n_sections
+
+             WRITE(*,*) 'i_part,i_sect',i_part,i_sect
+             WRITE(*,*) 'mom(0,1,i_part)',mom(0,i_sect,i_part)
+             WRITE(*,*) 'mom(1,1,i_part)',mom(1,i_sect,i_part)
+             WRITE(*,*) 'f_quad(:,i_sect,i_part)',f_quad(:,i_sect,i_part)
+
+          END DO
                    
        END IF
        
@@ -809,7 +818,7 @@ CONTAINS
 
     ! contribution from ice
     alfa_ice_w_r2 = f_(1) * ice_mass_fraction / rho_ice
-    
+
     w_r2 = SUM( alfa_s_w_r2(1:n_part) ) + alfa_g_w_r2 + alfa_lw_w_r2            &
          + alfa_ice_w_r2
 
