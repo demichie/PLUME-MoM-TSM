@@ -2,6 +2,8 @@
 
 - To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker check that Docker is installed on your machine. To do this run `docker info` on a terminal screen. If the command is not found, please install Docker
 
+- Login to Docker Hub from the terminal screen with `docker login -u *YourDockerID*` and insert the Password. Go to [Docker Hub](https://hub.docker.com) to create an account
+
 - Execute `./run_docker.sh` to run the container *plumemom_hysplit* from the image *federicapardini/plumemom_hysplit:v1* and check that the container is running with `docker ps`
 
 - Edit *input_file.py* and run the simulation with `./run_plumemom_hysplit_docker.sh`
