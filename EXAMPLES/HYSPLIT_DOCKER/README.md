@@ -1,6 +1,4 @@
-### PLUME-MoM-TSM and HYSPLIT with Docker
-
-The scripts provided in this folder have been written by F. Pardini<sup>(1)</sup> and M. de' Michieli Vitturi<sup>(1)</sup>
+## PLUME-MoM-TSM and HYSPLIT with Docker
 
 - To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker check that Docker is installed on your machine. To do this run `docker info` on a terminal screen. If the command is not found, please install Docker.
 
@@ -26,6 +24,8 @@ The scripts provided in this folder have been written by F. Pardini<sup>(1)</sup
 - To clean the working directory execute `python clean_all.py`
 
 - To stop and remove the container *plumemom_hysplit* execute `./end_docker.sh` 
+
+The scripts provided in this folder have been written by F. Pardini<sup>(1)</sup> and M. de' Michieli Vitturi<sup>(1)</sup>
 
 (1) Istituto Nazionale di Geofisica e Vulcanologia - Sezione di Pisa</br>    federica.pardini@ingv.it mattia.demichielivitturi@ingv.it
 
