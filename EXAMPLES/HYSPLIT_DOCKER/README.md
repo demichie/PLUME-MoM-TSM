@@ -27,7 +27,7 @@ The scripts provided in this folder have been written by F. Pardini<sup>(1)</sup
 
 - To stop and remove the container *plumemom_hysplit* execute `./end_docker.sh` 
 
-(1) Istituto Nazionale di Geofisica e Vulcanologia</br>Sezione di Pisa</br>federica.pardini@ingv.it</br>mattia.demichielivitturi@ingv.it
+(1) Istituto Nazionale di Geofisica e Vulcanologia</br>    Sezione di Pisa</br>    federica.pardini@ingv.it</br>    mattia.demichielivitturi@ingv.it
 
 
 
