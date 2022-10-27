@@ -1,0 +1,4 @@
+cdump_part_sunset_test		Hysplit concentration and deposition output for all particle classes at time intervals (0-2h, 2-4h, 4-6h,...)
+cdumpcum_part_sunset_test	Cumulative deposition output for all particle classes (0-2h, 0-4h, 0-6h,...)
+cdumpsum_part_sunset_test.bin	Cumulative total deposition output for the sum of all particle classes (0-2h, 0-4h, 0-6h,...)
+
