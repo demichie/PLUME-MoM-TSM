@@ -7,7 +7,7 @@ The scripts provided in this folder have been written by F.Pardini(1) and M.de' 
 
 To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker:
 
-1) be sure that Docker is installed on your machine. To do this run docker info on a terminal screen. If the command is not found, please install Docker:
+1) be sure that Docker is installed on your machine. To do this run `$ docker info` on a terminal screen. If the command is not found, please install Docker.
 
 2) the docker image federicapardini/plumemom_hysplit:v1 provides the codes and the python3 libraries to execute the workflow. 
 
