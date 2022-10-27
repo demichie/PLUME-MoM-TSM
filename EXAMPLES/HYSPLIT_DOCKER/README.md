@@ -1,4 +1,4 @@
-## PLUME-MoM-TSM and HYSPLIT with Docker
+#PLUME-MoM-TSM and HYSPLIT with Docker
 
 - To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker check that Docker is installed on your machine. To do this run `docker info` on a terminal screen. If the command is not found, please install Docker.
 
