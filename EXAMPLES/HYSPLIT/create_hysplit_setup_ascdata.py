@@ -27,6 +27,9 @@ with open('SETUP.part','w') as setup:
     setup.write("kbls="+str(kbls)+"\n")
     setup.write("kblt="+str(kblt)+"\n")
     setup.write("cmass="+str(cmass)+"\n")
+    setup.write("dphi="+str(delta_phi)+"\n")
+    setup.write("rcoef_flag='"+str(rcoef_flag)+"'\n")
+    setup.write("sf_range="+str(sf_range)+"\n")
     setup.write('/ \n')
 setup.close()
 

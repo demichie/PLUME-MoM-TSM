@@ -1,5 +1,5 @@
 hysplit_dir = "/home/ash/Scrivania/Codes/Hysplit/hysplit/tags/hysplit.v5.0.1"
-plumemom_dir = "/home/ash/Scrivania/Codes/PLUME-MoM-TSM-august_2021"
+plumemom_dir = "/home/ash/Scrivania/Codes/PLUME-MoM-TSM-master"
 runname = 'Etna_test'
 starttime   = "18 12 24 12 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 13 00"
@@ -30,7 +30,7 @@ log10_mfr = 7
 # N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
 
 #umbrella cloud parameters
-umbrella_flag = "F"
+umbrella_flag = "F" # Model: Umbrella expansion computed by the Shallow water model - Fit: Umbrella expansion computed by the fitting formula - False: No Umbrella
 t_end = 3600 # duration of the umbrella simulation (seconds)
 dt_output = 600 # saving output at dt_output time steps (seconds)
 c_d = 0.1 # drag coefficient
@@ -91,6 +91,7 @@ n_sections = 18
 phi_min = -6
 delta_phi = 1
 solid_partial_mass_fraction = 1
+rcoef_flag = "T" # True or false
 
 # particle distribution can be LOGNORMAL or BIN
 distribution = "LOGNORMAL"
@@ -102,7 +103,7 @@ sigma = 1
 # parameters for BIN distribution
 bin_partial_mass_fraction = [1.9E-03 , 1.1E-02, 4.3E-02 ,1.1E-01 ,2.1E-01, 2.5E-01, 2.1E-01 ,1.1E-01, 4.3E-02, 1.1E-02, 1.9E-03, 2.2E-04, 1.7E-05, 9.3E-07, 3.4E-08, 8.2E-10, 1.4E-11, 1.5E-13]
 
-# parameters for particle density
+# parameters for particle densitysf_range = 30
 phi1 = -1
 rho1 = 2500
 phi2 = 4
@@ -110,6 +111,7 @@ rho2 = 2500
 
 cp_part = 1100 
 shapefactor = 0.6 
+sf_range = 30
 
 #SAMPLING POINTS: LAT - LON - SAMPLED_DEPOSIT (kgm-2)
 P01=[36.00, 18.00, 1]

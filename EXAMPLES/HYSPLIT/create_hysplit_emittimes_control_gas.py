@@ -203,7 +203,7 @@ if os.path.isfile(str(plume_hy)):
     b = np.asarray(b)
     b = b.reshape((-1,4))
 
-    if umbrella_flag == str("T") :
+    if umbrella_flag == str("Model") :
 
         umbrella_file = runname + '_{0:03}'.format(1)+'.swu'
  
@@ -218,7 +218,8 @@ if os.path.isfile(str(plume_hy)):
 
         b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud
 
-    else:
+    elif umbrella_flag == str("Fit") :
+
         print("** Umbrella Fitting**")
         r_old_nbl = data[-1,3] # radius at NBL m
         x_old_nbl = data[-1,0]
@@ -282,7 +283,11 @@ if os.path.isfile(str(plume_hy)):
             height_new = b[-1,2]
             emission_area_new = np.pi * r_t**(2)
        
-        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	 	
+        b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]
+
+    elif umbrella_flag == str("False") :
+
+        print("No umbrella")	 	
 
     # add lines in order to have all the blocks with the same lenght
 
@@ -424,7 +429,7 @@ for i in range(2,n_runs,1):
         b = np.asarray(b)
         b = b.reshape((-1,4))	
 
-        if umbrella_flag == str("T") :
+        if umbrella_flag == str("Model") :
 
             umbrella_file = runname + '_{0:03}'.format(i)+'.swu'
  
@@ -441,9 +446,10 @@ for i in range(2,n_runs,1):
 
             b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 
 
-        else:
+        elif umbrella_flag == str("Fit") :
 
             print("** Umbrella Fitting**")
+
             r_old_nbl = data[-1,3] # radius at NBL m
             x_old_nbl = data[-1,0]
             y_old_nbl = data[-1,1]
@@ -507,6 +513,10 @@ for i in range(2,n_runs,1):
                 emission_area_new = np.pi * r_t**(2)
 
             b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
+
+        elif umbrella_flag == str("False") :
+ 
+            print("No umbrella")
   
         # add lines in order to have all the blocks with the same lenght
 
@@ -658,7 +668,7 @@ if ( n_runs > 1):
         b = np.asarray(b)
         b = b.reshape((-1,4))
 
-        if umbrella_flag == str("T") :
+        if umbrella_flag == str("Model") :
 
             umbrella_file = runname + '_{0:03}'.format(n_runs)+'.swu'
  
@@ -675,7 +685,8 @@ if ( n_runs > 1):
   
             b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	# at nbl replace values for umbrella cloud 	
 
-        else:
+        elif umbrella_flag == str("Fit") :
+
             print("** Umbrella Fitting**")
             r_old_nbl = data[-1,3] # radius at NBL m
             x_old_nbl = data[-1,0]
@@ -740,6 +751,10 @@ if ( n_runs > 1):
                 emission_area_new = np.pi * r_t**(2)
 
             b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
+
+        elif umbrella_flag == str("False") :
+
+            print("No umbrella")
 
         # add lines in order to have all the blocks with the same lenght
 

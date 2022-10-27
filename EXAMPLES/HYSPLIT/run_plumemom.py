@@ -138,7 +138,7 @@ else:
     filedata = filedata.replace("{added_water_mass_fraction}", str(0) )
      
 
-if umbrella_flag == str("T"):
+if umbrella_flag == str("Model"):
 
     filedata = filedata.replace("{umbrella_flag}", 'T' )
     filedata = filedata.replace("{t_end}", str(t_end) )
@@ -385,7 +385,7 @@ for i in range(n_runs):
                 file_hy.writelines(" %f "%(0))
             file_hy.close()
 
-        if umbrella_flag == str("T"):
+        if umbrella_flag == str("Model"):
             umbrella_swu = runname + '_{0:03}'.format(i+1)+'.swu'
             file_swu=open(umbrella_swu,'w') 
             file_swu.writelines("Umbrella cloud file for no emission \n")
