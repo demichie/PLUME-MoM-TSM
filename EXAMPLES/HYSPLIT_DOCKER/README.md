@@ -1,10 +1,10 @@
 # PLUME-MoM-TSM and HYSPLIT with Docker
 
-- To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker check that Docker is installed on your machine. To do this run `docker info` on a terminal screen. If the command is not found, please install Docker.
+- To run a PLUME-MoM-TSM/HYSPLIT simulation with Docker check that Docker is installed on your machine. To do this run `docker info` on a terminal screen. If the command is not found, please install Docker
 
-- Execute `./run_docker.sh` to run the container *plumemom_hysplit* from the image *federicapardini/plumemom_hysplit:v1* and check that the container is running with `docker ps`.
+- Execute `./run_docker.sh` to run the container *plumemom_hysplit* from the image *federicapardini/plumemom_hysplit:v1* and check that the container is running with `docker ps`
 
-- Edit *input_file.py* and run the simulation with `./run_plumemom_hysplit_docker.sh`.
+- Edit *input_file.py* and run the simulation with `./run_plumemom_hysplit_docker.sh`
 
 - Execute the post-processing routines:
   - `./create_plots_docker.sh` (HYSPLIT plotting routines for solid particles and gas concentrations)
