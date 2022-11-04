@@ -10,9 +10,32 @@ import salem
 from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
 import easygui
 import warnings
+
+import streamlit as st
+
 warnings.simplefilter(action='ignore')
 
 from input_file import *
+
+def file_selector(folder_path='.', ext='gnd'):
+    filenames = os.listdir(folder_path)
+    filelist = []
+    for file in filenames:
+        if file.endswith(".gnd"):
+            filelist.append(file)
+
+    filelist.insert(0, '')    
+
+    selected_filename = st.selectbox('Select a file', filelist, format_func=lambda x: 'Select a file' if x == '' else x)
+
+    if selected_filename !='':
+        st.write('You selected `%s`' % selected_filename)
+    elif selected_filename =='':
+        st.stop()
+        st.warning('No option is selected')
+
+    return os.path.join(folder_path,selected_filename)
+
 
 
 def fmt(x, pos):
@@ -34,19 +57,10 @@ for filename in lines:
         # Add .gnd extension to distinguish the files from other types 
         os.rename(filename.strip(),filename.strip()+'.gnd')
 
-# choose the file to plot with a GUI
+f.close()
 
-try:
 
-    from tkFileDialog import askopenfilename
-    filename = askopenfilename(filetypes=[("gnd files", "*.gnd")])
-
-except:
-
-    import tkinter
-    import tkinter.filedialog
-    filename =  tkinter.filedialog.askopenfilename(title = "choose your file",filetypes=[("gnd files", "*.gnd")])
-
+filename = file_selector(ext='gnd')
 
 GROUND=[]
 
@@ -74,11 +88,12 @@ for i in range(100):
 und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
 dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
 
-time = filename[und_where[-1]+1:dot_where[0]]
+time = filename[und_where[-1]+1:dot_where[1]]
 day = filename[und_where[-2]+1:und_where[-1]]
  
 print ( ' ---> day and time ',day,' ',time,' ' )
 print ( ' ' )
+
 
 m = []        
 
@@ -349,7 +364,10 @@ clb = plt.colorbar(format=ticker.FuncFormatter(fmt))
 clb.set_label('Loading (kg/m$^2$)', labelpad=-40, y=1.05, rotation=0)
 f.savefig(runname+'_'+'CL_sum'+'_'+day+'_'+time+'_DEPOSIT.pdf', bbox_inches='tight')
 plt.close()
-# plt.show()        
+# plt.show()   
+
+
 
             
+
 

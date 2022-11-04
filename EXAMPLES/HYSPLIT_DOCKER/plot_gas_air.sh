@@ -29,7 +29,7 @@ ${MDL}/exec/con2asc -i$DUMP_GAS -t -x -z
 
 mv CON2ASC.OUT CON2ASC.GAS
 
-python3 plot_gas_air.py 
+streamlit run plot_gas_air.py
 
 rm CON2ASC.GAS
 rm *.gas
