@@ -108,7 +108,8 @@ maximum = max(dict_h, key=dict_h.get)
 num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within each hour
 
 # particle diameters phi scale
-diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True)
+diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True) - 0.5*delta_phi
+print("diam_phi ",diam_phi)
 
 # diameter in millimeters [mm]
 diam = 2.0**(-np.asarray(diam_phi))
