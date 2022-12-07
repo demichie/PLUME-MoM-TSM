@@ -1,5 +1,5 @@
 hysplit_dir = "/home/ash/Scrivania/Codes/Hysplit/hysplit/tags/hysplit.v5.0.1"
-plumemom_dir = "/home/ash/Scrivania/Codes/PLUME-MoM-TSM-master"
+plumemom_dir = "/home/ash/Scrivania/Applicazioni/PLUME-MoM-TSM_VARIABLE_SF/PLUME-MoM-TSM"
 runname = 'Etna_test'
 starttime   = "18 12 24 12 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 13 00"
@@ -87,8 +87,8 @@ H_LEVELS = '0 30000'
 
 # particle parameters
 npart = 1
-n_sections = 18
-phi_min = -6
+n_sections = 10
+phi_min = -4
 delta_phi = 1
 solid_partial_mass_fraction = 1
 rcoef_flag = "T" # True or false
@@ -110,8 +110,9 @@ phi2 = 4
 rho2 = 2500
 
 cp_part = 1100 
-shapefactor = 0.6 
 sf_range = 30
+
+shapefactor = 0.9
 
 #SAMPLING POINTS: LAT - LON - SAMPLED_DEPOSIT (kgm-2)
 P01=[36.00, 18.00, 1]

@@ -28,6 +28,7 @@
  SHAPE_FACTOR=  {shapefactor}   ,
  SHAPE1=  {shape1}   ,
  SHAPE2=  {shape2}   ,
+ SHAPE_FACTOR_BIN= {shape_factor_bin} ,
  PARTICLES_LOSS=T,
  SETTLING_MODEL="textor    ",
  /

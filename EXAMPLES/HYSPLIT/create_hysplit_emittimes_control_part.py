@@ -109,7 +109,7 @@ num_occurrence = int(dict_h[maximum]) # count the number of plumemom runs within
 
 # particle diameters phi scale
 diam_phi = np.linspace(phi_min+(delta_phi),phi_min+(delta_phi)+((n_sections-1)*delta_phi),n_sections, endpoint=True) - 0.5 * delta_phi
-print("diam_phi ",diam_phi)
+#print("diam_phi ",diam_phi)
 
 # diameter in millimeters [mm]
 diam = 2.0**(-np.asarray(diam_phi))
@@ -118,8 +118,48 @@ diam = 2.0**(-np.asarray(diam_phi))
 # the function calc_density convert internally from mm to m
 density = calc_density(diam_phi)/1000
 
-# we assume that all the particles have the same shapefactor
-shapefactor = calc_shapefactor(diam_phi)
+if 'shapefactor' in locals():
+    print("Constant shape factor")
+    shapefactor = np.ones((npart,n_sections))*shapefactor
+
+elif 'shape1' in locals() and 'shape2' in locals():
+    print("Linear shape factor (shape1 and shape2)")
+    # diam is in millimiters while diam1 and diam2 are in meters
+
+    phi1=np.ones(npart)*phi1
+    phi2=np.ones(npart)*phi2
+
+    shape1 = np.ones(npart)*shape1
+    shape2 = np.ones(npart)*shape2
+
+    shapefactor = np.zeros((npart,n_sections))
+
+    for i in range(npart):
+
+        for j in range(n_sections):
+  
+            if ( diam_phi[j] <= phi1[i] ):
+
+                shapefactor[i,j] = shape1[i]
+
+            elif ( phi1[i] < diam_phi[j] < phi2[i] ):
+ 
+                shapefactor[i,j] = shape1[i] + ( diam_phi[j] - phi1[i] ) / ( phi2[i] - phi1[i] ) * ( shape2[i] - shape1[i] )
+       
+            elif ( diam_phi[j] >= phi2[i] ):
+
+                shapefactor[i,j] = shape2[i]
+
+	#print 'diam',diam[i],diam1[i],diam2[i],diam_phi[i],density[i]
+else:
+    print("Variable shape factor")
+    shapefactor = np.asarray(shape_factor_bin)
+    shapefactor = shapefactor.reshape((npart,n_sections))
+
+
+# shapefactor can be constant or variable with bins
+#shapefactor = calc_shapefactor(diam_phi)
+
 
 particles_settling_velocity = []
 
@@ -207,7 +247,7 @@ for i in range(npart):
 
 
         particles_settling_velocity.append(Us)
-        print ( diam_mt,Us )
+        print ("diam %E mm - SF %5.3f - U_set %6.3f m/s" %(diam[j], shapefactor[i,j], Us) )
 
 released_mass=0
 

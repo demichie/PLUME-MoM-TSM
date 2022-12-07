@@ -72,12 +72,20 @@ if 'shapefactor' in locals():
     filedata = filedata.replace("{shapefactor}", ",".join(np.char.mod('%4f', shapefactor)) )
     filedata = filedata.replace("{shape1}", "NaN" )
     filedata = filedata.replace("{shape2}", "NaN" )
-else:
+    filedata = filedata.replace("{shape_factor_bin}", "NaN" )
+elif 'shape1' in locals() and 'shape2' in locals():
     shape1 = np.ones(npart)*shape1
     shape2 = np.ones(npart)*shape2
     filedata = filedata.replace("{shape1}", ",".join(np.char.mod('%4f', shape1)) )
     filedata = filedata.replace("{shape2}", ",".join(np.char.mod('%4f', shape2)) )
     filedata = filedata.replace("{shapefactor}", "NaN" )
+    filedata = filedata.replace("{shape_factor_bin}", "NaN" )
+else:
+    filedata = filedata.replace("{shape1}", "NaN" )
+    filedata = filedata.replace("{shape2}", "NaN" )
+    filedata = filedata.replace("{shapefactor}", "NaN" )    
+    filedata = filedata.replace("{shape_factor_bin}", ",".join(np.char.mod('%f', shape_factor_bin)) )
+
 
 filedata = filedata.replace("{cp_part}", ",".join(np.char.mod('%4f', cp_part)) )
 
