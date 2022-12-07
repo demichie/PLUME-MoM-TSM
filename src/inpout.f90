@@ -32,7 +32,8 @@ MODULE inpout
     USE particles_module, ONLY : solid_partial_mass_fraction , phi1 , rho1 ,    &
          phi2 , rho2 , cp_part , settling_model , distribution ,                &
          solid_mass_fraction0 , shape_factor , bin_partial_mass_fraction ,      &
-         solid_partial_mass_fraction0 , shape1 , shape2 , log10_bin_mass_flow_rate
+         solid_partial_mass_fraction0 , shape1 , shape2 ,                       &
+         log10_bin_mass_flow_rate , shape_factor_bin
 
     USE particles_module, ONLY : aggregation_model , particles_beta0 ,          &
          phiL , phiR , M
@@ -155,7 +156,8 @@ MODULE inpout
 
   NAMELIST / particles_parameters / phi_min , delta_phi , distribution ,        &
        solid_partial_mass_fraction , phi1 , rho1 , phi2 , rho2 , shape1 ,       &
-       shape2 , cp_part , shape_factor , particles_loss , settling_model 
+       shape2 , cp_part , shape_factor , particles_loss , settling_model ,      &
+       shape_factor_bin
   
   NAMELIST / inversion_parameters / height_obj , r_min , r_max , n_values ,     &
        w_min , w_max , nbl_stop
@@ -451,7 +453,7 @@ CONTAINS
 
     USE particles_module, ONLY: particles_density , allocate_particles ,        &
          deallocate_particles , eval_quad_values , init_quadrature_points ,     &
-         phiFromM, particles_shape
+         phiFromM, check_shape_bin
 
     IMPLICIT NONE
 
@@ -524,7 +526,6 @@ CONTAINS
     INTEGER :: ip
 
     REAL(wp) :: rhop
-    REAL(wp) :: shapep
 
     NAMELIST / bin_parameters / bin_partial_mass_fraction
 
@@ -762,8 +763,43 @@ CONTAINS
           STOP
           
        END IF
-          
-       IF ( isSet(shape_factor(i_part)) ) THEN
+
+       check_shape_bin = .FALSE.
+
+       DO i_sect = 1,n_sections
+
+           check_shape_bin = check_shape_bin .OR. isSet(shape_factor_bin(i_sect,i_part))
+
+       END DO
+
+       IF ( check_shape_bin ) THEN
+
+          IF ( isSet(shape_factor(i_part)) ) THEN
+
+             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(*,*) 'Please check the input file'
+             WRITE(*,*) 'Shape factor',shape_factor
+             WRITE(*,*) 'Shape factor bin',shape_factor_bin
+             WRITE(*,*) 'IF SHAPE_FACTOR is defined, SHAPE_FACTOR_BIN' 
+             WRITE(*,*) 'is not used'
+             STOP
+
+          END IF
+
+          IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN 
+             
+             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(*,*) 'Please check the input file'
+             WRITE(*,*) 'Shape factor bin',shape_factor_bin
+             WRITE(*,*) 'Shape1',shape1
+             WRITE(*,*) 'Shape2',shape2
+             WRITE(*,*) 'IF SHAPE_FACTOR_BIN is defined, SHAPE1 and SHAPE2' 
+             WRITE(*,*) 'are not used'
+             STOP
+
+          END IF
+
+       ELSE IF ( isSet(shape_factor(i_part)) ) THEN
           
           IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN 
              
@@ -783,7 +819,7 @@ CONTAINS
              
           END IF
           
-       ELSE
+       ELSE 
           
           IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN
 
@@ -795,6 +831,7 @@ CONTAINS
              WRITE(*,*) 'Shape factor',shape_factor
              WRITE(*,*) 'Shape1',shape1
              WRITE(*,*) 'Shape2',shape2
+             WRITE(*,*) 'Shape factor bin',shape_factor_bin
              REWIND(inp_unit)
              STOP
              
@@ -806,9 +843,8 @@ CONTAINS
 
           diam = 1.E-3_wp * 2.0_wp**( - phiR(i_sect) )
           rhop = particles_density( i_part,phiR(i_sect) )
-          shapep = particles_shape( i_part,phiR(i_sect) )
        
-          M(i_sect+1,i_part) = rhop * (shapep * diam**3)
+          M(i_sect+1,i_part) = rhop * (pi_g / 6.0_wp * diam**3)
 
        END DO
        

@@ -73,6 +73,12 @@ MODULE particles_module
   !> shape factor for settling velocity (Pfeiffer)
   REAL(wp), ALLOCATABLE :: shape_factor(:)
 
+  !> check if shape factor is defined for bins
+  LOGICAL :: check_shape_bin
+
+  !> shape factor for different bin
+  REAL(wp), ALLOCATABLE :: shape_factor_bin(:,:)
+
   !> First diameter for the density function
   REAL(wp), ALLOCATABLE :: phi1(:)
 
@@ -237,6 +243,7 @@ CONTAINS
 
     ! Allocation of the parameters for the variable density
     ALLOCATE ( shape_factor(n_part) )
+    ALLOCATE ( shape_factor_bin(n_sections,n_part) )
     ALLOCATE ( phi1(n_part) )
     ALLOCATE ( rho1(n_part) )
     ALLOCATE ( shape1(n_part) )
@@ -250,6 +257,7 @@ CONTAINS
     phi2(1:n_part) = notSet
     
     shape_factor(1:n_part) = notSet
+    shape_factor_bin(1:n_sections,1:n_part) = notSet
     shape1(1:n_part) = notSet
     shape2(1:n_part) = notSet
 
@@ -318,6 +326,7 @@ CONTAINS
 
     ! Allocation of the parameters for the variable density
     DEALLOCATE ( shape_factor )
+    DEALLOCATE ( shape_factor_bin )
     DEALLOCATE ( phi1 )
     DEALLOCATE ( rho1 )
     DEALLOCATE ( shape1 )
@@ -663,62 +672,6 @@ CONTAINS
     RETURN
 
   END FUNCTION particles_density
-
-  !******************************************************************************
-  !> \brief Particle shape factor
-  !
-  !> This function evaluates the shape factor of a particle given the size (phi).
-  !> \param[in]   i_part   particle phase index 
-  !> \param[in]   phi      particle size (Krumbein phi scale)
-  !> \date 22/10/2013
-  !> @author 
-  !> Mattia de' Michieli Vitturi
-  !******************************************************************************
-
-  FUNCTION particles_shape(i_part,phi)
-    !
-    IMPLICIT NONE
-
-    REAL(wp) :: particles_shape
-
-    INTEGER, INTENT(IN) :: i_part
-    REAL(wp), INTENT(IN) :: phi
-
-    REAL(wp) :: phi_temp,shape_temp
-    
-    IF ( phi1(i_part) .GT. phi2(i_part) ) THEN
-
-       phi_temp = phi1(i_part)
-       shape_temp = shape1(i_part)
-
-       phi1(i_part) = phi2(i_part)
-       shape1(i_part) = shape2(i_part)
-
-       phi2(i_part) = phi_temp
-       shape2(i_part) = shape_temp
-
-    END IF
-       
-    IF ( phi .LE. phi1(i_part) ) THEN
-
-       particles_shape = shape1(i_part)
-
-    ELSEIF ( phi .LE. phi2(i_part) ) THEN
-
-
-       particles_shape = shape1(i_part) + ( phi - phi1(i_part) ) /              &
-            ( phi2(i_part) - phi1(i_part) ) * ( shape2(i_part) - shape1(i_part) )
-
-    ELSE
-
-       particles_shape = shape2(i_part)
-
-    END IF
-    
-    RETURN
-
-  END FUNCTION particles_shape
-
   
   !******************************************************************************
   !> \brief Particles aggregation
@@ -1308,6 +1261,8 @@ CONTAINS
   
   SUBROUTINE phiFromM
 
+    USE variables, ONLY: pi_g
+
     IMPLICIT NONE
 
     REAL(wp) :: diam1 , diam2
@@ -1316,7 +1271,7 @@ CONTAINS
     REAL(wp) :: Vol(n_nodes,n_sections)
     REAL(wp) :: f1(n_nodes,n_sections) , f2(n_nodes,n_sections)
     REAL(wp) :: f(n_nodes,n_sections)
-    REAL(wp) :: phiL(n_nodes,n_sections) , phiR(n_nodes,n_sections)
+    REAL(wp) :: phi_low(n_nodes,n_sections) , phi_top(n_nodes,n_sections)
     REAL(wp) :: phi(n_nodes,n_sections)
     REAL(wp) :: diam(n_nodes,n_sections)
     REAL(wp) :: Mi(n_nodes,n_sections)
@@ -1334,17 +1289,15 @@ CONTAINS
 
        ! convert from Krumbein scale to meters
        diam1 = 1.E-3_wp * 2.0_wp**( - phi2(i_part) )
-       ! compute the volume from diameter and shape factor
-       ! Vol1 = shape_factor(i_part) * diam1**3
-       Vol1 = shape2(i_part) * diam1**3
+       ! compute the volume from diameter 
+       Vol1 = pi_g / 6.0_wp * diam1**3
        ! compute the mass from volume and density
        M1 = Vol1 * rho2(i_part)
 
        ! convert from Krumbein scale to meters
        diam2 = 1.E-3_wp * 2.0_wp**( - phi1(i_part) )
-       ! compute the volume from diameter and shape factor
-       ! Vol2 = shape_factor(i_part) * diam2**3
-       Vol2 = shape1(i_part) * diam2**3
+       ! compute the volume from diameter 
+       Vol2 = pi_g / 6.0_wp * diam2**3
        ! compute the mass from volume and density
        M2 = Vol2 * rho1(i_part)
        
@@ -1387,19 +1340,30 @@ CONTAINS
        END IF
 
        ! Initialize the arrays of the left and right guess for the solution
-       phiL(1:n_nodes,1:n_sections) = phi2(i_part)
-       phiR(1:n_nodes,1:n_sections) = phi1(i_part)
+       phi_low(1:n_nodes,1:n_sections) = phi2(i_part)
+       phi_top(1:n_nodes,1:n_sections) = phi1(i_part)
        
        DO iter=1,30
           
-          phi  = 0.5_wp * (phiL+phiR)
+          phi  = 0.5_wp * (phi_low+phi_top)
           diam = 1.E-3_wp * 2.0_wp**( - phi )
-          ! Vol = shape_factor(i_part) * diam**3
 
-          shape_p = shape1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -  &
-               phi1(i_part) ) * ( shape2(i_part) - shape1(i_part) )
-          shape_p = 0.6_wp
-          Vol = shape_p * diam**3
+          IF ( check_shape_bin ) THEN
+
+              DO i_sect=1,n_sections
+ 
+                 shape_p(1:n_nodes,i_sect) = shape_factor_bin(i_sect,i_part)
+
+              END DO
+
+          ELSE
+
+              shape_p = shape1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -  &
+                   phi1(i_part) ) * ( shape2(i_part) - shape1(i_part) )
+
+          END IF
+
+          Vol = pi_g / 6.0_wp * diam**3
 
           rho_p = rho1(i_part) + ( phi - phi1(i_part) ) / ( phi2(i_part) -      &
                phi1(i_part) ) * ( rho2(i_part) - rho1(i_part) )
@@ -1413,14 +1377,14 @@ CONTAINS
           cond2 = merge( 1.0_wp , 0.0_wp , f*f1 .LT. 0.0_wp )
           cond3 = merge( 1.0_wp , 0.0_wp , f1 .GT. 0.0_wp )
           
-          phiR = cond1 * ( cond2 * phi + (1.0_wp-cond2) * phiR ) +              &
-               (1.0_wp-cond1) * ( cond3*phiR + (1.0_wp-cond3)*phi )
+          phi_top = cond1 * ( cond2 * phi + (1.0_wp-cond2) * phi_top ) +              &
+               (1.0_wp-cond1) * ( cond3*phi_top + (1.0_wp-cond3)*phi )
 
           f2 = cond1 * ( cond2 * f + (1.0_wp-cond2) * f2 ) +                    &
                (1.0_wp-cond1) * ( cond3 * f2 + (1.0_wp-cond3) * f )
           
-          phiL = cond1 * ( (1.0_wp-cond2) * phi + cond2 * phiL ) +              &
-               (1.0_wp-cond1) * ( (1.0_wp-cond3) * phiL + cond3 * phi )
+          phi_low = cond1 * ( (1.0_wp-cond2) * phi + cond2 * phi_low ) +              &
+               (1.0_wp-cond1) * ( (1.0_wp-cond3) * phi_low + cond3 * phi )
 
           f1 = cond1 * ( (1.0_wp-cond2) * f + cond2 * f1 ) +                    &
                (1.0_wp-cond1) * ( (1.0_wp-cond3) * f1 + cond3 * f )
@@ -1435,9 +1399,9 @@ CONTAINS
        ! we compute the volume from mass and density
        vol_quad(1:n_nodes,1:n_sections,i_part) = m_quad(:,:,i_part) / rho_p
 
-       ! the diameter in m is computed from volume and shapefactor
+       ! the diameter in m is computed from volume 
        diam_quad(1:n_nodes,1:n_sections,i_part) = ( vol_quad(:,:,i_part)        &
-            / shape_quad(1:n_nodes,1:n_sections,i_part) )**( 1.0_wp/3.0_wp )
+            / pi_g * 6.0_wp )**( 1.0_wp/3.0_wp )
 
        ! the diameter in m is converted to phi
        phi_quad(1:n_nodes,1:n_sections,i_part) =                                &
