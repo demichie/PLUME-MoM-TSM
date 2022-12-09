@@ -2,8 +2,7 @@
 
 &nbsp;
 
-<img src="https://cdn.rawgit.com/wiki/demichie/PLUME-MoM-TSM/svgs/Home/logoNEW.svg?invert_in_darkmode" align=middle width=617.85445pt/>
-
+<img src="https://github.com/demichie/PLUME-MoM-TSM/raw/master/PLUME-MoM-TSM.png?invert_in_darkmode" align=middle width=617.85445pt/>
 
 PLUME-MoM-TSM is a FORTRAN90 code designed to solve the equations for a steady-state integral volcanic plume model, describing the rise in the atmosphere of a mixture of gas and volcanic ash during an eruption. 
 
