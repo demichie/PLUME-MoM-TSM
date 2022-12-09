@@ -119,6 +119,12 @@ MODULE meteo_module
 
   INTEGER :: n_atm_profile
 
+  !> pressure standard atmosphere
+  REAL(wp) :: p_atm0
+
+  !> temperature standard atmosphere
+  REAL(wp) :: t_atm0
+
   !> atmospheric profile above the vent. It is an array with n_atm_profile rows
   !> and 7 columns:\n
   !> - 1) height (km asl)
@@ -203,6 +209,9 @@ CONTAINS
        sp_hu6 = 2.4E-6_wp
        ! Ref: WINDS AT ALTITUDES UP TO 80 KILOMETERS (Fig. 2)
        u6 = 65.0_wp
+
+       ta=t_atm0
+       pa=p_atm0
 
     END IF
 

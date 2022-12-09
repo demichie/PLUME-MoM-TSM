@@ -166,7 +166,7 @@ CONTAINS
     !
     ! ... Get meteo variables at release height
     !
-    CALL zmet
+    CALL initialize_meteo
 
     CALL initialize_mixture
 

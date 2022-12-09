@@ -40,7 +40,7 @@ MODULE inpout
     
     USE meteo_module, ONLY: h1 , h2 , rh , sphu_atm0 , visc_atm0 ,    &
          rair , cpair , read_atm_profile , u_max , z_r , exp_wind ,             &
-         wind_mult_coeff , rwv , rel_hu
+         wind_mult_coeff , rwv , rel_hu , p_atm0 , t_atm0
 
     USE solver_module, ONLY: dz0 
 
@@ -145,8 +145,6 @@ MODULE inpout
 
   REAL(wp), ALLOCATABLE :: solid_mfr(:) , solid_mfr_old(:), solid_mfr_init(:) , &
        solid_mfr_oldold(:)
-
-  REAL(wp) :: p_atm0 , t_atm0
 
   NAMELIST / control_parameters / run_name , verbose_level , dakota_flag ,      &
        inversion_flag , hysplit_flag , aggregation_flag, water_flag ,           &

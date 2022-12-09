@@ -83,7 +83,7 @@ CONTAINS
                opt_regime)
 
          
-          write_flag = .TRUE.
+          write_flag = .FALSE.
           w0 = w_opt
           CALL plumerise
              
@@ -200,7 +200,7 @@ CONTAINS
     w0_init = SQRT(w_max*w_min)
     w0 = w0_init
 
-    ! WRITE(*,*) 'w0 = ',w0
+    !WRITE(*,*) 'w0 = ',w0
     CALL plumerise
 
     IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
@@ -213,7 +213,7 @@ CONTAINS
        
     END IF
     
-    ! WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
+    !WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
 
     w_opt = w0
     opt_value = ABS(check_height-height_obj)
@@ -240,7 +240,7 @@ CONTAINS
     search_interval:DO iter_interval=1,4
     
        w0 = (mult_fact**iter_interval)*w0_init
-       ! WRITE(*,*) 'w0 = ',w0
+
        CALL plumerise
 
        IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
@@ -263,7 +263,7 @@ CONTAINS
           
        END IF
 
-       ! WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
+       !WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
 
        IF ( (check_height-height_obj)*init_sign .LT. 0.0_wp ) EXIT search_interval
        
@@ -271,7 +271,7 @@ CONTAINS
 
     IF ( iter_interval .EQ. 5 ) THEN
 
-       ! WRITE(*,*) 'optimal velocity not found in the interval',w0_init,w0
+       !WRITE(*,*) 'optimal velocity not found in the interval',w0_init,w0
        w0 = w0_init
        search_flag = .FALSE.
        return
@@ -301,7 +301,7 @@ CONTAINS
 
        w0 = 0.5_wp * ( w0_0 + w0_2 )
 
-       ! WRITE(*,*) 'search_zero',r0,w0,w0_0,w0_2
+       !WRITE(*,*) 'search_zero',r0,w0,w0_0,w0_2
        
        CALL plumerise
 

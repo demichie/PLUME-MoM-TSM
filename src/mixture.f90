@@ -170,7 +170,8 @@ CONTAINS
     
     USE plume_module, ONLY: w , r , u , mag_u , phi , log10_mfr, r0
 
-    USE variables, ONLY: verbose_level , write_flag , aggregation_flag
+    USE variables, ONLY: verbose_level , write_flag , aggregation_flag ,        &
+        inversion_flag
 
     ! external procedures
     USE particles_module, ONLY: eval_quad_values
@@ -349,7 +350,7 @@ CONTAINS
 
     gas_mass_fraction = volcgas_mix_mass_fraction + water_vapor_mass_fraction
 
-    IF ( added_water_mass_fraction .GT. 0.0_wp ) THEN
+    IF (( added_water_mass_fraction .GT. 0.0_wp ) .AND. (.NOT.inversion_flag)) THEN
 
        WRITE(*,*) 'WARNING: WATER ADDED AT THE VENT'
        WRITE(*,*) 'New mixture enthalpy =', mixt_enth
@@ -521,8 +522,10 @@ CONTAINS
     ELSE
 
        mass_flow_rate = pi_g * rho_mix * mag_u * (r**2)
+    
        IF ( write_flag) WRITE(*,'(1x,A,1x,es15.8)')                             &
             'Initial MER [kgs-1] computed from r0 and w0 =',mass_flow_rate
+            
 
     END IF
     
@@ -563,7 +566,7 @@ CONTAINS
 
     USE particles_module, ONLY : t_part
 
-    USE variables, ONLY : verbose_level , water_flag
+    USE variables, ONLY : verbose_level , water_flag 
 
     IMPLICIT none
 
