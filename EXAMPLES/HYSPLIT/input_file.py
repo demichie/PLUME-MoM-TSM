@@ -1,5 +1,5 @@
 hysplit_dir = "/home/ash/Scrivania/Codes/Hysplit/hysplit/tags/hysplit.v5.0.1"
-plumemom_dir = "/home/ash/Scrivania/Applicazioni/PLUME-MoM-TSM_VARIABLE_SF/PLUME-MoM-TSM"
+plumemom_dir = "/home/ash/Scrivania/PLUME-MoM-TSM-master"
 runname = 'Etna_test'
 starttime   = "18 12 24 12 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 13 00"
@@ -25,8 +25,8 @@ tmix0 = 1273 # mixture temperature in Kelvin
 vent_velocity = 200.0 
 
 #options for mass flow rate or plume height (nbl - meters above the vent), select only one:
-log10_mfr = 7 
-#mfr = 1E5
+#log10_mfr = 7 
+mfr = 1E5
 #plume_height = 6000 #plume height at nbl. inversion: search for radius given vent_velocity
 #compute mfr from vent_velocity and vent_radius: set vent_velocity and add vent_radius 
 # N.B: write [X1,X2,X3,...,XN] to set a variable X (mass flow rate or plume height) with time (i.e. N plume-mom runs each with a different Xi).
@@ -100,7 +100,7 @@ distribution = "LOGNORMAL"
 
 # parameters for LOGNORMAL distribution
 mu = 1
-sigma = 1
+sigma = 1.3
 
 # parameters for BIN distribution
 bin_partial_mass_fraction = [1.9E-03 , 1.1E-02, 4.3E-02 ,1.1E-01 ,2.1E-01, 2.5E-01, 2.1E-01 ,1.1E-01, 4.3E-02, 1.1E-02, 1.9E-03, 2.2E-04, 1.7E-05, 9.3E-07, 3.4E-08, 8.2E-10, 1.4E-11, 1.5E-13]

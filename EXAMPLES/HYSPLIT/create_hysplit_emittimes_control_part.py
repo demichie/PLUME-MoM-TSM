@@ -8,7 +8,6 @@ import math as math
 from collections import Counter
 
 from part_density import calc_density
-from shape_factor import calc_shapefactor
 from input_file import *
 
 def round_minutes(dt, direction, resolution):
