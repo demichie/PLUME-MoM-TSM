@@ -501,7 +501,7 @@ if os.path.isfile(str(plume_hy)):
 
     for i in range(max_lines-len(b)):
 
-        b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100,0] ))
+        b = np.vstack(( b , b[len(b)-1,:] + [0.0,0.0,0,0] ))
 
         data1 = np.vstack((data1,np.zeros((npart*n_sections))))
 
@@ -766,7 +766,7 @@ for i in range(2,n_runs,1):
 
             file.close()
 
-            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]	
+            b[-1,[0,1,2,3]] = [lat_new,lon_new,height_new,emission_area_new]
 
         elif umbrella_flag == str("False"):
 
@@ -777,7 +777,7 @@ for i in range(2,n_runs,1):
 
         for i in range(max_lines-len(b)):
 
-            b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100,0] ))
+            b = np.vstack(( b , b[len(b)-1,:] + [0.0,0.0,0,0] ))
 
             data1 = np.vstack((data1,np.zeros((npart*n_sections))))
 
@@ -1082,7 +1082,7 @@ if ( n_runs > 1):
 
         for i in range(max_lines-len(b)):
 
-            b = np.vstack(( b , b[len(b)-1,:] + [0.01,0.01,100,0] ))
+            b = np.vstack(( b , b[len(b)-1,:] + [0.0,0.0,00,0] ))
 
             data1 = np.vstack((data1,np.zeros((npart*n_sections))))
 
@@ -1207,9 +1207,12 @@ for i in range(max_lines*num_occurrence):
 file_control.writelines(str(runtime_hh)+'\n')
 file_control.writelines('0\n')
 file_control.writelines(str(model_top)+'\n')
-file_control.writelines('1\n')
-file_control.writelines('./\n')
-file_control.writelines(meteo_file+'\n')
+
+file_control.writelines(str(len(meteo_file))+'\n')
+for meteo_file_i in meteo_file:
+    file_control.writelines(str(meteo_file_dir)+'\n')
+    file_control.writelines(meteo_file_i+'\n')
+
 file_control.writelines('%d\n'%(npart*n_sections))
 for i in range(npart):
     i0 = i*n_sections

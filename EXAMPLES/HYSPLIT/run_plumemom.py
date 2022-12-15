@@ -37,8 +37,15 @@ cp_part=np.ones(npart)*cp_part
 rho1 = np.ones(npart)*rho1
 rho2 = np.ones(npart)*rho2
 
-mu = np.ones(npart)*mu
-sigma = np.ones(npart)*sigma
+#added case with 1 part and variable lognormal tgsd (same number of plume height) 
+if npart == 1 and len(mu) > 1:
+    print("Variable lognormal TGSD")
+    TGSD_flag = "V" #variable TGSD
+else:
+    print("Constant lognormal TGSD")
+    TGSD_flag = "C" #constant TGSD
+    mu = np.ones(npart)*mu
+    sigma = np.ones(npart)*sigma
 
 solid_partial_mass_fraction=np.ones(npart)*solid_partial_mass_fraction
 
@@ -93,7 +100,7 @@ filedata = filedata.replace("{tmix0}", str(tmix0) )
 
 filedata = filedata.replace("{ngas}", str(ngas) )
 
-if distribution == "LOGNORMAL":
+if distribution == "LOGNORMAL" and TGSD_flag=="C":
 
     filedata = filedata.replace("{distribution}", '"LOGNORMAL"')
     filedata = filedata.replace("{mu}", ",".join(np.char.mod('%4f', mu)) )
@@ -101,6 +108,13 @@ if distribution == "LOGNORMAL":
     filedata = filedata.replace("{solid_partial_mass_fraction}", ",".join(np.char.mod('%f', solid_partial_mass_fraction)) )
 
     filedata = filedata.replace("{bin_partial_mass_fraction}", 'NaN')
+
+if distribution == "LOGNORMAL" and TGSD_flag=="V":
+
+    filedata = filedata.replace("{distribution}", '"LOGNORMAL"')
+    filedata = filedata.replace("{solid_partial_mass_fraction}", ",".join(np.char.mod('%f', solid_partial_mass_fraction)) )
+    filedata = filedata.replace("{bin_partial_mass_fraction}", 'NaN')
+
 
 elif distribution == "BIN":
 
@@ -191,6 +205,14 @@ n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero 
 print ( 'runtime.total_seconds() ',runtime.total_seconds() )
 
 print ( 'n_runs ', n_runs )
+
+if TGSD_flag=="V":
+    if len(mu) != n_runs or len(sigma) != n_runs:
+        print("ERROR: check number of mu and sigma for variable TGSD")
+        sys.exit() 
+    else:
+        mu=np.ones(n_runs)*mu
+        sigma=np.ones(n_runs)*sigma
 
 if 'plume_height' in locals():
 
@@ -333,6 +355,8 @@ for i in range(n_runs):
         else:
 
             filedata = filedata.replace("{plume_height}", str(plume_height[i]) )
+            filedata = filedata.replace("{mu}", str(mu[i]) )
+            filedata = filedata.replace("{sigma}", str(sigma[i]) )
             run_flag = 1
 
     if 'log10_mfr' in locals():
@@ -418,8 +442,9 @@ for i in range(n_runs):
                     for line in infile:
                         outfile.write(line)
 
-        subprocess.call("mv profile_01.txt atm_profile_"+str(i+1).zfill(3)+".dat", shell=True)         
+        subprocess.call("mv profile_01.txt atm_profile_"+str(i+1).zfill(3)+".dat", shell=True)        
         subprocess.call(plumemom_dir+"/bin/PLUMEMoM", shell=True) 
+        subprocess.call("mv plume_model.inp plume_model_"+str(i+1).zfill(3)+".inp", shell=True) 
 
 #subprocess.call("rm plume_model.temp1", shell=True) 
 #subprocess.call("rm plume_model.temp2", shell=True) 

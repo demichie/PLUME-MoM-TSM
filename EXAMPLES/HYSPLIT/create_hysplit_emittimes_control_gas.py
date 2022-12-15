@@ -883,9 +883,12 @@ for i in range(max_lines*num_occurrence):
 file_control.writelines(str(runtime_hh)+'\n')
 file_control.writelines('0\n')
 file_control.writelines(str(model_top)+'\n')
-file_control.writelines('1\n')
-file_control.writelines('./\n')
-file_control.writelines(meteo_file+'\n')
+
+file_control.writelines(str(len(meteo_file))+'\n')
+for meteo_file_i in meteo_file:
+    file_control.writelines(str(meteo_file_dir)+'\n')
+    file_control.writelines(meteo_file_i+'\n')
+
 file_control.writelines('%d\n'%(ngas))
 for i in range(ngas):
     file_control.writelines('GS%02d\n'%(i))

@@ -9,7 +9,9 @@ deltat_plumemom = 3600  # seconds
 lat = 37.73   # center latitude of the grid
 lon = 15.00  # center longitude of the grid
 model_top = 32000.0
-meteo_file = 'extract_26568.bin'
+
+meteo_file_dir="./"
+meteo_file = ['extract_26568.bin'] # add meteo files separated by a comma, the first file is used to exract the atmospheric profile for plumemom
 
 spacing_lat = 0.1 # degrees between nodes of the sampling grid
 spacing_lon = 0.1 # degrees between nodes of the sampling grid

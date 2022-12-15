@@ -163,13 +163,13 @@ def calc_atm(profile,z_ground,TMPS,RH2M,prss,fields_list,c_vwind):
 def write_atm(time_input):
     """create atmosperic profile for plumemom """
 
-    from input_file import hysplit_dir, meteo_file, vent_lat, vent_lon
+    from input_file import hysplit_dir, meteo_file, meteo_file_dir, vent_lat, vent_lon
 
-    run_path = './'
+    run_path = meteo_file_dir
 
     profile = os.path.join(hysplit_dir,'exec','profile')
 
-    subprocess.call(profile+" -d"+run_path+" -f"+meteo_file+" -y"
+    subprocess.call(profile+" -d"+run_path+" -f"+meteo_file[0]+" -y"
                     +str(vent_lat)+" -x"+str(vent_lon)+" -o0 -p00", shell=True) # wind profile at vent position at the beginnig of the wind file
 
     with open("profile_00.txt","r") as file1:
@@ -262,7 +262,7 @@ def write_atm(time_input):
     delta = b-a
     time_difference_in_hours = int(delta.total_seconds() / 3600) # hours of difference between time and the start of the wind file
 
-    subprocess.call(profile+ " -d"+run_path+" -f"+meteo_file
+    subprocess.call(profile+ " -d"+run_path+" -f"+meteo_file[0]
                     + " -y"+str(vent_lat)+" -x"+str(vent_lon)+" -o"
                     +str(time_difference_in_hours)+" -p01", shell=True)
     
