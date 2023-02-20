@@ -209,7 +209,9 @@ if distribution == "LOGNORMAL":
         sigma = np.ones(npart)*sigma
         filedata = filedata.replace("{mu}", ",".join(np.char.mod('%4f', mu)) )
         filedata = filedata.replace("{sigma}", ",".join(np.char.mod('%4f', sigma)) )
-
+else:
+    TGSD_flag = "C" #constant TGSD
+    
 
 if 'plume_height' in locals():
 
