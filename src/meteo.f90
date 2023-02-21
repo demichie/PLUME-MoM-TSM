@@ -95,7 +95,10 @@ MODULE meteo_module
   
   !> enthalpy of water vapor at reference temperature (J kg-1)
   REAL(wp), PARAMETER :: h_wv0 = 2.501D6
-  
+
+  !> enthalpy of water vapor at reference temperature (J kg-1)
+  REAL(wp), PARAMETER :: h_wv100 = 2.261D6
+
   !> specifc heat of water vapor (J K-1 kg-1)
   REAL(wp), PARAMETER :: c_wv = 1996.0_wp
   
