@@ -154,8 +154,8 @@ CONTAINS
 
     ! external variables
     USE meteo_module, ONLY : pa , rho_atm , rair , rwv , c_wv
-    USE meteo_module, ONLY : cpair , T_ref , h_wv0 , h_wv100 , c_ice, h_lw0 ,   &
-         c_lw , da_mol_wt , wv_mol_wt
+    USE meteo_module, ONLY : cpair , T_ref , h_wv0 , c_ice, h_lw0 , c_lw ,      &
+         da_mol_wt , wv_mol_wt
 
     USE moments_module, ONLY : n_nodes , n_mom , n_sections
 
@@ -210,9 +210,6 @@ CONTAINS
 
     REAL(wp) :: C0
 
-    REAL(wp) :: h_wv_T
-    REAL(wp) :: h_coeff
-
     IF ( verbose_level .GE. 2 ) THEN
 
        WRITE(*,*) 
@@ -258,13 +255,10 @@ CONTAINS
        
     cpsolid = SUM( solid_mass_fraction(1:n_part) * cp_part(1:n_part) )          &
          / ( SUM(solid_mass_fraction(1:n_part) ) ) 
-
-    h_coeff = MAX( 0.0_wp, MIN( 1.0_wp , ( t_mix0 - 273.16_wp ) / 100.0_wp ) )
-    h_wv_T = ( 1.0 - h_coeff ) * h_wv0 + h_coeff * h_wv100
-
+    
     !Specific enthalpy before addition of external water
     enth_at_vent = solid_tot_mass_fraction * cpsolid * t_mix0                   & 
-         + water_vapor_mass_fraction * ( h_wv_T + c_wv * ( t_mix0 - T_ref ) )    &
+         + water_vapor_mass_fraction * ( h_wv0 + c_wv * ( t_mix0 - T_ref ) )    &
          + volcgas_mix_mass_fraction * cpvolcgas_mix * t_mix0
 
 
@@ -345,19 +339,18 @@ CONTAINS
 
     CALL eval_temp(mixt_enth,pa,cpsolid)
 
-    h_coeff = MAX( 0.0_wp, MIN( 1.0_wp , ( t_mix - 273.16_wp ) / 100.0_wp ) )
-    h_wv_T = ( 1.0 - h_coeff ) * h_wv0 + h_coeff * h_wv100
-    
     ! Compute the specific enthalpy with the new temperature and the corrected
     ! mass fractions
     check_enth = dry_air_mass_fraction * cpair * t_mix                          &
          + solid_tot_mass_fraction * cpsolid * t_mix                            & 
-         + water_vapor_mass_fraction * ( h_wv_T + c_wv * ( t_mix - T_ref ) )     &
+         + water_vapor_mass_fraction * ( h_wv0 + c_wv * ( t_mix - T_ref ) )     &
          + liquid_water_mass_fraction * ( h_lw0 + c_lw * ( t_mix - T_ref ) )    &
          + ice_mass_fraction * ( c_ice * t_mix )                                &
          + volcgas_mix_mass_fraction * cpvolcgas_mix * t_mix
 
     gas_mass_fraction = volcgas_mix_mass_fraction + water_vapor_mass_fraction
+
+    WRITE(*,*) 'Mixture temperature at the vent =',t_mix
 
     IF (( added_water_mass_fraction .GT. 0.0_wp ) .AND. (.NOT.inversion_flag)) THEN
 
@@ -445,6 +438,8 @@ CONTAINS
     rho_mix = 1.0_wp / ( gas_mass_fraction / rho_gas + solid_tot_mass_fraction /  &
          rho_solid_tot_avg + liquid_water_mass_fraction / rho_lw +              &
          ice_mass_fraction / rho_ice )
+
+    WRITE(*,*) 'Density of the mixture at the vent ',rho_mix    
 
     DO i_part = 1,n_part
 
@@ -655,8 +650,8 @@ CONTAINS
 
   SUBROUTINE eval_temp_wv_lw(enth,pres,cpsolid)
 
-    USE meteo_module, ONLY : cpair , T_ref , h_wv0 , h_wv100 , c_wv , c_ice,    &
-         h_lw0 , c_lw , da_mol_wt , wv_mol_wt
+    USE meteo_module, ONLY : cpair , T_ref , h_wv0 , c_wv , c_ice, h_lw0 ,      &
+         c_lw , da_mol_wt , wv_mol_wt
 
     USE variables, ONLY : water_flag 
 
@@ -777,28 +772,6 @@ CONTAINS
          + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
          +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
 
-    IF ( temp0 .GT. T_ref ) THEN
-
-       temp0 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-            - water_vapor_mass_fraction * ( h_wv100 - c_wv * T_ref ) ) /           &
-            ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-            + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-            +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-
-       IF ( temp0 .LT. T_ref + 100.0_wp ) THEN
-          
-          temp0 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-               - water_vapor_mass_fraction * ( h_wv0  - T_ref / 100_wp * ( h_wv100 -  &
-               h_wv0 ) - c_wv * T_ref ) ) /                                           &
-               ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-               + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-               + water_vapor_mass_fraction / 100_wp * ( h_wv100 - h_wv0 )             &
-               +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-
-       END IF
-
-    END IF
-    
     IF ( temp0 .GT. 29.65_wp ) THEN
 
        el = 611.2_wp * EXP( 17.67_wp * ( temp0 - 273.16_wp ) / ( temp0 - 29.65_wp ) )
@@ -857,29 +830,6 @@ CONTAINS
          + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
          +  volcgas_mix_mass_fraction*cpvolcgas_mix  + c_ice*ice_mass_fraction )
 
-
-    IF ( temp2 .GT. T_ref ) THEN
-
-       temp2 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-            - water_vapor_mass_fraction * ( h_wv100 - c_wv * T_ref ) ) /           &
-            ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-            + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-            +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-
-       IF ( temp2 .LT. T_ref + 100.0_wp ) THEN
-          
-          temp2 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-               - water_vapor_mass_fraction * ( h_wv0  - T_ref / 100_wp * ( h_wv100 -  &
-               h_wv0 ) - c_wv * T_ref ) ) /                                           &
-               ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-               + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-               + water_vapor_mass_fraction / 100_wp * ( h_wv100 - h_wv0 )             &
-               +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-
-       END IF
-
-    END IF
-    
     IF ( temp2 .GT. 29.65_wp ) THEN
 
        el = 611.2_wp * EXP( 17.67_wp * ( temp2-273.16_wp ) / ( temp2 - 29.65_wp ) )
@@ -894,7 +844,7 @@ CONTAINS
 
 
     ! --------- Options: all vapour, all liquid, vapour+liquid ---------------
-    ! temp1 = 0.0_wp
+    temp1 = 0.0_wp
 
     vapour_liquid_case:IF ( ( f0 .LT. 0.0_wp ) .AND. ( f2 .LT. 0.0_wp ) ) THEN
 
@@ -976,28 +926,6 @@ CONTAINS
                water_vapor_mass_fraction * c_wv +  volcgas_mix_mass_fraction *  &
                cpvolcgas_mix + c_ice * ice_mass_fraction )
 
-          IF ( temp1 .GT. T_ref ) THEN
-
-             temp1 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-                  - water_vapor_mass_fraction * ( h_wv100 - c_wv * T_ref ) ) /           &
-                  ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-                  + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-                  +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-
-             IF ( temp1 .LT. T_ref + 100.0_wp ) THEN
-          
-                temp1 = ( enth - liquid_water_mass_fraction * ( h_lw0 - c_lw * T_ref )      &
-                     - water_vapor_mass_fraction * ( h_wv0  - T_ref / 100_wp * ( h_wv100 -  &
-                     h_wv0 ) - c_wv * T_ref ) ) /                                           &
-                     ( dry_air_mass_fraction * cpair + solid_tot_mass_fraction * cpsolid    &
-                     + liquid_water_mass_fraction * c_lw + water_vapor_mass_fraction * c_wv &
-                     + water_vapor_mass_fraction / 100_wp * ( h_wv100 - h_wv0 )             &
-                     +  volcgas_mix_mass_fraction * cpvolcgas_mix + c_ice*ice_mass_fraction )
-                
-             END IF
-
-          END IF
-          
           IF ( temp1 .GT. 29.65_wp ) THEN
 
              el = 611.2_wp * EXP( 17.67_wp * ( temp1 - 273.16_wp )                &

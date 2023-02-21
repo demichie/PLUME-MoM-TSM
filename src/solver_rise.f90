@@ -110,9 +110,8 @@ CONTAINS
   
   SUBROUTINE rate
 
-    USE meteo_module, ONLY: u_atm , rho_atm , ta , T_ref , cpair , rair ,       &
-         gamma_m , cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , h_wv100 ,  &
-         u_wind , v_wind 
+    USE meteo_module, ONLY: u_atm , rho_atm , ta , T_ref , cpair , rair , gamma_m ,     &
+         cos_theta , sin_theta , sphu_atm , c_wv , h_wv0 , u_wind , v_wind
 
     USE mixture_module, ONLY: rho_mix , t_mix , rgasmix , rho_gas ,             &
          gas_mass_fraction , cpvolcgas , rvolcgas
@@ -154,10 +153,7 @@ CONTAINS
     REAL(wp) :: a_10 , a_10_deriv
 
     REAL(wp) :: rate_mom , f_mom , coeff_mom
-
-    REAL(wp) :: h_coeff
-    REAL(wp) :: h_wv_T
-
+    
     !WRITE(*,*) 'mag_u',mag_u
 
     cos_phi = SQRT( u**2+v**2 ) / mag_u
@@ -279,12 +275,8 @@ CONTAINS
 
     !---- Energy conservation    (Eq.2d Folch 2016) + loss of kinetic energy    
     !---- due to particle sedimentation
-
-    h_coeff = MAX( 0.0_wp, MIN( 1.0_wp , ( ta - 273.16_wp ) / 100.0_wp ) )
-    h_wv_T = ( 1.0 - h_coeff ) * h_wv0 + h_coeff * h_wv100
-
     rhs1(5) = 2.0_wp * r * ueps * rho_atm * ( cpair * ta * ( 1.0_wp - sphu_atm )&
-         + sphu_atm * ( h_wv_t + c_wv * (ta -  T_ref) ) + gi * z + 0.5_wp       &
+         + sphu_atm * ( h_wv0 + c_wv * (ta -  T_ref) ) + gi * z + 0.5_wp        &
          * u_atm**2 ) - prob_factor * 2.0_wp * r * ( t_mix * cp_solid_term      &
          + 0.5_wp * mag_u**2 * solid_term)                                      &
          + t_mix * SUM( cpvolcgas(1:n_gas) * volcgas_rate(1:n_gas) )            
@@ -421,7 +413,7 @@ CONTAINS
          water_vapor_mass_fraction, ice_mass_fraction
 
     USE meteo_module, ONLY: u_atm , c_lw , c_wv , cpair , h_lw0 , h_wv0 ,       &
-         T_ref , c_ice , ta , pa , h_wv100
+         T_ref , c_ice , ta , pa
 
     USE particles_module, ONLY: mom , cpsolid
 
@@ -437,9 +429,6 @@ CONTAINS
     INTEGER :: idx , idx1 , idx2
     INTEGER :: i_gas
 
-    REAL(wp) :: h_coeff
-    REAL(wp) :: h_wv_T
-
     f_(1) = rho_mix * w * r**2
     f_(2) = f_(1) * u
     f_(3) = f_(1) * v
@@ -447,12 +436,9 @@ CONTAINS
     
     !WRITE(*,*) 'dry_air_mass_fraction',dry_air_mass_fraction
 
-    h_coeff = MAX( 0.0_wp, MIN( 1.0_wp , ( t_mix - 273.16_wp ) / 100.0_wp ) )
-    h_wv_T = ( 1.0 - h_coeff ) * h_wv0 + h_coeff * h_wv100
-
     mixture_enthalpy = dry_air_mass_fraction * cpair * t_mix                    &
          + solid_tot_mass_fraction * cpsolid * t_mix                            & 
-         + water_vapor_mass_fraction * ( h_wv_T + c_wv * ( t_mix - T_ref ) )    &
+         + water_vapor_mass_fraction * ( h_wv0 + c_wv * ( t_mix - T_ref ) )     &
          + liquid_water_mass_fraction * ( h_lw0 + c_lw * ( t_mix - T_ref ) )    &
          + ice_mass_fraction * ( c_ice * t_mix )                                &
          + volcgas_mix_mass_fraction * cpvolcgas_mix * t_mix 
