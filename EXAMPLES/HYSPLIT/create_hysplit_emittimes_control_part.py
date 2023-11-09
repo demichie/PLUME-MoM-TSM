@@ -422,9 +422,9 @@ if os.path.isfile(str(plume_hy)):
             r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
             d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
 
-            alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-            x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-            y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+            alpha=np.arctan2(v_atm_nbl,u_atm_nbl)
+            x_new_nbl = d_t * math.cos(alpha)
+            y_new_nbl = d_t * math.sin(alpha)
 
             lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
             lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
@@ -702,9 +702,9 @@ for i in range(2,n_runs,1):
                 r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
                 d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
 
-                alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-                x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-                y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
+                alpha=np.arctan2(v_atm_nbl,u_atm_nbl)
+                x_new_nbl = d_t * math.cos(alpha)
+                y_new_nbl = d_t * math.sin(alpha)
 
                 lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
                 lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
@@ -1008,10 +1008,10 @@ if ( n_runs > 1):
                 r_t = (1 - f_t ) * r_old_nbl + f_t * r_new_nbl 
                 d_t = (1 - f_t ) * d_old + f_t * d_new_nbl
 
-                alpha = math.acos(u_atm_nbl / float(vel_atm_nbl)) #rad
-                x_new_nbl = d_t * math.cos(alpha) * np.sign(u_atm_nbl)
-                y_new_nbl = d_t * math.sin(alpha) * np.sign(v_atm_nbl)
-
+                alpha=np.arctan2(v_atm_nbl,u_atm_nbl)
+                x_new_nbl = d_t * math.cos(alpha)
+                y_new_nbl = d_t * math.sin(alpha)
+   
                 lat_new = vent_lat + ((y_new_nbl*10**-3)/float(100))
                 lon_new = vent_lon + ((x_new_nbl*10**-3)/float(100))
                 height_new = b[-1,2]
@@ -1240,10 +1240,10 @@ file_control.writelines('%d\n'%npart)
 for i in range(npart):
     for j in range(n_sections):
         # the diameter should be converted to microns (as required by hysplit) from millimeters
-        if ( shapefactor[i,j] < 1.0 ):
+        if settling_formulation == "ganser":
             file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],-shapefactor[i,j]))#50.0 6.0 1.0
         #file_control.writelines('%f %f %f \n'%(0,0,0))#50.0 6.0 1.0
-        else:
+        elif settling_formulation== "stokes":
         #file_control.writelines('%f %f %f \n'%(0,0,0))#50.0 6.0 1.0
             file_control.writelines('%f %f %f \n'%(1000.0*diam[j],density[i,j],shapefactor[i,j]))#50.0 6.0 1.0        
         # Deposition velocity (m/s), Pollutant molecular weight (Gram/Mole), Surface Reactivity Ratio, Diffusivity  Ratio, Effective Henry's Constant

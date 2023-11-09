@@ -114,7 +114,8 @@ rho2 = 2500
 cp_part = 1100 
 sf_range = 30
 
-shapefactor = 0.9
+shapefactor = 0.9 # 0 < shapefactor <=1
+settling_formulation = "ganser" #Possible options: ganser and stokes
 
 #SAMPLING POINTS: LAT - LON - SAMPLED_DEPOSIT (kgm-2)
 P01=[36.00, 18.00, 1]
