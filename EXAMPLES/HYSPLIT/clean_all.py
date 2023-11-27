@@ -58,7 +58,14 @@ filelist = glob.glob('*.pdf')
 for f in filelist:
     os.remove(f)
 
+filelist = glob.glob('*.temp')
+for f in filelist:
+    os.remove(f)
 
+filelist = glob.glob('*.png')
+for f in filelist:
+    os.remove(f)
+    
 filelist = glob.glob('*.ps')
 for f in filelist:
     os.remove(f)
