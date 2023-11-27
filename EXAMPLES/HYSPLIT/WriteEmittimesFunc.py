@@ -52,22 +52,30 @@ def process_file(file_path, target_string, replacement_list):
         print(f"An error occurred: {e}")
 
 
-def write_emittimes(file_path, output_file_path, target_element_count,max_rows,vent_lat,vent_lon,vent_height):
+def write_emittimes(file_path, output_file_path, target_element_count,max_rows,vent_lat,vent_lon,vent_height,multFact):
         
          
         output_file=open(output_file_path,'a')
         file=open(file_path,'r')
-         
+        elements_old = [" "," "," "," "] 
+        flag="WRITE"
+        
         for line in file:
         
             # Split the line into elements
             elements = line.strip().split()
             # Check if the number of elements matches the target
             if len(elements) == target_element_count:
+                
+                if elements_old[0:4] == elements[0:4]:
+                    flag="DONTWRITE"
+                else:
+                    flag="WRITE"
+                    
                 # If a row with the target element count is found, start collecting
                 current_row = elements
                 num_following_rows = int(elements[5])
-                current_row[5] = str(max_rows)
+                current_row[5] = str(int(max_rows*multFact))  
                 following_rows = []
 
                 for _ in range(num_following_rows):
@@ -85,9 +93,12 @@ def write_emittimes(file_path, output_file_path, target_element_count,max_rows,v
                     rowtoappend[10] = str(0.000)
                     for index in range(int(max_rows-len(following_rows))):
                         following_rows.append(rowtoappend)
-                               
-                # Write current_row and following_rows to the output file
-                output_file.write("{}\n".format(" ".join(current_row)))
+                              
+                if flag == "WRITE":
+                    # Write current_row and following_rows to the output file
+                    output_file.write("{}\n".format(" ".join(current_row)))
                 for row in following_rows:
                     output_file.write("{}\n".format(" ".join(row)))
-                            
+                    
+            elements_old=elements 
+               

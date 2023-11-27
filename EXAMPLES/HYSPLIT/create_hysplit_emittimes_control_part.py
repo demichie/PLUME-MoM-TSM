@@ -643,7 +643,7 @@ for i in range(2,n_runs,1):
         with open('EMITTIMES.temp','a') as emittimes:
 
 
-            if deltat_plumemom >= 3600:
+            if deltat_plumemom >= 0:
 
                 emittimes.write(timei_str+' '+duration_hhhh+' XXX\n')
                 
@@ -862,7 +862,7 @@ if ( n_runs > 1):
         with open('EMITTIMES.temp','a') as emittimes:
 
 
-            if deltat_plumemom >= 3600:
+            if deltat_plumemom >= 0:
 
                 emittimes.write(timei_str+' '+duration_hhhh+' XXX\n')
                 
@@ -928,8 +928,6 @@ num_release_pnts=num_release_pnts.reshape((-1,1))
 max_num_release_pnts=np.max(num_release_pnts)
 print("num release pnts ",num_release_pnts)
 
-
-
 # Example usage
 file_path = 'EMITTIMES.temp'  # Replace with your file path
 output_file_path = 'EMITTIMES.part'
@@ -945,8 +943,9 @@ with open(output_file_path,'w') as output_file:
 	output_file.write('YYYY MM DD HH    DURATION(hhhh) #RECORDS \nYYYY MM DD HH MM DURATION(hhmm) LAT LON HGT(m) RATE(/h) AREA(m2) HEAT(w) \n')
 output_file.close()
 
-
-write_emittimes(file_path,output_file_path, target_element_count,max_number_of_lines,vent_lat,vent_lon,vent_height)
+multFact=(3600/deltat_plumemom)
+print("mult Fact ",multFact)
+write_emittimes(file_path,output_file_path, target_element_count,max_number_of_lines,vent_lat,vent_lon,vent_height,multFact)
 output_file.close()
 
 
