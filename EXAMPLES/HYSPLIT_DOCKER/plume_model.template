@@ -28,6 +28,7 @@
  SHAPE_FACTOR=  {shapefactor}   ,
  SHAPE1=  {shape1}   ,
  SHAPE2=  {shape2}   ,
+ SHAPE_FACTOR_BIN= {shape_factor_bin} ,
  PARTICLES_LOSS=T,
  SETTLING_MODEL="textor    ",
  /
@@ -78,9 +79,6 @@
 &BIN_PARAMETERS
  BIN_PARTIAL_MASS_FRACTION = {bin_partial_mass_fraction}
  /
-&SOLID_MASS_FLOW_RATE_PARAMETERS
- BIN_MASS_FLOW_RATE = {bin_solid_mass_flow_rate}
-/
 &HYSPLIT_PARAMETERS
  HY_DELTAZ = {deltaz_release}   ,
  NBL_STOP = .TRUE.,
