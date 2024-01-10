@@ -130,8 +130,8 @@ CONTAINS
 
     ALLOCATE( grid_output(comp_cells_x,comp_cells_y) )
 
-    WRITE(*,*) 'init_grid: dx = ',dx
-    WRITE(*,*) 'init_grid: dy = ',dy
+    WRITE(6,*) 'init_grid: dx = ',dx
+    WRITE(6,*) 'init_grid: dy = ',dy
     
     IF ( comp_cells_x .GT. 1 ) THEN
 
@@ -171,7 +171,7 @@ CONTAINS
 
     END IF
 
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'eps_sing = ',eps_sing
+    IF ( verbose_level .GE. 1 ) WRITE(6,*) 'eps_sing = ',eps_sing
     
     DO j=1,comp_interfaces_x
 
@@ -952,7 +952,7 @@ CONTAINS
 
     IF ( VERBOSE_LEVEL .GE. 0 ) THEN
        
-       WRITE(*,*) 'Source area =',source_area,' Error =',ABS( 1.0_wp -          &
+       WRITE(6,*) 'Source area =',source_area,' Error =',ABS( 1.0_wp -          &
             dx*dy*SUM(cell_fract) / ( 4.0_wp*ATAN(1.0_wp)*r_source**2 ) )
 
     END IF

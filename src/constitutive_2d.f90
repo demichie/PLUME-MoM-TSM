@@ -544,8 +544,8 @@ CONTAINS
 
     ELSE
 
-       WRITE(*,*) 'Constitutive, eval_fluxes: problem with arguments'
-       STOP
+       WRITE(0,*) 'Constitutive, eval_fluxes: problem with arguments'
+       CALL EXIT(1)
 
     END IF
 

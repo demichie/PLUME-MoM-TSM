@@ -551,7 +551,7 @@ CONTAINS
     REAL(wp) :: xl , xr
     REAL(wp) :: yl , yr
 
-    WRITE(*,*) 'INT(q(1,:,:)=',SUM(q(1,:,:))*cell_size*cell_size
+    WRITE(6,*) 'INT(q(1,:,:)=',SUM(q(1,:,:))*cell_size*cell_size
         
     DO k = 1,2*comp_cells_y
 
@@ -573,9 +573,9 @@ CONTAINS
 
     END DO
 
-    WRITE(*,*) 'size q_mg_new',SIZE(q_mg_new)
-    WRITE(*,*) 'SUM(q_mg_new(1,:,:)=',SUM(q_mg_new(1,:,:))*0.25_wp*cell_size*cell_size
-    READ(*,*)
+    WRITE(6,*) 'size q_mg_new',SIZE(q_mg_new)
+    WRITE(6,*) 'SUM(q_mg_new(1,:,:)=',SUM(q_mg_new(1,:,:))*0.25_wp*cell_size*cell_size
+    READ(6,*)
     
     RETURN
     
@@ -704,8 +704,8 @@ CONTAINS
 
     RETURN
 
-    WRITE(*,*) solve_mask_y
-    READ(*,*)
+    WRITE(6,*) solve_mask_y
+    READ(6,*)
 
 
   END SUBROUTINE check_solve
@@ -879,7 +879,7 @@ CONTAINS
     INTEGER :: j,k,l            !< loop counter over the grid volumes
     REAL(wp) :: Rj_not_impl(n_eqns)
 
-    IF ( verbose_level .GE. 2 ) WRITE(*,*) 'solver, imex_RK_solver: beginning'
+    IF ( verbose_level .GE. 2 ) WRITE(6,*) 'solver, imex_RK_solver: beginning'
 
     !$OMP PARALLEL DO private(j,k,q_guess,q_si,Rj_not_impl)
     init_cells_loop:DO l = 1,solve_cells
@@ -902,7 +902,7 @@ CONTAINS
 
     runge_kutta:DO i_RK = 1,n_RK
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'solver, imex_RK_solver: i_RK',i_RK
+       IF ( verbose_level .GE. 2 ) WRITE(6,*) 'solver, imex_RK_solver: i_RK',i_RK
 
        ! define the explicits coefficients for the i-th step of the Runge-Kutta
        a_tilde = 0.0_wp
@@ -925,7 +925,7 @@ CONTAINS
 
           IF ( verbose_level .GE. 2 ) THEN
 
-             WRITE(*,*) 'solver, imex_RK_solver: j',j,k
+             WRITE(6,*) 'solver, imex_RK_solver: j',j,k
 
           END IF
 
@@ -950,11 +950,11 @@ CONTAINS
 
           IF ( verbose_level .GE. 2 ) THEN
 
-             WRITE(*,*) 'q_guess',q_guess
+             WRITE(6,*) 'q_guess',q_guess
              IF ( q_guess(1) .GT. 0.0_wp  ) THEN 
 
                 CALL qc_to_qp( q_guess , qp(1:n_vars+2,j,k) )
-                WRITE(*,*) 'q_guess: qp',qp(1:n_vars+2,j,k)
+                WRITE(6,*) 'q_guess: qp',qp(1:n_vars+2,j,k)
 
              END IF
 
@@ -1019,16 +1019,16 @@ CONTAINS
 
           IF ( verbose_level .GE. 2 ) THEN
 
-             WRITE(*,*) 'imex_RK_solver: qc',q_guess
+             WRITE(6,*) 'imex_RK_solver: qc',q_guess
 
              IF ( q_guess(1) .GT. 0.0_wp ) THEN
 
                 CALL qc_to_qp( q_guess , qp(1:n_vars+2,j,k) )
-                WRITE(*,*) 'imex_RK_solver: qp',qp(1:n_vars+2,j,k)
+                WRITE(6,*) 'imex_RK_solver: qp',qp(1:n_vars+2,j,k)
 
              END IF
              
-             READ(*,*)
+             READ(6,*)
 
           END IF
 
@@ -1077,12 +1077,12 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'cell jk =',j,k
-          WRITE(*,*) 'before imex_RK_solver: qc',q0(1:n_vars,j,k)
+          WRITE(6,*) 'cell jk =',j,k
+          WRITE(6,*) 'before imex_RK_solver: qc',q0(1:n_vars,j,k)
           IF ( q0(1,j,k) .GT. 0.0_wp ) THEN
 
              CALL qc_to_qp(q0(1:n_vars,j,k) , qp(1:n_vars+2,j,k))
-             WRITE(*,*) 'before imex_RK_solver: qp',qp(1:n_vars+2,j,k)
+             WRITE(6,*) 'before imex_RK_solver: qp',qp(1:n_vars+2,j,k)
 
           END IF
 
@@ -1110,27 +1110,27 @@ CONTAINS
 
           ELSE
 
-             WRITE(*,*) 'j,k,n_RK',j,k,n_RK
-             WRITE(*,*) 'dt',dt
-             WRITE(*,*) 'before imex_RK_solver: qc',q0(1:n_vars,j,k)
+             WRITE(6,*) 'j,k,n_RK',j,k,n_RK
+             WRITE(6,*) 'dt',dt
+             WRITE(6,*) 'before imex_RK_solver: qc',q0(1:n_vars,j,k)
              IF ( q0(1,j,k) .GT. 0.0_wp ) THEN
 
                 CALL qc_to_qp(q0(1:n_vars,j,k) , qp(1:n_vars+2,j,k))
-                WRITE(*,*) 'before imex_RK_solver: qp',qp(1:n_vars+2,j,k)
+                WRITE(6,*) 'before imex_RK_solver: qp',qp(1:n_vars+2,j,k)
 
              END IF
-             WRITE(*,*) 'after imex_RK_solver: qc',q(1:n_vars,j,k)
+             WRITE(6,*) 'after imex_RK_solver: qc',q(1:n_vars,j,k)
 
-             WRITE(*,*) 'divFlux(1,j,k,1:n_RK)',divFlux(1,j,k,1:n_RK) 
+             WRITE(6,*) 'divFlux(1,j,k,1:n_RK)',divFlux(1,j,k,1:n_RK) 
 
-             WRITE(*,*) H_interface_x(1,j+1,k), H_interface_x(1,j,k)
-             WRITE(*,*) qp_interfaceR(1:n_vars,j,k)
-             WRITE(*,*) qp(1:n_vars,j,k)
-             WRITE(*,*) qp_interfaceL(1:n_vars,j+1,k)
+             WRITE(6,*) H_interface_x(1,j+1,k), H_interface_x(1,j,k)
+             WRITE(6,*) qp_interfaceR(1:n_vars,j,k)
+             WRITE(6,*) qp(1:n_vars,j,k)
+             WRITE(6,*) qp_interfaceL(1:n_vars,j+1,k)
 
-             WRITE(*,*) 'NH(1,j,k,1:n_RK)',NH(1,j,k,1:n_RK) 
+             WRITE(6,*) 'NH(1,j,k,1:n_RK)',NH(1,j,k,1:n_RK) 
 
-             READ(*,*)
+             READ(6,*)
 
           END IF
 
@@ -1258,9 +1258,9 @@ CONTAINS
 
        IF ( verbose_level .GE. 3 ) THEN
 
-          WRITE(*,*) 'solve_rk_step: non-normalized right_term'
-          WRITE(*,*) right_term
-          WRITE(*,*) 'scal_f',scal_f
+          WRITE(6,*) 'solve_rk_step: non-normalized right_term'
+          WRITE(6,*) right_term
+          WRITE(6,*) 'scal_f',scal_f
 
        END IF
 
@@ -1275,7 +1275,7 @@ CONTAINS
        scal_f = 0.5_wp * DOT_PRODUCT( right_term , right_term )
 
        IF ( verbose_level .GE. 3 ) THEN                    
-          WRITE(*,*) 'solve_rk_step: after normalization',scal_f
+          WRITE(6,*) 'solve_rk_step: after normalization',scal_f
        END IF
 
     END IF
@@ -1302,20 +1302,20 @@ CONTAINS
 
        TOLX = epsilon(qj_rel)
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'solve_rk_step: nl_iter',nl_iter
+       IF ( verbose_level .GE. 2 ) WRITE(6,*) 'solve_rk_step: nl_iter',nl_iter
 
        CALL eval_f( cell_fract_jk , dx_rel_jk , dy_rel_jk , qj , qj_old ,       &
             a_diag , coeff_f , Rj_not_impl , right_term , scal_f )
 
        IF ( verbose_level .GE. 2 ) THEN
 
-          WRITE(*,*) 'solve_rk_step: right_term',right_term
+          WRITE(6,*) 'solve_rk_step: right_term',right_term
 
        END IF
 
        IF ( verbose_level .GE. 2 ) THEN
 
-          WRITE(*,*) 'before_lnsrch: scal_f',scal_f
+          WRITE(6,*) 'before_lnsrch: scal_f',scal_f
 
        END IF
 
@@ -1323,14 +1323,14 @@ CONTAINS
 
        IF ( MAXVAL( ABS( right_term(:) ) ) < TOLF ) THEN
 
-          IF ( verbose_level .GE. 3 ) WRITE(*,*) '1: check',check
+          IF ( verbose_level .GE. 3 ) WRITE(6,*) '1: check',check
           RETURN
 
        END IF
 
        IF ( ( normalize_f ) .AND. ( scal_f < 1.E-6_wp ) ) THEN
 
-          IF ( verbose_level .GE. 3 ) WRITE(*,*) 'check scal_f',check
+          IF ( verbose_level .GE. 3 ) WRITE(6,*) 'check scal_f',check
           RETURN
 
        END IF
@@ -1405,7 +1405,7 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 3 ) WRITE(*,*) 'desc_dir',desc_dir
+       IF ( verbose_level .GE. 3 ) WRITE(6,*) 'desc_dir',desc_dir
 
        qj_rel_NR_old = qj_rel
        scal_f_old = scal_f
@@ -1435,19 +1435,19 @@ CONTAINS
 
        END IF
 
-       IF ( verbose_level .GE. 2 ) WRITE(*,*) 'after_lnsrch: scal_f',scal_f
+       IF ( verbose_level .GE. 2 ) WRITE(6,*) 'after_lnsrch: scal_f',scal_f
 
        qj = qj_rel * qj_org
 
        IF ( verbose_level .GE. 3 ) THEN
 
-          WRITE(*,*) 'qj',qj
+          WRITE(6,*) 'qj',qj
 
        END IF
 
        IF ( MAXVAL( ABS( right_term(:) ) ) < TOLF ) THEN
 
-          IF ( verbose_level .GE. 3 ) WRITE(*,*) '1: check',check
+          IF ( verbose_level .GE. 3 ) WRITE(6,*) '1: check',check
           check= .FALSE.
           RETURN
 
@@ -1458,7 +1458,7 @@ CONTAINS
           check = ( MAXVAL( ABS(grad_f(:)) * MAX( ABS( qj_rel(:) ),1.0_wp ) /   &
                MAX( scal_f , 0.5_wp * SIZE(qj_rel) ) )  < TOLMIN )
 
-          IF ( verbose_level .GE. 3 ) WRITE(*,*) '2: check',check
+          IF ( verbose_level .GE. 3 ) WRITE(6,*) '2: check',check
           !          RETURN
 
        END IF
@@ -1466,7 +1466,7 @@ CONTAINS
        IF ( MAXVAL( ABS( qj_rel(:) - qj_rel_NR_old(:) ) / MAX( ABS( qj_rel(:)) ,&
             1.0_wp ) ) < TOLX ) THEN
 
-          IF ( verbose_level .GE. 3 ) WRITE(*,*) 'check',check
+          IF ( verbose_level .GE. 3 ) WRITE(6,*) 'check',check
           RETURN
 
        END IF
@@ -1568,9 +1568,10 @@ CONTAINS
 
     ELSE
 
-       WRITE(*,*) 'nrerror: an assert_eq failed with this tag:', 'lnsrch'
-       STOP 'program terminated by assert_eq4'
-
+       WRITE(0,*) 'nrerror: an assert_eq failed with this tag:', 'lnsrch'
+       WRITE(0,*) 'program terminated by assert_eq4'
+       CALL EXIT(1)
+       
     END IF
 
     check = .FALSE.
@@ -1599,7 +1600,7 @@ CONTAINS
 
        IF ( verbose_level .GE. 4 ) THEN
 
-          WRITE(*,*) 'alam',alam
+          WRITE(6,*) 'alam',alam
 
        END IF
 
@@ -1612,8 +1613,8 @@ CONTAINS
 
        IF ( verbose_level .GE. 4 ) THEN
 
-          WRITE(*,*) 'lnsrch: effe_old,effe',scal_f_old,scal_f
-          READ(*,*)
+          WRITE(6,*) 'lnsrch: effe_old,effe',scal_f_old,scal_f
+          READ(6,*)
 
        END IF
 
@@ -1629,7 +1630,7 @@ CONTAINS
 
           IF ( verbose_level .GE. 4 ) THEN
 
-             WRITE(*,*) 'sufficient function decrease'
+             WRITE(6,*) 'sufficient function decrease'
 
           END IF
 
@@ -1640,7 +1641,7 @@ CONTAINS
 
           IF ( verbose_level .GE. 4 ) THEN
 
-             WRITE(*,*) ' convergence on Delta_x',alam,alamin
+             WRITE(6,*) ' convergence on Delta_x',alam,alamin
 
           END IF
 
@@ -1903,12 +1904,12 @@ CONTAINS
 
     END SELECT
 
-    !WRITE(*,*) 'H_interface_x(1,2,1)',H_interface_x(1,2,1)
-    !WRITE(*,*) 'q_interfaceR(1,1,1)',q_interfaceR(1,1,1)
-    !WRITE(*,*) 'qp_interfaceR(1,1,1)',qp_interfaceR(1,1,1)
-    !WRITE(*,*) 'H_interface_x(1,1,1)',H_interface_x(1,1,1)
-    !WRITE(*,*) 'H_interface_y(1,1,2)',H_interface_y(1,1,2)
-    !WRITE(*,*) 'H_interface_y(1,1,1)',H_interface_y(1,1,1)
+    !WRITE(6,*) 'H_interface_x(1,2,1)',H_interface_x(1,2,1)
+    !WRITE(6,*) 'q_interfaceR(1,1,1)',q_interfaceR(1,1,1)
+    !WRITE(6,*) 'qp_interfaceR(1,1,1)',qp_interfaceR(1,1,1)
+    !WRITE(6,*) 'H_interface_x(1,1,1)',H_interface_x(1,1,1)
+    !WRITE(6,*) 'H_interface_y(1,1,2)',H_interface_y(1,1,2)
+    !WRITE(6,*) 'H_interface_y(1,1,1)',H_interface_y(1,1,1)
 
     !$OMP PARALLEL DO private(l,j,k,i)
 
@@ -2090,7 +2091,7 @@ CONTAINS
 
     INTEGER :: i,j,k,l                  !< Loop counters
 
-    ! WRITE(*,*) 'eval_flux_KT: qp_interfaceR(1,1,1)',qp_interfaceR(1,1,1)
+    ! WRITE(6,*) 'eval_flux_KT: qp_interfaceR(1,1,1)',qp_interfaceR(1,1,1)
 
 
     !H_interface_x = 0.0_wp
@@ -2264,7 +2265,7 @@ CONTAINS
   SUBROUTINE eval_flux_GFORCE
 
     ! to be implemented
-    WRITE(*,*) 'method not yet implemented in 2-d case'
+    WRITE(6,*) 'method not yet implemented in 2-d case'
 
   END SUBROUTINE eval_flux_GFORCE
 
@@ -2278,7 +2279,7 @@ CONTAINS
   SUBROUTINE eval_flux_LxF
 
     ! to be implemented
-    WRITE(*,*) 'method not yet implemented in 2-d case'
+    WRITE(6,*) 'method not yet implemented in 2-d case'
 
   END SUBROUTINE eval_flux_LxF
 
@@ -2647,8 +2648,8 @@ CONTAINS
              q_interfaceL(:,j,k) = q_interfaceR(:,j,k)
              qp_interfaceL(:,j,k) = qp_interfaceR(:,j,k)
 
-             !WRITE(*,*) 'q_interfaceL(:,j,k)',q_interfaceL(:,j,k)
-             !READ(*,*)
+             !WRITE(6,*) 'q_interfaceL(:,j,k)',q_interfaceL(:,j,k)
+             !READ(6,*)
 
           ELSEIF ( j.EQ.comp_cells_x ) THEN
 

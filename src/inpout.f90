@@ -56,6 +56,9 @@ MODULE inpout
 
   REAL(wp) :: notSet
 
+  CHARACTER(len=30), dimension(:), allocatable :: args
+
+  INTEGER :: num_args
   
   !> Counter for unit files
   INTEGER :: n_unit
@@ -69,6 +72,9 @@ MODULE inpout
   !> Name of the run (used for the output and backup files)
   CHARACTER(LEN=30) :: run_name            
 
+  !> Name of the run (used for the output and backup files)
+  CHARACTER(LEN=30) :: run_name_arg            
+   
   !> Name of output file for particle loss rate
   CHARACTER(LEN=30) :: sed_file
 
@@ -292,7 +298,7 @@ CONTAINS
     
     n_unit = 10
 
-    inp_file = 'plume_model.inp'
+    ! inp_file = 'plume_model.inp'
 
     INQUIRE (FILE=inp_file,exist=lexist)
 
@@ -408,9 +414,9 @@ CONTAINS
 
        CLOSE(inp_unit)
 
-       WRITE(*,*) 'Input file plume_model.inp not found'
-       WRITE(*,*) 'A new one with default values has been created'
-       STOP
+       WRITE(0,*) 'Input file ',TRIM(inp_file), ' not found'
+       WRITE(0,*) 'A new one with default values has been created'
+       CALL EXIT(1)
 
     END IF
 
@@ -525,6 +531,8 @@ CONTAINS
 
     REAL(wp) :: rhop
 
+    INTEGER :: ix
+
     NAMELIST / bin_parameters / bin_partial_mass_fraction
 
     ! 20/04/2022 FP
@@ -532,11 +540,11 @@ CONTAINS
     
     IF ( write_flag ) THEN
 
-        WRITE(*,*) 
-        WRITE(*,*) 'PlumeMoM (by M. de'' Michieli Vitturi)'
-        WRITE(*,*) 
-        WRITE(*,*) '*** Starting the run ***' 
-        WRITE(*,*)
+        WRITE(6,*) 
+        WRITE(6,*) 'PlumeMoM (by M. de'' Michieli Vitturi)'
+        WRITE(6,*) 
+        WRITE(6,*) '*** Starting the run ***' 
+        WRITE(6,*)
 
     END IF
 
@@ -544,28 +552,317 @@ CONTAINS
 
     inp_unit = n_unit
 
-    inp_file = 'plume_model.inp'
-
     OPEN(inp_unit,FILE=inp_file,STATUS='old')
+
+    run_name_arg = ''
+    run_name = ''
+    
+    DO ix = 1, num_args
+       
+       IF ( (args(ix)=="-run") .AND. (ix<num_args) ) THEN
+          
+          run_name_arg = args(ix+1)
+          WRITE(6,*) "Run name from command line: ",run_name
+          
+       END if
+       
+    END DO
 
     READ(inp_unit, control_parameters,IOSTAT=io)
 
+    IF (run_name_arg .NE. '') THEN
+
+       IF (run_name .NE. '') THEN
+          
+          WRITE(0,*) 'ERROR: problem with input file ',TRIM(inp_file)
+          WRITE(0,*) 'run_name specified both in name list '
+          WRITE(0,*) 'and with the option -run'
+          CALL EXIT(1)
+
+       ELSE
+
+          run_name = run_name_arg
+
+       END IF
+          
+    END IF
+
+    IF ( run_name .NE. '' ) THEN 
+        
+       col_file = TRIM(run_name)//'_col.csv'
+       sed_file = TRIM(run_name)//'_sed.csv'
+       mom_file = TRIM(run_name)//'_mom.csv'
+       dak_file = TRIM(run_name)//'_dak.txt' 
+       hy_file = TRIM(run_name)//'_hy.csv'
+       hy_file_volcgas = TRIM(run_name)//'_hy_volcgas.csv'
+       inversion_file = TRIM(run_name)//'_inv.txt'
+       bak_file = TRIM(run_name)//'.bak'
+
+       DO ix = 1, num_args
+          
+          IF (args(ix)=="-col") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-col should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-mom") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-mom should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-sed") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-sed should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-bak") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-bak should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-inv") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-inv should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-hy") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-hy should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+          IF (args(ix)=="-hyg") THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) '-hyg should not be used when RUN_FILE is specified'
+             CALL EXIT(1)
+             
+          END IF
+          
+       END DO
+       
+       
+    ELSE
+
+       WRITE(6,*) 'WARNING: run_name not given in input file'
+       WRITE(6,*) 'or as argument with -run RUN_NAME'
+       WRITE(6,*)
+       
+       col_file = ''
+       
+       DO ix = 1, num_args
+          
+          IF ( (args(ix)=="-col") .AND. (ix<num_args) ) THEN
+             
+             col_file = args(ix+1)
+             WRITE(6,*) "Column file name from command line: ",TRIM(col_file)
+             
+          END IF
+          
+       END DO
+       
+       IF ( col_file .EQ. '' ) THEN
+
+          WRITE(0,*) 'ERROR: problem with output parameters'
+          WRITE(0,*) 'col_file must be specified with -col COL_FILE'
+          CALL EXIT(1)
+          
+       END IF
+
+       sed_file = ''
+       
+       DO ix = 1, num_args
+          
+          IF ( (args(ix)=="-sed") .AND. (ix<num_args) ) THEN
+             
+             sed_file = args(ix+1)
+             WRITE(6,*) "Sedimentation file name from command line: ",TRIM(sed_file)
+             
+          END IF
+          
+       END DO
+       
+       IF ( sed_file .EQ. '' ) THEN
+          
+          WRITE(0,*) 'ERROR: problem with output parameters'
+          WRITE(0,*) 'sed_file must be specified with -sed SED_FILE'
+          CALL EXIT(1)
+          
+       END IF
+       
+       mom_file = ''
+       
+       DO ix = 1, num_args
+          
+          IF ( (args(ix)=="-mom") .AND. (ix<num_args) ) THEN
+             
+             mom_file = args(ix+1)
+             WRITE(6,*) "Moments file name from command line: ",TRIM(mom_file)
+             
+          END IF
+          
+       END DO
+       
+       IF ( mom_file .EQ. '' ) THEN
+          
+          WRITE(0,*) 'ERROR: problem with input parameters'
+          WRITE(0,*) 'mom_file must be specified with -mom MOM_FILE'
+          CALL EXIT(1)
+          
+       END IF
+       
+       dak_file = ''
+       
+       IF ( dakota_flag ) THEN
+
+          DO ix = 1, num_args
+             
+             IF ( (args(ix)=="-dak") .AND. (ix<num_args) ) THEN
+                
+                dak_file = args(ix+1)
+                WRITE(6,*) "Dakota file name from command line: ",TRIM(dak_file)
+                
+             END IF
+             
+          END DO
+          
+          
+          IF ( dak_file .EQ. '' ) THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) 'dak_file must be specified with -dak DAK_FILE'
+             CALL EXIT(1)
+             
+          END IF
+
+       END IF
+
+       IF ( hysplit_flag ) THEN
+       
+          hy_file = ''
+          
+          DO ix = 1, num_args
+             
+             IF ( (args(ix)=="-hy") .AND. (ix<num_args) ) THEN
+                
+                hy_file = args(ix+1)
+                WRITE(6,*) "Hysplit file name from command line: ",TRIM(hy_file)
+                
+             END IF
+             
+          END DO
+          
+          IF ( hy_file .EQ. '' ) THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) 'hysplit_file must be specified with -hy HYSPLIT_FILE'
+             CALL EXIT(1)
+             
+          END IF
+          
+          hy_file_volcgas = ''
+          
+          DO ix = 1, num_args
+             
+             IF ( (args(ix)=="-hyg") .AND. (ix<num_args) ) THEN
+                
+                hy_file_volcgas = args(ix+1)
+                WRITE(6,*) "Hysplit gas file name from command line: ",TRIM(hy_file_volcgas)
+                
+             END IF
+             
+          END DO
+          
+          IF ( hy_file_volcgas .EQ. '' ) THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) 'hysplit_volcgas_file must be specified with -hyg HYSPLIT_VOLCGAS_FILE'
+             CALL EXIT(1)
+             
+          END IF
+
+       END IF
+
+       IF ( inversion_flag ) THEN
+       
+          inversion_file = ''
+          
+          DO ix = 1, num_args
+             
+             IF ( (args(ix)=="-inv") .AND. (ix<num_args) ) THEN
+                
+                inversion_file = args(ix+1)
+                WRITE(6,*) "Inversion file name from command line: ",TRIM(inversion_file)
+                
+             END IF
+             
+          END DO
+          
+          IF ( inversion_file .EQ. '' ) THEN
+             
+             WRITE(0,*) 'ERROR: problem with output parameters'
+             WRITE(0,*) 'inversion_file must be specified with -inv INVERSION_FILE'
+             CALL EXIT(1)
+             
+          END IF
+
+       END IF
+          
+       bak_file = ''
+       
+       DO ix = 1, num_args
+          
+          IF ( (args(ix)=="-bak") .AND. (ix<num_args) ) THEN
+             
+             bak_file = args(ix+1)
+             WRITE(6,*) "Backup file name from command line: ",TRIM(bak_file)
+             
+          END IF
+          
+       END DO
+       
+       IF ( bak_file .EQ. '' ) THEN
+
+          WRITE(0,*) 'ERROR: problem with output parameters'
+          WRITE(0,*) 'bak_file must be specified with -bak BACKUP_FILE'
+          CALL EXIT(1)
+          
+       END IF
+              
+    END IF
+    
     IF ( io .EQ. 0 ) THEN
 
        n_unit = n_unit + 1
        bak_unit = n_unit
-       bak_file = TRIM(run_name)//'.bak'
        
        OPEN(bak_unit,file=bak_file,status='unknown')
        WRITE(bak_unit, control_parameters)
        REWIND(inp_unit)
     
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read control_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read control_parameters: done'
 
     ELSE
 
-       WRITE(*,*) 'Problem with namelist CONTROL_PARAMETERS'
-       STOP
+       WRITE(0,*) 'Problem with namelist CONTROL_PARAMETERS'
+       CALL EXIT(1)
        
     END IF
 
@@ -575,11 +872,11 @@ CONTAINS
 
        IF ( ios .NE. 0 ) THEN
           
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,inversion_parameters) 
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,inversion_parameters) 
+          CALL EXIT(1)
           
        END IF
 
@@ -587,25 +884,25 @@ CONTAINS
 
        IF ( ios .NE. 0 ) THEN
           
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,initial_values) 
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,initial_values) 
+          CALL EXIT(1)
           
        END IF
 
        REWIND(inp_unit)
-          
+       
        IF ( ( .NOT.isSet(w0) ) .AND. ( .NOT.isSet(r0) ) ) THEN
           
           IF ( umbrella_flag ) THEN
              
-             WRITE(*,*) 'ERROR: problem with INVERSION'
-             WRITE(*,*) 'Search for both radius and velocity is not possible'
-             WRITE(*,*) 'with UMBRELLA_FLAG = T'
-             WRITE(*,*) 'Please check the input file'
-             STOP
+             WRITE(0,*) 'ERROR: problem with INVERSION'
+             WRITE(0,*) 'Search for both radius and velocity is not possible'
+             WRITE(0,*) 'with UMBRELLA_FLAG = T'
+             WRITE(0,*) 'Please check the input file'
+             CALL EXIT(1)
              
           END IF
           
@@ -613,19 +910,19 @@ CONTAINS
        
        IF ( ( .NOT. isSet(height_obj) ) .OR. ( height_obj .LE. 0 ) ) THEN
           
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-          WRITE(*,*)
-          WRITE(*,inversion_parameters) 
-          WRITE(*,*)
-          WRITE(*,*) 'Please check HEIGHT_OBJ value (>0 [m])'
-          WRITE(*,*) 'HEIGHT_OBJ =',height_obj
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+          WRITE(0,*)
+          WRITE(0,inversion_parameters) 
+          WRITE(0,*)
+          WRITE(0,*) 'Please check HEIGHT_OBJ value (>0 [m])'
+          WRITE(0,*) 'HEIGHT_OBJ =',height_obj
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
        
-       IF ( verbose_level.GE.1 ) WRITE(*,*) 'read inversion_parameters: done'
+       IF ( verbose_level.GE.1 ) WRITE(6,*) 'read inversion_parameters: done'
        WRITE(bak_unit, inversion_parameters)
        write_flag = .FALSE.
        REWIND(inp_unit)
@@ -642,25 +939,25 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
        
        WRITE(bak_unit, entrainment_parameters)       
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read entrainment_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read entrainment_parameters: done'
 
        IF ( .NOT.isSet(alpha_inp) ) THEN
 
-          WRITE(*,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
-          WRITE(*,*) 'Please set alpha_inp (>0)'
-          WRITE(*,*)
-          WRITE(*,entrainment_parameters) 
-          STOP
+          WRITE(0,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
+          WRITE(0,*) 'Please set alpha_inp (>0)'
+          WRITE(0,*)
+          WRITE(0,entrainment_parameters) 
+          CALL EXIT(1)
 
        END IF
 
        IF ( .NOT.isSet(beta_inp) ) THEN
 
-          WRITE(*,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
-          WRITE(*,*) 'Please set beta_inp (>0)'
-          WRITE(*,*)
-          WRITE(*,entrainment_parameters) 
-          STOP
+          WRITE(0,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
+          WRITE(0,*) 'Please set beta_inp (>0)'
+          WRITE(0,*)
+          WRITE(0,entrainment_parameters) 
+          CALL EXIT(1)
 
        END IF
        
@@ -668,12 +965,12 @@ CONTAINS
 
     ELSE
        
-       WRITE(*,*) 'IOSTAT=',ios
-       WRITE(*,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
-       WRITE(*,*) 'Please check the input file'
-       WRITE(*,entrainment_parameters)
+       WRITE(0,*) 'IOSTAT=',ios
+       WRITE(0,*) 'ERROR: problem with namelist ENTRAINMENT_PARAMETERS'
+       WRITE(0,*) 'Please check the input file'
+       WRITE(0,entrainment_parameters)
        REWIND(inp_unit)
-       STOP
+       CALL EXIT(1)
        
     END IF
 
@@ -684,18 +981,18 @@ CONTAINS
 
        WRITE(bak_unit, mom_parameters)
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read MoM_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read MoM_parameters: done'
 
        CALL allocate_particles
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'allocated particles parameters'
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'allocated particles parameters'
 
        REWIND(inp_unit)
 
     ELSE
 
-       WRITE(*,*) 'Problem with namelist MoM_PARAMETERS'
-       STOP
+       WRITE(0,*) 'Problem with namelist MoM_PARAMETERS'
+       CALL EXIT(1)
 
     END IF
 
@@ -705,15 +1002,15 @@ CONTAINS
     IF ( io .EQ. 0 ) THEN
 
        WRITE(bak_unit, particles_parameters)
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read particles_parameters: done'
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read particles_parameters: done'
        REWIND(inp_unit)
 
     ELSE
 
-       WRITE(*,*) 'Problem with namelist PARTICLES_PARAMETERS'
-       WRITE(*,*)
-       WRITE(*,particles_parameters)      
-       STOP
+       WRITE(0,*) 'Problem with namelist PARTICLES_PARAMETERS'
+       WRITE(0,*)
+       WRITE(0,particles_parameters)      
+       CALL EXIT(1)
 
     END IF
 
@@ -727,7 +1024,7 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
 
-       WRITE(*,*) 'grain size sections:'
+       WRITE(6,*) 'grain size sections:'
        WRITE(*,"(100F6.2)") phiL
        WRITE(*,"(100F6.2)") phiR
 
@@ -743,22 +1040,22 @@ CONTAINS
        
           IF ( phi1(i_part) .GT. phi2(i_part) ) THEN
              
-             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-             WRITE(*,*) 'Please check the input file'
-             WRITE(*,*) 'phi1 MUST BE SMALLER THAN phi2'
-             WRITE(*,*) 'phi1',phi1
-             WRITE(*,*) 'phi2',phi2
-             STOP
+             WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(0,*) 'Please check the input file'
+             WRITE(0,*) 'phi1 MUST BE SMALLER THAN phi2'
+             WRITE(0,*) 'phi1',phi1
+             WRITE(0,*) 'phi2',phi2
+             CALL EXIT(1)
              
           END IF
 
        ELSE
 
-          WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,*) 'phi1',phi1
-          WRITE(*,*) 'phi2',phi2
-          STOP
+          WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,*) 'phi1',phi1
+          WRITE(0,*) 'phi2',phi2
+          CALL EXIT(1)
           
        END IF
 
@@ -774,26 +1071,26 @@ CONTAINS
 
           IF ( isSet(shape_factor(i_part)) ) THEN
 
-             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-             WRITE(*,*) 'Please check the input file'
-             WRITE(*,*) 'Shape factor',shape_factor
-             WRITE(*,*) 'Shape factor bin',shape_factor_bin
-             WRITE(*,*) 'IF SHAPE_FACTOR is defined, SHAPE_FACTOR_BIN' 
-             WRITE(*,*) 'is not used'
-             STOP
+             WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(0,*) 'Please check the input file'
+             WRITE(0,*) 'Shape factor',shape_factor
+             WRITE(0,*) 'Shape factor bin',shape_factor_bin
+             WRITE(0,*) 'IF SHAPE_FACTOR is defined, SHAPE_FACTOR_BIN' 
+             WRITE(0,*) 'is not used'
+             CALL EXIT(1)
 
           END IF
 
           IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN 
              
-             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-             WRITE(*,*) 'Please check the input file'
-             WRITE(*,*) 'Shape factor bin',shape_factor_bin
-             WRITE(*,*) 'Shape1',shape1
-             WRITE(*,*) 'Shape2',shape2
-             WRITE(*,*) 'IF SHAPE_FACTOR_BIN is defined, SHAPE1 and SHAPE2' 
-             WRITE(*,*) 'are not used'
-             STOP
+             WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(0,*) 'Please check the input file'
+             WRITE(0,*) 'Shape factor bin',shape_factor_bin
+             WRITE(0,*) 'Shape1',shape1
+             WRITE(0,*) 'Shape2',shape2
+             WRITE(0,*) 'IF SHAPE_FACTOR_BIN is defined, SHAPE1 and SHAPE2' 
+             WRITE(0,*) 'are not used'
+             CALL EXIT(1)
 
           END IF
 
@@ -801,14 +1098,14 @@ CONTAINS
           
           IF ( isSet(shape1(i_part)) .AND. isSet(shape2(i_part)) ) THEN 
              
-             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-             WRITE(*,*) 'Please check the input file'
-             WRITE(*,*) 'Shape factor',shape_factor
-             WRITE(*,*) 'Shape1',shape1
-             WRITE(*,*) 'Shape2',shape2
-             WRITE(*,*) 'IF SHAPE_FACTOR is defined, SHAPE1 and SHAPE2' 
-             WRITE(*,*) 'are not used'
-             STOP
+             WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(0,*) 'Please check the input file'
+             WRITE(0,*) 'Shape factor',shape_factor
+             WRITE(0,*) 'Shape1',shape1
+             WRITE(0,*) 'Shape2',shape2
+             WRITE(0,*) 'IF SHAPE_FACTOR is defined, SHAPE1 and SHAPE2' 
+             WRITE(0,*) 'are not used'
+             CALL EXIT(1)
              
           ELSE
                 
@@ -824,14 +1121,14 @@ CONTAINS
              
           ELSE
              
-             WRITE(*,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
-             WRITE(*,*) 'Please check the input file'
-             WRITE(*,*) 'Shape factor',shape_factor
-             WRITE(*,*) 'Shape1',shape1
-             WRITE(*,*) 'Shape2',shape2
-             WRITE(*,*) 'Shape factor bin',shape_factor_bin
+             WRITE(0,*) 'ERROR: problem with namelist PARTICLES_PARAMETERS'
+             WRITE(0,*) 'Please check the input file'
+             WRITE(0,*) 'Shape factor',shape_factor
+             WRITE(0,*) 'Shape1',shape1
+             WRITE(0,*) 'Shape2',shape2
+             WRITE(0,*) 'Shape factor bin',shape_factor_bin
              REWIND(inp_unit)
-             STOP
+             CALL EXIT(1)
              
           END IF
           
@@ -862,13 +1159,13 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, lognormal_parameters)
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read lognormal_parameters: done'
+          IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read lognormal_parameters: done'
           REWIND(inp_unit)
 
        ELSE
           
-          WRITE(*,*) 'Problem with namelist LOGNORMAL_PARAMETERS'
-          STOP
+          WRITE(0,*) 'Problem with namelist LOGNORMAL_PARAMETERS'
+          CALL EXIT(1)
           
        END IF
        
@@ -879,7 +1176,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, bin_parameters)
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read bin_parameters: done'
+          IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read bin_parameters: done'
           REWIND(inp_unit)
 
           DO i_part=1,n_part
@@ -891,11 +1188,11 @@ CONTAINS
              
        ELSE
           
-          WRITE(*,*) 'Problem reading namelist BIN_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,*)
-          WRITE(*,bin_parameters) 
-          STOP          
+          WRITE(0,*) 'Problem reading namelist BIN_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,*)
+          WRITE(0,bin_parameters) 
+          CALL EXIT(1)          
           
        END IF
 
@@ -907,7 +1204,7 @@ CONTAINS
        IF ( io .EQ. 0 ) THEN
 
           WRITE(bak_unit, solid_mass_flow_rate_parameters)
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read solid_mass_flow_rate_parameters: done'
+          IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read solid_mass_flow_rate_parameters: done'
           REWIND(inp_unit)
 
           DO i_part=1,n_part
@@ -919,20 +1216,20 @@ CONTAINS
              
        ELSE
           
-          WRITE(*,*) 'Problem reading namelist SOLID_MASS_FLOW_RATE_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,*)
-          WRITE(*,solid_mass_flow_rate_parameters) 
-          STOP          
+          WRITE(0,*) 'Problem reading namelist SOLID_MASS_FLOW_RATE_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,*)
+          WRITE(0,solid_mass_flow_rate_parameters) 
+          CALL EXIT(1)          
           
        END IF
        
     ELSE
 
-       WRITE(*,*) 'Error in namelist PARTICLES_PARAMETERS'
-       WRITE(*,*) 'Please check the values of distribution: ',distribution
-       WRITE(*,particles_parameters)
-       STOP
+       WRITE(0,*) 'Error in namelist PARTICLES_PARAMETERS'
+       WRITE(0,*) 'Please check the values of distribution: ',distribution
+       WRITE(0,particles_parameters)
+       CALL EXIT(1)
 
     END IF
 
@@ -945,41 +1242,41 @@ CONTAINS
 
           IF ( .NOT.isSet(rho_lw) ) THEN
 
-             WRITE(*,*) 'Namelist WATER_PARAMETERS'
-             WRITE(*,*) 'Plase define RHO_LW (kg/m3)'
-             STOP
+             WRITE(0,*) 'Namelist WATER_PARAMETERS'
+             WRITE(0,*) 'Plase define RHO_LW (kg/m3)'
+             CALL EXIT(1)
 
           END IF
 
           IF ( .NOT.isSet(rho_ice) ) THEN
 
-             WRITE(*,*) 'Namelist WATER_PARAMETERS'
-             WRITE(*,*) 'Plase define RHO_ICE (kg/m3)'
-             STOP
+             WRITE(0,*) 'Namelist WATER_PARAMETERS'
+             WRITE(0,*) 'Plase define RHO_ICE (kg/m3)'
+             CALL EXIT(1)
              
           END IF
 
           IF ( .NOT.isSet(added_water_mass_fraction) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist WATER_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,water_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check ADDED_WATER_MASS_FRACTION value [0;1]'
-             WRITE(*,*) 'ADDED_WATER_MASS_FRACTION =',added_water_mass_fraction
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist WATER_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,water_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check ADDED_WATER_MASS_FRACTION value [0;1]'
+             WRITE(0,*) 'ADDED_WATER_MASS_FRACTION =',added_water_mass_fraction
+             WRITE(0,*)
+             CALL EXIT(1)
 
           ELSE
 
              IF ( ( added_water_mass_fraction .LT. 0.0_wp ) .OR.                &
                   ( added_water_mass_fraction .GE. 1.0_wp ) ) THEN
              
-                WRITE(*,*) 'Namelist WATER_PARAMETERS'
-                WRITE(*,*) 'added_water_mass_fraction should be >=0 and <1'
-                WRITE(*,*) 'actual value:',added_water_mass_fraction
-                STOP
+                WRITE(0,*) 'Namelist WATER_PARAMETERS'
+                WRITE(0,*) 'added_water_mass_fraction should be >=0 and <1'
+                WRITE(0,*) 'actual value:',added_water_mass_fraction
+                CALL EXIT(1)
                 
              END IF
 
@@ -987,15 +1284,15 @@ CONTAINS
 
           IF ( .NOT.isSet(added_water_temp) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist WATER_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,water_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check ADDED_WATER_TEMP value [K]'
-             WRITE(*,*) 'ADDED_WATER_TEMP =',added_water_temp
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist WATER_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,water_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check ADDED_WATER_TEMP value [K]'
+             WRITE(0,*) 'ADDED_WATER_TEMP =',added_water_temp
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
 
@@ -1005,11 +1302,11 @@ CONTAINS
           
        ELSE
 
-          WRITE(*,*) 'Problem reading namelist WATER_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,*)
-          WRITE(*,water_parameters) 
-          STOP          
+          WRITE(0,*) 'Problem reading namelist WATER_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,*)
+          WRITE(0,water_parameters) 
+          CALL EXIT(1)          
 
        END IF
 
@@ -1028,57 +1325,57 @@ CONTAINS
        
        IF ( .NOT.isSet(added_water_temp) ) THEN
           
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist ATM_PARAMETERS'
-          WRITE(*,*)
-          WRITE(*,atm_parameters) 
-          WRITE(*,*)
-          WRITE(*,*) 'Please check VISC_ATM0 value [Pa s]'
-          WRITE(*,*) 'VISC_ATM0 =',visc_atm0
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist ATM_PARAMETERS'
+          WRITE(0,*)
+          WRITE(0,atm_parameters) 
+          WRITE(0,*)
+          WRITE(0,*) 'Please check VISC_ATM0 value [Pa s]'
+          WRITE(0,*) 'VISC_ATM0 =',visc_atm0
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
 
        IF ( .NOT.isSet(rair) ) THEN
           
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist ATM_PARAMETERS'
-          WRITE(*,*)
-          WRITE(*,atm_parameters) 
-          WRITE(*,*)
-          WRITE(*,*) 'Please check RAIR value [J K-1 kg-1]'
-          WRITE(*,*) 'RAIR =',rair
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist ATM_PARAMETERS'
+          WRITE(0,*)
+          WRITE(0,atm_parameters) 
+          WRITE(0,*)
+          WRITE(0,*) 'Please check RAIR value [J K-1 kg-1]'
+          WRITE(0,*) 'RAIR =',rair
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
        
        IF ( .NOT.isSet(cpair) ) THEN
           
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist ATM_PARAMETERS'
-          WRITE(*,*)
-          WRITE(*,atm_parameters) 
-          WRITE(*,*)
-          WRITE(*,*) 'Please check CPAIR value [J kg-1 K-1]'
-          WRITE(*,*) 'CPAIR =',cpair
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist ATM_PARAMETERS'
+          WRITE(0,*)
+          WRITE(0,atm_parameters) 
+          WRITE(0,*)
+          WRITE(0,*) 'Please check CPAIR value [J kg-1 K-1]'
+          WRITE(0,*) 'CPAIR =',cpair
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
 
        IF ( .NOT.isSet(wind_mult_coeff) ) THEN
           
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist ATM_PARAMETERS'
-          WRITE(*,*)
-          WRITE(*,atm_parameters) 
-          WRITE(*,*)
-          WRITE(*,*) 'Please check WIND_MULT_COEFF value'
-          WRITE(*,*) 'WIND_MULT_COEFF =',wind_mult_coeff
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist ATM_PARAMETERS'
+          WRITE(0,*)
+          WRITE(0,atm_parameters) 
+          WRITE(0,*)
+          WRITE(0,*) 'Please check WIND_MULT_COEFF value'
+          WRITE(0,*) 'WIND_MULT_COEFF =',wind_mult_coeff
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
        
@@ -1087,8 +1384,8 @@ CONTAINS
 
     ELSE
        
-       WRITE(*,*) 'Problem with namelist ATM_PARAMETERS'
-       STOP          
+       WRITE(0,*) 'Problem with namelist ATM_PARAMETERS'
+       CALL EXIT(1)          
        
     END IF
     
@@ -1408,25 +1705,25 @@ CONTAINS
        ALLOCATE(temp_atm_month_lat(n_atm_levels),temp_atm_month(n_atm_levels,8))
 
        IF ((month .GE. 0.0_wp) .and. (month .LE. 1.0_wp)) THEN
-          WRITE(*,*)  'winter'
+          WRITE(6,*)  'winter'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_jan(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_jan(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_jan(1:n_atm_levels,1:8)
           
        ELSEIF ((month .GT. 1.0_wp) .and. (month .LE. 2.0_wp)) THEN
-          WRITE(*,*)  'spring'
+          WRITE(6,*)  'spring'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_apr(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_apr(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_apr(1:n_atm_levels,1:8)
           
        ELSEIF ((month .GT. 2.0_wp) .and. (month .LE. 3.0_wp)) THEN
-          WRITE(*,*)  'summer'
+          WRITE(6,*)  'summer'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_jul(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_jul(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_jul(1:n_atm_levels,1:8)
           
        ELSEIF ((month .GT. 3.0_wp) .and. (month .LE. 4.0_wp)) THEN
-          WRITE(*,*)  'autumn'
+          WRITE(6,*)  'autumn'
           rho_atm_month(1:n_atm_levels,1:8) = rho_atm_apr(1:n_atm_levels,1:8)
           pres_atm_month(1:n_atm_levels,1:8) = pres_atm_apr(1:n_atm_levels,1:8)
           temp_atm_month(1:n_atm_levels,1:8) = temp_atm_apr(1:n_atm_levels,1:8)
@@ -1540,7 +1837,7 @@ CONTAINS
 
        tend1 = .FALSE.
 
-       WRITE(*,*) 'search atm_profile'
+       WRITE(6,*) 'search atm_profile'
 
        atm_profile_search: DO
 
@@ -1556,7 +1853,7 @@ CONTAINS
 
        READ(inp_unit,*) n_atm_profile
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'n_atm_profile',n_atm_profile
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'n_atm_profile',n_atm_profile
 
        ALLOCATE( atm_profile(7,n_atm_profile) )
        ALLOCATE( atm_profile0(7,n_atm_profile) )
@@ -1575,7 +1872,7 @@ CONTAINS
           atm_profile(6,i) = atm_profile(6,i) * wind_mult_coeff
           atm_profile(7,i) = atm_profile(7,i) * wind_mult_coeff
 
-          IF ( verbose_level .GE. 1 ) WRITE(*,*) i,atm_profile(1,i)
+          IF ( verbose_level .GE. 1 ) WRITE(6,*) i,atm_profile(1,i)
 
        END DO
 
@@ -1592,25 +1889,25 @@ CONTAINS
        
        IF ( ios .NE. 0 ) THEN
           
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,std_atm_parameters) 
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,std_atm_parameters) 
+          CALL EXIT(1)
           
        ELSE
 
           IF ( .NOT. isSet(u_max) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,std_atm_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check u_max value (>0 [m/s])'
-             WRITE(*,*) 'u_max =',u_max
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,std_atm_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check u_max value (>0 [m/s])'
+             WRITE(0,*) 'u_max =',u_max
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
 
@@ -1618,26 +1915,26 @@ CONTAINS
 
              IF ( .NOT. isSet(rel_hu) ) THEN
             
-                WRITE(*,*) ''
-                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-                WRITE(*,*)
-                WRITE(*,std_atm_parameters) 
-                WRITE(*,*)
-                WRITE(*,*) 'Please assign sphu_atm0 or rel_hu'
-                WRITE(*,*)
-                STOP
+                WRITE(0,*) ''
+                WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(0,*)
+                WRITE(0,std_atm_parameters) 
+                WRITE(0,*)
+                WRITE(0,*) 'Please assign sphu_atm0 or rel_hu'
+                WRITE(0,*)
+                CALL EXIT(1)
 
              ELSEIF ( ( rel_hu .LT. 0.0_wp ) .OR. ( rel_hu .GT. 1.0_wp ) ) THEN
 
-                WRITE(*,*) ''
-                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-                WRITE(*,*)
-                WRITE(*,std_atm_parameters) 
-                WRITE(*,*)                
-                WRITE(*,*) 'Please check rel_hu value (0<=rel_hu<=1)'
-                WRITE(*,*) 'rel_hu =',rel_hu
-                WRITE(*,*)
-                STOP
+                WRITE(0,*) ''
+                WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(0,*)
+                WRITE(0,std_atm_parameters) 
+                WRITE(0,*)                
+                WRITE(0,*) 'Please check rel_hu value (0<=rel_hu<=1)'
+                WRITE(0,*) 'rel_hu =',rel_hu
+                WRITE(0,*)
+                CALL EXIT(1)
 
              END IF
 
@@ -1645,24 +1942,24 @@ CONTAINS
 
              IF ( isSet(rel_hu) ) THEN
             
-                WRITE(*,*) ''
-                WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-                WRITE(*,*)
-                WRITE(*,std_atm_parameters) 
-                WRITE(*,*)
-                WRITE(*,*) 'Please assign only sphu_atm0 or rel_hu'
-                WRITE(*,*)
-                STOP
+                WRITE(0,*) ''
+                WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+                WRITE(0,*)
+                WRITE(0,std_atm_parameters) 
+                WRITE(0,*)
+                WRITE(0,*) 'Please assign only sphu_atm0 or rel_hu'
+                WRITE(0,*)
+                CALL EXIT(1)
 
              ELSE
              
                 IF ( sphu_atm0 .LE. 2.0E-6_wp ) THEN
                    
-                   WRITE(*,*) 'WARNING: sphu_atm0 value at sea level'
-                   WRITE(*,*) 'should be higher than value at tropopause'
-                   WRITE(*,*) 'base (2.0E-6 kg/kg)'
-                   WRITE(*,*) 'Value changed to 2.01E-6'
-                   WRITE(*,*)
+                   WRITE(6,*) 'WARNING: sphu_atm0 value at sea level'
+                   WRITE(6,*) 'should be higher than value at tropopause'
+                   WRITE(6,*) 'base (2.0E-6 kg/kg)'
+                   WRITE(6,*) 'Value changed to 2.01E-6'
+                   WRITE(6,*)
                    sphu_atm0 = 2.01e-6_wp
                    
                 END IF
@@ -1673,15 +1970,15 @@ CONTAINS
 
           IF ( .NOT. isSet(p_atm0) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,std_atm_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check p_atm0 value (Pa)'
-             WRITE(*,*) 'p_atm0 =',p_atm0
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,std_atm_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check p_atm0 value (Pa)'
+             WRITE(0,*) 'p_atm0 =',p_atm0
+             WRITE(0,*)
+             CALL EXIT(1)
 
           ELSE
           
@@ -1691,15 +1988,15 @@ CONTAINS
 
           IF ( .NOT. isSet(t_atm0) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,std_atm_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check t_atm0 value (K)'
-             WRITE(*,*) 't_atm0 =',t_atm0
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist STD_ATM_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,std_atm_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check t_atm0 value (K)'
+             WRITE(0,*) 't_atm0 =',t_atm0
+             WRITE(0,*)
+             CALL EXIT(1)
 
           ELSE
           
@@ -1715,17 +2012,17 @@ CONTAINS
        
     END IF
     
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read atm_parameters: done'
+    IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read atm_parameters: done'
 
     READ(inp_unit,initial_values,IOSTAT=ios)
        
     IF ( ios .NE. 0 ) THEN
        
-       WRITE(*,*) 'IOSTAT=',ios
-       WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-       WRITE(*,*) 'Please check the input file'
-       WRITE(*,initial_values) 
-       STOP
+       WRITE(0,*) 'IOSTAT=',ios
+       WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+       WRITE(0,*) 'Please check the input file'
+       WRITE(0,initial_values) 
+       CALL EXIT(1)
        
     ELSE
               
@@ -1744,16 +2041,16 @@ CONTAINS
       
       IF ( isSet(mfr0)  .OR. isSet(log10_mfr) ) THEN
 
-          WRITE(*,*) 'ERROR: problem with INITIAL_VALUES'
-          WRITE(*,*) 'for distribution = solid '
-          WRITE(*,*) 'Please set LOG10_MFR= NaN and MFR0= NaN'
-          STOP
+          WRITE(0,*) 'ERROR: problem with INITIAL_VALUES'
+          WRITE(0,*) 'for distribution = solid '
+          WRITE(0,*) 'Please set LOG10_MFR= NaN and MFR0= NaN'
+          CALL EXIT(1)
 
       ELSE
          
           mfr0 = SUM(10.0_wp**(log10_bin_mass_flow_rate(1:n_sections,1:n_part))) / &
                  ( 1.0_wp - water_mass_fraction0 - SUM( volcgas_mass_fraction0(1:n_gas)))  
-          WRITE(*,*) "MFR0 from solid distribution [kg/s]",mfr0
+          WRITE(6,*) "MFR0 from solid distribution [kg/s]",mfr0
 
       END IF
 
@@ -1763,26 +2060,26 @@ CONTAINS
 
        IF ( isSet(mfr0) ) THEN
 
-          WRITE(*,*) 'WARNING: you should not assign mfr when inversion is true'
-          WRITE(*,*) 'in the input file: mfr0',mfr0
-          STOP
+          WRITE(0,*) 'WARNING: you should not assign mfr when inversion is true'
+          WRITE(0,*) 'in the input file: mfr0',mfr0
+          CALL EXIT(1)
        
        END IF
 
        IF ( isSet(log10_mfr) ) THEN
 
-          WRITE(*,*) 'WARNING: you should not assign mfr when inversion is true'
-          WRITE(*,*) 'in the input file: log10_mfr',log10_mfr
-          STOP
+          WRITE(0,*) 'WARNING: you should not assign mfr when inversion is true'
+          WRITE(0,*) 'in the input file: log10_mfr',log10_mfr
+          CALL EXIT(1)
           
        END IF
 
        IF ( isSet(r0)  .AND. isSet(w0) ) THEN
 
-          WRITE(*,*) 'WARNING: you should not assign R0 and W0 with inversion=true'
-          WRITE(*,*) 'R0',r0
-          WRITE(*,*) 'W0',w0
-          STOP
+          WRITE(0,*) 'WARNING: you should not assign R0 and W0 with inversion=true'
+          WRITE(0,*) 'R0',r0
+          WRITE(0,*) 'W0',w0
+          CALL EXIT(1)
        
        END IF
 
@@ -1790,11 +2087,11 @@ CONTAINS
           
           IF ( isSet(w_min) .OR. isSet(w_max) ) THEN
 
-             WRITE(*,*) 'WARNING: you should not assign W0,W_MIN and W_MAX with inversion=true'
-             WRITE(*,*) 'W0',w0
-             WRITE(*,*) 'W_MIN',w_min
-             WRITE(*,*) 'W_MAX',w_max
-             STOP
+             WRITE(0,*) 'WARNING: you should not assign W0,W_MIN and W_MAX with inversion=true'
+             WRITE(0,*) 'W0',w0
+             WRITE(0,*) 'W_MIN',w_min
+             WRITE(0,*) 'W_MAX',w_max
+             CALL EXIT(1)
              
           END IF
 
@@ -1802,30 +2099,30 @@ CONTAINS
 
           IF ( ( .NOT. isSet(w_min) ) .OR. ( w_min .LE. 0 ) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check W_MIN value (>0 [m/s])'
-             WRITE(*,*) 'W_MIN =',w_min
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,inversion_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check W_MIN value (>0 [m/s])'
+             WRITE(0,*) 'W_MIN =',w_min
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
 
 
           IF ( ( .NOT. isSet(w_max) ) .OR. ( w_max .LE. w_min ) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check W_MAX value (>W_MIN [m/s])'
-             WRITE(*,*) 'W_MAX =',w_max
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,inversion_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check W_MAX value (>W_MIN [m/s])'
+             WRITE(0,*) 'W_MAX =',w_max
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
           
@@ -1836,11 +2133,11 @@ CONTAINS
 
           IF ( isSet(r_min) .OR. isSet(r_max) ) THEN
 
-             WRITE(*,*) 'WARNING: you should not assign R0,R_MIN and R_MAX with inversion=true'
-             WRITE(*,*) 'R0',r0
-             WRITE(*,*) 'R_MIN',r_min
-             WRITE(*,*) 'R_MAX',r_max
-             STOP
+             WRITE(0,*) 'WARNING: you should not assign R0,R_MIN and R_MAX with inversion=true'
+             WRITE(0,*) 'R0',r0
+             WRITE(0,*) 'R_MIN',r_min
+             WRITE(0,*) 'R_MAX',r_max
+             CALL EXIT(1)
       
           END IF
 
@@ -1848,29 +2145,29 @@ CONTAINS
 
           IF ( ( .NOT. isSet(r_min) ) .OR. ( r_min .LE. 0 ) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check R_MIN value (>0 [m])'
-             WRITE(*,*) 'R_MIN =',r_min
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,inversion_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check R_MIN value (>0 [m])'
+             WRITE(0,*) 'R_MIN =',r_min
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
 
           IF ( ( .NOT. isSet(r_max) ) .OR. ( r_max .LE. r_min ) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check R_MAX value (>R_MIN [m])'
-             WRITE(*,*) 'R_MAX =',r_max
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,inversion_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check R_MAX value (>R_MIN [m])'
+             WRITE(0,*) 'R_MAX =',r_max
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
  
@@ -1880,15 +2177,15 @@ CONTAINS
 
           IF ( n_values .LE. 0 ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,inversion_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check N_VALUES value (>0 [integer])'
-             WRITE(*,*) 'N_VALUES =',n_values
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INVERSION_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,inversion_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check N_VALUES value (>0 [integer])'
+             WRITE(0,*) 'N_VALUES =',n_values
+             WRITE(0,*)
+             CALL EXIT(1)
              
           END IF
 
@@ -1899,29 +2196,29 @@ CONTAINS
 
        IF ( isSet(log10_mfr) ) THEN
 
-          WRITE(*,*) 'WARNING: only one of these parameters can be assigned in'
-          WRITE(*,*) 'the input file: log10_mfr,mfr0',log10_mfr,mfr0
-          STOP
+          WRITE(0,*) 'WARNING: only one of these parameters can be assigned in'
+          WRITE(0,*) 'the input file: log10_mfr,mfr0',log10_mfr,mfr0
+          CALL EXIT(1)
 
        ELSE
 
           IF ( .NOT.isSet(mfr0) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-             WRITE(*,*)
-             WRITE(*,initial_values) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check MFR0 value (>0 [kg/s])'
-             WRITE(*,*) 'MFR0 =',mfr0
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+             WRITE(0,*)
+             WRITE(0,initial_values) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check MFR0 value (>0 [kg/s])'
+             WRITE(0,*) 'MFR0 =',mfr0
+             WRITE(0,*)
+             CALL EXIT(1)
 
           ELSE
              
              log10_mfr = log10(mfr0)
             
-             IF ( write_flag ) WRITE(*,*) 'LOG10 mass eruption rate =',log10_mfr
+             IF ( write_flag ) WRITE(6,*) 'LOG10 mass eruption rate =',log10_mfr
 
           END IF
              
@@ -1931,25 +2228,25 @@ CONTAINS
            
        IF ( isSet(log10_mfr) .AND. ( .NOT.isSet(r0) ) ) THEN 
        
-          IF ( write_flag ) WRITE(*,*)                                          &               
+          IF ( write_flag ) WRITE(6,*)                                          &               
                'WARNING: initial radius calculated from MER and velocity'
 
        END IF
 
        IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(r0) ) .AND. ( distribution .NE. "solid" ) ) THEN 
        
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-          WRITE(*,*)
-          WRITE(*,initial_values) 
-          WRITE(*,*)
-          WRITE(*,*) 'Not enough input parameters assigned in INITIAL_VALUES'
-          WRITE(*,*) 'MFR0',mfr0
-          WRITE(*,*) 'LOG10_MFR',log10_mfr
-          WRITE(*,*) 'W0',w0
-          WRITE(*,*) 'R0',r0
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+          WRITE(0,*)
+          WRITE(0,initial_values) 
+          WRITE(0,*)
+          WRITE(0,*) 'Not enough input parameters assigned in INITIAL_VALUES'
+          WRITE(0,*) 'MFR0',mfr0
+          WRITE(0,*) 'LOG10_MFR',log10_mfr
+          WRITE(0,*) 'W0',w0
+          WRITE(0,*) 'R0',r0
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
 
@@ -1957,56 +2254,56 @@ CONTAINS
            
        IF ( isSet(log10_mfr) .AND. ( .NOT.isSet(w0) ) ) THEN 
        
-          IF ( write_flag ) WRITE(*,*)                                          &
+          IF ( write_flag ) WRITE(6,*)                                          &
                'WARNING: initial radius calculated from MER and radius'
 
        END IF
 
        IF ( .NOT.isSet(log10_mfr) .AND. ( .NOT.isSet(w0) ) .AND. ( distribution .NE. "solid" )) THEN 
 
-          WRITE(*,*) ''
-          WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-          WRITE(*,*)
-          WRITE(*,initial_values) 
-          WRITE(*,*)
-          WRITE(*,*) 'Not enough input parameters assigned in INITIAL_VALUES'
-          WRITE(*,*) 'MFR0',mfr0
-          WRITE(*,*) 'LOG10_MFR',log10_mfr
-          WRITE(*,*) 'W0',w0
-          WRITE(*,*) 'R0',r0
-          WRITE(*,*)
-          STOP
+          WRITE(0,*) ''
+          WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+          WRITE(0,*)
+          WRITE(0,initial_values) 
+          WRITE(0,*)
+          WRITE(0,*) 'Not enough input parameters assigned in INITIAL_VALUES'
+          WRITE(0,*) 'MFR0',mfr0
+          WRITE(0,*) 'LOG10_MFR',log10_mfr
+          WRITE(0,*) 'W0',w0
+          WRITE(0,*) 'R0',r0
+          WRITE(0,*)
+          CALL EXIT(1)
           
        END IF
 
     ELSEIF ( ( .NOT.isSet(log10_mfr) ) .AND. ( .NOT.isSet(r0) ) .AND. ( .NOT.isSet(w0) )  .AND. ( distribution .NE. 'solid' )) THEN
        
-       WRITE(*,*) ''
-       WRITE(*,*) 'ERROR: problem with namelist INITIAL_VALUES'
-       WRITE(*,*)
-       WRITE(*,initial_values) 
-       WRITE(*,*)
-       WRITE(*,*) 'Not enough input parameters assigned in INITIAL_VALUES'
-       WRITE(*,*) 'MFR0',mfr0
-       WRITE(*,*) 'LOG10_MFR',log10_mfr
-       WRITE(*,*) 'W0',w0
-       WRITE(*,*) 'R0',r0
-       WRITE(*,*)
-       STOP
+       WRITE(0,*) ''
+       WRITE(0,*) 'ERROR: problem with namelist INITIAL_VALUES'
+       WRITE(0,*)
+       WRITE(0,initial_values) 
+       WRITE(0,*)
+       WRITE(0,*) 'Not enough input parameters assigned in INITIAL_VALUES'
+       WRITE(0,*) 'MFR0',mfr0
+       WRITE(0,*) 'LOG10_MFR',log10_mfr
+       WRITE(0,*) 'W0',w0
+       WRITE(0,*) 'R0',r0
+       WRITE(0,*)
+       CALL EXIT(1)
        
     END IF
 
     IF ( isSet(log10_mfr) .AND. isSet(w0)  .AND. isSet(r0) ) THEN
 
-       WRITE(*,*) 'ERROR: too many input parameters: input log10_mfr or w0 and r0'
-       STOP
+       WRITE(0,*) 'ERROR: too many input parameters: input log10_mfr or w0 and r0'
+       CALL EXIT(1)
 
     END IF
 
     z = vent_height
 
 
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'read initial_parameters: done'
+    IF ( verbose_level .GE. 1 ) WRITE(6,*) 'read initial_parameters: done'
 
     ! ----- AGGREGATION
     IF ( aggregation_flag ) THEN
@@ -2015,11 +2312,11 @@ CONTAINS
 
        IF ( ios .NE. 0 ) THEN
           
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,aggregation_parameters)
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,aggregation_parameters)
+          CALL EXIT(1)
           
        ELSE
           
@@ -2031,12 +2328,12 @@ CONTAINS
 
              IF ( .not.WATER_FLAG ) THEN
 
-                WRITE(*,*) ''
-                WRITE(*,*) 'ERROR: only wet aggregation is possible'
-                WRITE(*,*) 'with ''Costa'' aggregation model'
-                WRITE(*,*) 'WATER FLAG =',WATER_FLAG
+                WRITE(0,*) ''
+                WRITE(0,*) 'ERROR: only wet aggregation is possible'
+                WRITE(0,*) 'with ''Costa'' aggregation model'
+                WRITE(0,*) 'WATER FLAG =',WATER_FLAG
                 
-                STOP
+                CALL EXIT(1)
 
              END IF
 
@@ -2044,20 +2341,20 @@ CONTAINS
 
              IF ( .not.isSet(particles_beta0) ) THEN
 
-                WRITE(*,*) ''
-                WRITE(*,*) 'ERROR: particles_beta0 requested'
-                WRITE(*,*) 'with ''constant'' aggregation model'
-                WRITE(*,*) 'PARTICLES_BETA0 = ',particles_beta0
+                WRITE(0,*) ''
+                WRITE(0,*) 'ERROR: particles_beta0 requested'
+                WRITE(0,*) 'with ''constant'' aggregation model'
+                WRITE(0,*) 'PARTICLES_BETA0 = ',particles_beta0
              
-                STOP
+                CALL EXIT(1)
 
              END IF
 
           ELSEIF ( aggregation_model.NE.'brownian') THEN
 
-             WRITE(*,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
-             WRITE(*,*) 'Please check aggregation_model:',aggregation_model
-             STOP             
+             WRITE(0,*) 'ERROR: problem with namelist AGGREGATION_PARAMETERS'
+             WRITE(0,*) 'Please check aggregation_model:',aggregation_model
+             CALL EXIT(1)             
              
           END IF
         
@@ -2073,37 +2370,37 @@ CONTAINS
        
        IF ( ios .NE. 0 ) THEN
           
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,hysplit_parameters) 
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,hysplit_parameters) 
+          CALL EXIT(1)
           
        ELSE
 
           IF ( .NOT. isSet(hy_deltaz) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,hysplit_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check hy_deltaz value (>0 [m])'
-             WRITE(*,*) 'hy_deltaz =',hy_deltaz
-             WRITE(*,*)
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,hysplit_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check hy_deltaz value (>0 [m])'
+             WRITE(0,*) 'hy_deltaz =',hy_deltaz
+             WRITE(0,*)
              
-             STOP
+             CALL EXIT(1)
 
           END IF
 
           IF ( n_cloud .EQ. -1 ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
-             WRITE(*,*) 'Please check n_cloud value (>0 [integer])'
-             WRITE(*,*) 'n_cloud =',n_cloud
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist HYSPLIT_PARAMETERS'
+             WRITE(0,*) 'Please check n_cloud value (>0 [integer])'
+             WRITE(0,*) 'n_cloud =',n_cloud
              
-             STOP
+             CALL EXIT(1)
 
           END IF
 
@@ -2136,35 +2433,35 @@ CONTAINS
 
        IF ( ANY( rvolcgas(1:n_gas) ==-1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
-          WRITE(*,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
-          STOP
+          WRITE(0,*) 'Error in namelist VOLCGAS PARAMETERS'
+          WRITE(0,*) 'Please check the values of rvolcgas',rvolcgas(1:n_gas)
+          CALL EXIT(1)
           
        END IF
        
        IF ( ANY( cpvolcgas(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
-          WRITE(*,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
-          STOP
+          WRITE(0,*) 'Error in namelist VOLCGAS PARAMETERS'
+          WRITE(0,*) 'Please check the values of cpvolcgas',cpvolcgas(1:n_gas)
+          CALL EXIT(1)
           
        END IF
        
        IF ( ANY( volcgas_mol_wt(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
-          WRITE(*,*) 'Please check the values of rvolcgas' ,                    &
+          WRITE(0,*) 'Error in namelist VOLCGAS PARAMETERS'
+          WRITE(0,*) 'Please check the values of rvolcgas' ,                    &
                volcgas_mol_wt(1:n_gas)
-          STOP
+          CALL EXIT(1)
           
        END IF
        
        IF ( ANY( volcgas_mass_fraction0(1:n_gas) .EQ. -1.0_wp ) ) THEN
           
-          WRITE(*,*) 'Error in namelist VOLCGAS PARAMETERS'
-          WRITE(*,*) 'Please check the values of rvolcgas',                     &
+          WRITE(0,*) 'Error in namelist VOLCGAS PARAMETERS'
+          WRITE(0,*) 'Please check the values of rvolcgas',                     &
                volcgas_mass_fraction0(1:n_gas)
-          STOP
+          CALL EXIT(1)
           
        END IF
        
@@ -2172,10 +2469,10 @@ CONTAINS
        IF ( ( SUM( volcgas_mass_fraction0(1:n_gas) ) + water_mass_fraction0 )   &
             .GE. 1.0_wp ) THEN
           
-          WRITE(*,*) 'WARNING: Sum of gas mass fractions :',                    &
+          WRITE(6,*) 'WARNING: Sum of gas mass fractions :',                    &
                SUM( volcgas_mass_fraction0(1:n_part) + water_mass_fraction0 )
           
-          !READ(*,*)
+          !READ(6,*)
           
        END IF
        
@@ -2226,7 +2523,7 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
 
-       WRITE(*,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
+       WRITE(6,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
 
     END IF
 
@@ -2252,12 +2549,12 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
        
-       WRITE(*,*) 'rvolcgas_mix :', rvolcgas_mix
-       WRITE(*,*) 'cpvolcgas_mix :', cpvolcgas_mix
-       WRITE(*,*) 'rhovolcgas_mix :', rhovolcgas_mix
-       WRITE(*,*) 'rhowv :', rhowv
-       WRITE(*,*) 'rho_gas :', rho_gas 
-       !READ(*,*)
+       WRITE(6,*) 'rvolcgas_mix :', rvolcgas_mix
+       WRITE(6,*) 'cpvolcgas_mix :', cpvolcgas_mix
+       WRITE(6,*) 'rhovolcgas_mix :', rhovolcgas_mix
+       WRITE(6,*) 'rhowv :', rhowv
+       WRITE(6,*) 'rho_gas :', rho_gas 
+       !READ(6,*)
        
     END IF
     
@@ -2265,7 +2562,7 @@ CONTAINS
 
     IF ( SUM( solid_partial_mass_fraction(1:n_part) ) .NE. 1.0_wp ) THEN
 
-       WRITE(*,*) 'WARNING: Sum of solid mass fractions :',                     &
+       WRITE(6,*) 'WARNING: Sum of solid mass fractions :',                     &
             SUM( solid_partial_mass_fraction(1:n_part) )
 
        solid_partial_mass_fraction(1:n_part) =                                  &
@@ -2274,7 +2571,7 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) '         Modified solid mass fractions :',                &
+          WRITE(6,*) '         Modified solid mass fractions :',                &
                solid_partial_mass_fraction(1:n_part)
 
        END IF
@@ -2287,15 +2584,15 @@ CONTAINS
     solid_mass_fraction0(1:n_part) = ( 1.0_wp - water_mass_fraction0              &
          - volcgas_mix_mass_fraction ) * solid_partial_mass_fraction(1:n_part)
 
-    WRITE(*,*) '---------- INITIALIZATION ------------'
-    WRITE(*,*)
-    WRITE(*,*) 'SOLID PARTIAL MASS DISTRIBUTOINS'
+    WRITE(6,*) '---------- INITIALIZATION ------------'
+    WRITE(6,*)
+    WRITE(6,*) 'SOLID PARTIAL MASS DISTRIBUTOINS'
           
     ! loop to initialize the moments of order 1. These values are updated later
     ! with the bulk densities of the different particles famlies
     DO i_part = 1,n_part
        
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'i_part',i_part
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'i_part',i_part
        
        DO i_sect = 1,n_sections
           
@@ -2320,12 +2617,12 @@ CONTAINS
 
        IF ( verbose_level .GE. 0 ) THEN
           
-          WRITE(*,*) 'Particle phase:',i_part
+          WRITE(6,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") mom0(1,n_sections:1:-1,i_part)
-          WRITE(*,*)
-          !READ(*,*)
+          WRITE(6,*)
+          !READ(6,*)
 
        END IF
        
@@ -2351,8 +2648,8 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'rho avg',rho_solid_avg(i_part)
-          READ(*,*)
+          WRITE(6,*) 'rho avg',rho_solid_avg(i_part)
+          READ(6,*)
 
        END IF
 
@@ -2365,9 +2662,9 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
 
-       WRITE(*,*) 
-       WRITE(*,*) '******* CHECK ON MASS AND VOLUME FRACTIONS *******'
-       WRITE(*,*) 'rho solid avg', rho_solid_tot_avg
+       WRITE(6,*) 
+       WRITE(6,*) '******* CHECK ON MASS AND VOLUME FRACTIONS *******'
+       WRITE(6,*) 'rho solid avg', rho_solid_tot_avg
 
     END IF
 
@@ -2396,13 +2693,13 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
        
-       WRITE(*,*) 'gas_volume_fraction',gas_volume_fraction
-       WRITE(*,*) 'solid_tot_volume_fraction0',solid_tot_volume_fraction0
-       WRITE(*,*) 'rho_gas',rho_gas
-       WRITE(*,*) 'rho_mix',rho_mix
+       WRITE(6,*) 'gas_volume_fraction',gas_volume_fraction
+       WRITE(6,*) 'solid_tot_volume_fraction0',solid_tot_volume_fraction0
+       WRITE(6,*) 'rho_gas',rho_gas
+       WRITE(6,*) 'rho_mix',rho_mix
 
-       WRITE(*,*) 'gas_mass_fraction',gas_mass_fraction
-       WRITE(*,*) 'solid_mass_fractions',solid_mass_fraction0(1:n_part)
+       WRITE(6,*) 'gas_mass_fraction',gas_mass_fraction
+       WRITE(6,*) 'solid_mass_fractions',solid_mass_fraction0(1:n_part)
 
     END IF
     
@@ -2418,13 +2715,13 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'i_part =',i_part
-          WRITE(*,*) 'alfa_s',i_part,alfa_s
-          WRITE(*,*) 'solid_volume_fraction0',solid_volume_fraction0(i_part)
-          WRITE(*,*) 'solid_partial_mass_fract',                                &
+          WRITE(6,*) 'i_part =',i_part
+          WRITE(6,*) 'alfa_s',i_part,alfa_s
+          WRITE(6,*) 'solid_volume_fraction0',solid_volume_fraction0(i_part)
+          WRITE(6,*) 'solid_partial_mass_fract',                                &
                solid_partial_mass_fraction(i_part)
-          WRITE(*,*) 'solid_mass_fract', solid_mass_fraction0(i_part)
-          WRITE(*,*) 
+          WRITE(6,*) 'solid_mass_fract', solid_mass_fraction0(i_part)
+          WRITE(6,*) 
 
        END IF
 
@@ -2436,40 +2733,40 @@ CONTAINS
     
     IF ( verbose_level .GE. 1 ) THEN
        
-       WRITE(*,*) 'gas volume fraction', gas_volume_fraction
-       WRITE(*,*) 'gas mass fraction', gas_mass_fraction
+       WRITE(6,*) 'gas volume fraction', gas_volume_fraction
+       WRITE(6,*) 'gas mass fraction', gas_mass_fraction
        
     END IF
 
     IF ( umbrella_flag ) THEN
 
        nbl_stop = .TRUE.
-       WRITE(*,*) 'Plume equations integrated up to neutral buoyance level'
+       WRITE(6,*) 'Plume equations integrated up to neutral buoyance level'
        
        ! ------- READ run_parameters NAMELIST -----------------------------------
        READ(inp_unit, umbrella_run_parameters,IOSTAT=ios )
 
        IF ( ios .NE. 0 ) THEN
 
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,umbrella_run_parameters)
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,umbrella_run_parameters)
+          CALL EXIT(1)
 
        ELSE
 
           IF ( ( .NOT.isSet(C_D) ) .OR. ( C_D .LT. 0.0_wp ) ) THEN
 
-             WRITE(*,*) ''
-             WRITE(*,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
-             WRITE(*,*)
-             WRITE(*,umbrella_run_parameters) 
-             WRITE(*,*)
-             WRITE(*,*) 'Please check C_D value'
-             WRITE(*,*) 'C_D =',C_D
-             WRITE(*,*)
-             STOP
+             WRITE(0,*) ''
+             WRITE(0,*) 'ERROR: problem with namelist UMBRELLA_RUN_PARAMETERS'
+             WRITE(0,*)
+             WRITE(0,umbrella_run_parameters) 
+             WRITE(0,*)
+             WRITE(0,*) 'Please check C_D value'
+             WRITE(0,*) 'C_D =',C_D
+             WRITE(0,*)
+             CALL EXIT(1)
 
           END IF
           
@@ -2484,11 +2781,11 @@ CONTAINS
 
        IF ( ios .NE. 0 ) THEN
 
-          WRITE(*,*) 'IOSTAT=',ios
-          WRITE(*,*) 'ERROR: problem with namelist NUMERIC_PARAMETERS'
-          WRITE(*,*) 'Please check the input file'
-          WRITE(*,numeric_parameters) 
-          STOP
+          WRITE(0,*) 'IOSTAT=',ios
+          WRITE(0,*) 'ERROR: problem with namelist NUMERIC_PARAMETERS'
+          WRITE(0,*) 'Please check the input file'
+          WRITE(0,numeric_parameters) 
+          CALL EXIT(1)
 
        ELSE
 
@@ -2501,21 +2798,21 @@ CONTAINS
             .AND. ( solver_scheme .NE. 'GFORCE' )                               &
             .AND. ( solver_scheme .NE. 'UP' ) ) THEN
 
-          WRITE(*,*) 'WARNING: no correct solver scheme selected',solver_scheme
-          WRITE(*,*) 'Chose between: LxF, GFORCE or KT'
-          STOP
+          WRITE(0,*) 'WARNING: no correct solver scheme selected',solver_scheme
+          WRITE(0,*) 'Chose between: LxF, GFORCE or KT'
+          CALL EXIT(1)
 
        END IF
 
        IF ( ( cfl .GT. 0.25 ) .OR. ( cfl .LT. 0.0_wp ) ) THEN
 
-          WRITE(*,*) 'WARNING: wrong value of cfl ',cfl
-          WRITE(*,*) 'Choose a value between 0.0 and 0.25'
-          READ(*,*)
+          WRITE(6,*) 'WARNING: wrong value of cfl ',cfl
+          WRITE(6,*) 'Choose a value between 0.0 and 0.25'
+          READ(6,*)
 
        END IF
 
-       IF ( verbose_level .GE. 1 ) WRITE(*,*) 'Limiters',limiter(1:n_vars)
+       IF ( verbose_level .GE. 1 ) WRITE(6,*) 'Limiters',limiter(1:n_vars)
 
        limiter(n_vars+1) = limiter(2)
        limiter(n_vars+2) = limiter(3)
@@ -2523,25 +2820,25 @@ CONTAINS
        IF ( ( MAXVAL(limiter(1:n_vars)) .GT. 3 ) .OR.                           &
             ( MINVAL(limiter(1:n_vars)) .LT. 0 ) ) THEN
 
-          WRITE(*,*) 'WARNING: wrong limiter ',limiter(1:n_vars)
-          WRITE(*,*) 'Choose among: none, minmod,superbee,van_leer'
-          STOP         
+          WRITE(0,*) 'WARNING: wrong limiter ',limiter(1:n_vars)
+          WRITE(0,*) 'Choose among: none, minmod,superbee,van_leer'
+          CALL EXIT(1)         
 
        END IF
 
        IF ( verbose_level .GE. 0 ) THEN
 
-          WRITE(*,*) 'Linear reconstruction and b. c. applied to variables:'
-          WRITE(*,*) 'h,hu,hv'
+          WRITE(6,*) 'Linear reconstruction and b. c. applied to variables:'
+          WRITE(6,*) 'h,hu,hv'
 
        END IF
 
        IF ( ( reconstr_coeff .GT. 1.0_wp ) .OR. ( reconstr_coeff .LT. 0.0_wp ) )&
             THEN
 
-          WRITE(*,*) 'WARNING: wrong value of reconstr_coeff ',reconstr_coeff
-          WRITE(*,*) 'Change the value between 0.0 and 1.0 in the input file'
-          READ(*,*)
+          WRITE(6,*) 'WARNING: wrong value of reconstr_coeff ',reconstr_coeff
+          WRITE(6,*) 'Change the value between 0.0 and 1.0 in the input file'
+          READ(6,*)
 
        END IF
 
@@ -2571,7 +2868,7 @@ CONTAINS
 
     CLOSE(bak_unit)
 
-    IF ( verbose_level .GE. 1 ) WRITE(*,*) 'end subroutine reainp'
+    IF ( verbose_level .GE. 1 ) WRITE(6,*) 'end subroutine reainp'
 
     RETURN
 
@@ -2594,15 +2891,7 @@ CONTAINS
     USE variables, ONLY : dakota_flag , hysplit_flag
 
     IMPLICIT NONE
-        
-    col_file = TRIM(run_name)//'.col'
-    sed_file = TRIM(run_name)//'.sed'
-    mom_file = TRIM(run_name)//'.mom'
-    dak_file = TRIM(run_name)//'.dak' 
-    hy_file = TRIM(run_name)//'.hy'
-    hy_file_volcgas = TRIM(run_name)//'_volcgas.hy'
-    inversion_file = TRIM(run_name)//'.inv'
-    
+
 
     n_unit = n_unit + 1
     col_unit = n_unit
@@ -2619,24 +2908,24 @@ CONTAINS
     
     OPEN(mom_unit,FILE=mom_file)
     
-    WRITE(mom_unit,*) n_part
-    WRITE(mom_unit,*) n_mom
-    
-
-    n_unit = n_unit + 1
-    hy_unit = n_unit
 
     IF ( hysplit_flag ) THEN
        
+       n_unit = n_unit + 1
+       hy_unit = n_unit
        OPEN(hy_unit,FILE=hy_file)
        
     END IF
 
-    n_unit = n_unit + 1
-    dak_unit = n_unit
+    IF ( dakota_flag) THEN
+    
+       n_unit = n_unit + 1
+       dak_unit = n_unit
+       
+       OPEN(dak_unit,FILE=dak_file)
 
-    OPEN(dak_unit,FILE=dak_file)
-
+    END IF
+       
     IF ( inversion_flag ) THEN
     
        n_unit = n_unit + 1
@@ -2675,8 +2964,8 @@ CONTAINS
 
     IF ( hysplit_flag ) CLOSE ( hy_unit )
 
-    IF ( .NOT. umbrella_flag ) CLOSE(dak_unit)
-
+    IF ( dakota_flag ) CLOSE ( dak_unit )
+    
     IF ( inversion_flag ) CLOSE ( inversion_unit )
     
     RETURN
@@ -2718,134 +3007,113 @@ CONTAINS
     INTEGER :: i_gas
 
     CHARACTER(15) :: mom_str
-    CHARACTER(LEN=2) :: i_part_string , i_sect_string
+    CHARACTER(LEN=2) :: i_part_str , i_sect_str , i_mom_str
     
     mfr = 3.14 * r**2 * rho_mix * w
 
-    ! WRITE(*,*) 'INPOUT: atm_mass_fraction',atm_mass_fraction
-    ! READ(*,*)
+    ! WRITE(6,*) 'INPOUT: atm_mass_fraction',atm_mass_fraction
+    ! READ(6,*)
 
+602 FORMAT(*(A16,:,","))
+604 FORMAT(*(A16,","))
+601 FORMAT(*(es16.9,:,","))
+603 FORMAT(*(es16.9,","))
+    
     IF ( z .EQ. vent_height ) THEN
 
        col_lines = 0
 
-       WRITE(col_unit,97,advance="no")
-       WRITE(sed_unit,96,advance="no")
+       WRITE(col_unit,604,advance="no") 'z(m)', 'r(m)', 'x(m)', 'y(m)',         &
+            'mix.dens(kg/m3)', 'temperature(C)', 'vert.vel.(m/s)',              &
+            'mag.vel.(m/s)', 'd.a.massfract', 'w.v.massfract', 'l.w.massfract', &
+            'i.massfract'
+       
+       WRITE(sed_unit,604,advance="no") 'z(m)', 'r(m)', 'x(m)', 'y(m)'
+
+       WRITE(mom_unit,604,advance="no") 'z(m)'
        
        DO i_part=1,n_part
 
           DO i_sect=1,n_sections
 
-             i_part_string = lettera(i_part)
-             i_sect_string = lettera(i_sect)
-             mom_str = '  rhoB'//i_part_string//'_'//i_sect_string
+             i_part_str = lettera(i_part)
+             i_sect_str = lettera(i_sect)
+             mom_str = '  rhoB'//i_part_str//'_'//i_sect_str
              
-             WRITE(col_unit,98,advance="no") mom_str
-             WRITE(sed_unit,98,advance="no") mom_str
+             WRITE(col_unit,604,advance="no") mom_str
+             WRITE(sed_unit,604,advance="no") mom_str
 
+             DO i_mom=0,n_mom-1
+
+                i_mom_str = lettera(i_mom)
+                mom_str = 'mom'//i_part_str//'_'//i_sect_str//'_'//i_mom_str
+                WRITE(mom_unit,604,advance="no") mom_str
+
+             END DO
+                
           END DO
              
        END DO
 
+       WRITE(sed_unit,*) ''
+       WRITE(mom_unit,*) ''
+       
        DO i_gas=1,n_gas
           
-          WRITE(col_unit,99,advance="no")
+          WRITE(col_unit,602,advance="no") 'volgas.massf'
           
        END DO
        
-       WRITE(col_unit,100)
-
-       WRITE(sed_unit,*) ''
-       
-96     FORMAT(1x,'     z(m)      ',1x,'       r(m)     ',1x,'      x(m)     ',  &
-            1x,'     y(m)      ')
-
-97     FORMAT(1x,'     z(m)      ',1x,'       r(m)     ',1x,'      x(m)     ',  &
-            1x,'     y(m)      ',1x,'mix.dens(kg/m3)',1x,'temperature(C)',      &
-            1x,' vert.vel.(m/s)',1x,' mag.vel.(m/s) ',1x,' d.a.massfract ',     &
-            1x,' w.v.massfract ',1x,' l.w.massfract ',1x' i.massfract ',1x)
-
-
-       
-98     FORMAT(1x,A15)
-198    FORMAT(1x,'agr.massfract ')
-
-99     FORMAT(1x,'  volgas.massf ')
-       
-100     FORMAT(1x,' volgasmix.massf',1x,'atm.rho(kg/m3)',1x,' MFR(kg/s)      ', &
-             1x,'atm.temp(K)   ', 1x,' atm.pres.(Pa) ', 1x,' U_atm.(m/s) ', &
-             1x,' V_atm.(m/s) ')
-       
+       WRITE(col_unit,602) 'volgasmix.massf', 'atm.rho(kg/m3)', 'MFR(kg/s)',    &
+            'atm.temp(K)', 'atm.pres.(Pa)', 'U_atm.(m/s)', 'V_atm.(m/s)'
 
     END IF
 
     col_lines = col_lines + 1
 
-    WRITE(col_unit,101,advance="no") z , r , x , y , rho_mix , t_mix-273.15_wp ,&
+    WRITE(col_unit,603,advance="no") z , r , x , y , rho_mix , t_mix-273.15_wp ,&
          w , mag_u, dry_air_mass_fraction , water_vapor_mass_fraction ,         & 
          liquid_water_mass_fraction , ice_mass_fraction
 
-    WRITE(sed_unit,141,advance="no") z , r , x , y
+    WRITE(sed_unit,603,advance="no") z , r , x , y
 
-101 FORMAT(12(1x,es16.9))
-141 FORMAT(4(1x,es16.9))
-    
     DO i_part=1,n_part
 
        DO i_sect=1,n_sections
 
-          WRITE(col_unit,102,advance="no") mom(1,i_sect,i_part)
-          WRITE(sed_unit,102,advance="no") ABS(cum_particle_loss_rate(i_part,i_sect))
-          
+          WRITE(col_unit,603,advance="no") mom(1,i_sect,i_part)
+          WRITE(sed_unit,603,advance="no") ABS(cum_particle_loss_rate(i_part,i_sect))
+                    
+          DO i_mom=0,n_mom-1
+
+             WRITE(mom_unit,603,advance="no")  mom(i_mom,i_sect,i_part)
+
+          END DO
+                          
        END DO
 
     END DO
-       
-102 FORMAT(1(1x,es16.9))
 
+    WRITE(sed_unit,*) ''
+    WRITE(mom_unit,*) ''
+    
     ! Added atmospheric wind component FP
     !WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
     !     volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_atm
 
-    WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
+    WRITE(col_unit,601) volcgas_mass_fraction(1:n_gas) ,                        &
          volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_wind , v_wind
 
-    WRITE(sed_unit,*) ''
 
-    
-103 FORMAT(20(1x,es16.9))
-
-    WRITE(mom_unit,104,advance="no") z
-
-104 FORMAT(1(1x,es15.8))
-
-   DO i_mom=0,n_mom-1
-
-      DO i_sect=1,n_sections
-
-         DO i_part=1,n_part
-  
-            WRITE(mom_unit,105,advance="no")  mom(i_mom,i_sect,i_part)
-
-         END DO
-
-      END DO
-
-   END DO
-
-105 FORMAT(1(1x,es16.9))
-
-    WRITE(mom_unit,*) " "
-    
     IF ( verbose_level .GE. 1 ) THEN
        
-       WRITE(*,*) '******************'
-       WRITE(*,*) 'z',z
-       WRITE(*,*) 'x',x
-       WRITE(*,*) 'y',y
-       WRITE(*,*) 'r',r
-       WRITE(*,*) 'w',w
-       WRITE(*,*) '******************'
+       WRITE(6,*) '******************'
+       WRITE(6,*) 'z',z
+       WRITE(6,*) 'x',x
+       WRITE(6,*) 'y',y
+       WRITE(6,*) 'r',r
+       WRITE(6,*) 'w',w
+       WRITE(6,*) '******************'
        
     END IF
     
@@ -2879,7 +3147,7 @@ CONTAINS
     
     IF ( verbose_level .GE. 2 ) THEN
 
-       WRITE(*,*) description,value
+       WRITE(6,*) description,value
        
     END IF
 
@@ -2946,8 +3214,12 @@ CONTAINS
     n_tot = n_part * n_sections
     
     OPEN(hy_unit,FILE=hy_file)
+
+604 FORMAT(*(A16,","))
+603 FORMAT(*(es16.9,","))    
     
-    WRITE(hy_unit,107,advance="no")
+    WRITE(hy_unit,604,advance="no") 'x (m)', 'y (m)', 'z (m)', 'r (m)',         &
+         'u_atm (m/s)', 'v_atm (m/s)', 'rho_mix (kg/m3)', 'mfr (kg/s)'
     
     DO i_part=1,n_part
 
@@ -2957,7 +3229,7 @@ CONTAINS
           
           WRITE(x2,'(I2.2)') i_sect ! converting integer to string
                     
-          WRITE(hy_unit,108,advance="no")'S_'//trim(x1)//'_'//trim(x2)//' (kg/s)'
+          WRITE(hy_unit,604,advance="no") 'S_'//trim(x1)//'_'//trim(x2)//' (kg/s)'
        
        END DO
 
@@ -2969,7 +3241,7 @@ CONTAINS
     
     delta_solid(1:n_part) = 0.0_wp
    
-    WRITE(hy_unit,110) 0.0_wp , 0.0_wp  , vent_height + 0.50_wp * hy_deltaz ,   &
+    WRITE(hy_unit,603) 0.0_wp , 0.0_wp  , vent_height + 0.50_wp * hy_deltaz ,   &
          0.0_wp , 0.0_wp , 0.0_wp , 0.0_wp , 0.0_wp , delta_solid(1:n_part)
 
     DEALLOCATE( delta_solid )
@@ -3074,8 +3346,9 @@ CONTAINS
 
     DO i = 1,col_lines
 
-       READ(read_col_unit,111) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
-	    rho_mix_col(i) , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf ,      &
+       ! changed format from 111 to 611
+       READ(read_col_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
+	    rho_mix_col(i) , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf,&
             mom_col(1:n_tot,i) , volcgas_mf(1:n_gas,i) , volcgas_tot_mf ,       &
             rho_atm , mfr_col(i) , ta, pa, u_atm_col(i) , v_atm_col(i)
 
@@ -3085,18 +3358,18 @@ CONTAINS
        volcgas_mass_flux(1:n_gas,i) = volcgas_mf(1:n_gas,i)                     &
             * rho_mix_col(i) * pi_g * r_col(i)**2 * w 
 
-       !WRITE(*,*) 'Solid mass flux (kg/s): ',solid_mass_flux(1:n_tot,i)
-       !WRITE(*,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
-       !WRITE(*,*) 'solid_pmf: ',solid_pmf(1:n_tot,i)
-       !WRITE(*,*) 'Sum solid mass fractions: ',SUM(solid_pmf(1:n_tot,i))
-       !WRITE(*,*) z_col(i) , solid_mass_loss_cum(1:n_tot,i)
-       !READ(*,*)
-       !WRITE(*,*) 'volcgas_mass_flux ',volcgas_mass_flux(1:n_gas,i), z_col(i)
-       !READ(*,*)
+       !WRITE(6,*) 'Solid mass flux (kg/s): ',solid_mass_flux(1:n_tot,i)
+       !WRITE(6,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
+       !WRITE(6,*) 'solid_pmf: ',solid_pmf(1:n_tot,i)
+       !WRITE(6,*) 'Sum solid mass fractions: ',SUM(solid_pmf(1:n_tot,i))
+       !WRITE(6,*) z_col(i) , solid_mass_loss_cum(1:n_tot,i)
+       !READ(6,*)
+       !WRITE(6,*) 'volcgas_mass_flux ',volcgas_mass_flux(1:n_gas,i), z_col(i)
+       !READ(6,*)
 
     END DO
-
-111 FORMAT(90(1x,es16.9))
+        
+611 FORMAT(*(es16.9))
 
     CLOSE(read_col_unit)    
   
@@ -3109,18 +3382,21 @@ CONTAINS
 
     DO i = 1,col_lines
 
-       READ(read_sed_unit,112) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
+       READ(read_sed_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
             solid_mass_loss_cum(1:n_tot,i)
 
     END DO
 
-112    FORMAT(200(1x,es16.9))
-
     CLOSE(read_sed_unit)  
 
     OPEN(hy_unit,FILE=hy_file)
+
+604 FORMAT(*(A16,","))
+603 FORMAT(*(es16.9,","))    
     
-    WRITE(hy_unit,107,advance="no")
+    WRITE(hy_unit,604,advance="no") 'x (m)', 'y (m)', 'z (m)', 'r (m)',         &
+         'u_atm (m/s)', 'v_atm (m/s)', 'rho_mix (kg/m3)', 'mfr (kg/s)'
+
     
     DO i_part=1,n_part
 
@@ -3130,7 +3406,7 @@ CONTAINS
           
           WRITE(x2,'(I2.2)') i_sect ! converting integer to string
                     
-          WRITE(hy_unit,108,advance="no")'S_'//trim(x1)//'_'//trim(x2)//' (kg/s)'
+          WRITE(hy_unit,604,advance="no")'S_'//trim(x1)//'_'//trim(x2)//' (kg/s)'
        
        END DO
 
@@ -3206,13 +3482,13 @@ CONTAINS
                   0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
                   0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
 
-             !READ(*,*)
+             !READ(6,*)
              
           END IF
 
           IF ( particles_loss ) THEN
            
-              WRITE(hy_unit,110) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
+              WRITE(hy_unit,603) 0.5_wp * ( x_top+x_bot ) , 0.5_wp * ( y_top+y_bot ) ,&
                    0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) , &
                    0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
                    0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
@@ -3243,11 +3519,11 @@ CONTAINS
              dy = 0.5_wp* ( r_bot + r_top ) * SIN(start_angle + angle_release)
              dz = 0.0_wp
 
-             !WRITE(*,*) "dx,dy ",dx,dy
-             !WRITE(*,*) "start_angle ",start_angle
-             !WRITE(*,*) "angle_release ",angle_release
-             !WRITE(*,*) "delta_angle ",delta_angle
-             !READ(*,*)
+             !WRITE(6,*) "dx,dy ",dx,dy
+             !WRITE(6,*) "start_angle ",start_angle
+             !WRITE(6,*) "angle_release ",angle_release
+             !WRITE(6,*) "delta_angle ",delta_angle
+             !READ(6,*)
 
 
              IF ( verbose_level .GE. 1 ) THEN
@@ -3266,7 +3542,7 @@ CONTAINS
 
              IF ( particles_loss ) THEN
              
-                WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+                WRITE(hy_unit,603)   0.5_wp * ( x_top + x_bot ) + dx ,              &
                      0.5_wp * ( y_top + y_bot ) + dy ,                              &
                      0.5_wp * ( z_top + z_bot ) + dz ,                              &
                      0.5_wp * ( r_top + r_bot ) ,                                   &
@@ -3344,7 +3620,7 @@ CONTAINS
 
        IF ( particles_loss ) THEN
        
-          WRITE(hy_unit,110) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
+          WRITE(hy_unit,603) 0.5_wp * ( x_top + x_bot ) , 0.5_wp * ( y_top+y_bot ) , &
                0.5_wp * ( z_top + z_bot ) , 0.5_wp * ( r_top + r_bot ) ,          &
                0.5_wp * ( u_atm_top + u_atm_bot ) , 0.5_wp * ( v_atm_top + v_atm_bot ) , &
                0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
@@ -3390,7 +3666,7 @@ CONTAINS
 
           IF ( particles_loss ) THEN
           
-             WRITE(hy_unit,110)   0.5_wp * ( x_top + x_bot ) + dx ,              &
+             WRITE(hy_unit,603)   0.5_wp * ( x_top + x_bot ) + dx ,              &
                   0.5_wp * ( y_top + y_bot ) + dy ,                              &
                   0.5_wp * ( z_top + z_bot ) + dz ,                              &
                   0.5_wp * ( r_top + r_bot ) ,                                   &
@@ -3415,16 +3691,12 @@ CONTAINS
  
     END IF
 
-    WRITE(hy_unit,110) x_top , y_top , z_top , r_top ,           &
+    WRITE(hy_unit,603) x_top , y_top , z_top , r_top ,           &
           u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_solid(1:n_tot)
 
 
-    ! WRITE(*,*) 'z_max',z_max
-    WRITE(*,*) 'Solid mass released in the atmosphere (kg/s): ',SUM(solid_tot)
-
-107 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ', 1x,'     r (m)     ', 1x, &
-           '     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', 1x,'     rho_mix (kg/m3)     ', &
-           1x,'     mfr (kg/s)     ')
+    ! WRITE(6,*) 'z_max',z_max
+    WRITE(6,*) 'Solid mass released in the atmosphere (kg/s): ',SUM(solid_tot)
     
 108 FORMAT(2x,A)
     
@@ -3435,13 +3707,15 @@ CONTAINS
 
     OPEN(hy_unit_volcgas,FILE=hy_file_volcgas)
     
-    WRITE(hy_unit_volcgas,207,advance="no")
+    WRITE(hy_unit_volcgas,604,advance="no") 'x (m)', 'y (m)', 'z (m)', 'r (m)', &
+         'u_atm (m/s)', 'v_atm (m/s)', 'rho_mix (kg/m3)', 'mfr (kg/s)'
+    
     
     DO i=1,n_gas
        
        WRITE(x1,'(I2.2)') i ! converting integer to string using a 'internal file'
        
-       WRITE(hy_unit_volcgas,208,advance="no") 'VG fr '//trim(x1)//' (kg/s)'
+       WRITE(hy_unit_volcgas,604,advance="no") 'VG fr '//trim(x1)//' (kg/s)'
        
     END DO
 
@@ -3461,14 +3735,14 @@ CONTAINS
     END IF
 
   
-    ! WRITE(*,*) 'z_min',z_min
+    ! WRITE(6,*) 'z_min',z_min
   
     n_hy = FLOOR( ( z_max - z_min ) / hy_deltaz )
 
     z_bot = z_min + n_hy * hy_deltaz
     z_top = z_max
 
-    !WRITE(*,*) 'volcgas_mass_flux : ',volcgas_mass_flux(n_gas,:)
+    !WRITE(6,*) 'volcgas_mass_flux : ',volcgas_mass_flux(n_gas,:)
     DO j = 1,n_gas
        
 
@@ -3499,8 +3773,8 @@ CONTAINS
 
     END DO
   
-    !WRITE(*,*) 'cloud_gas(j) : ',gas_top
-    !WRITE(*,*) 'cloud_gas(1:n_gas) : ',cloud_gas(1:n_gas)
+    !WRITE(6,*) 'cloud_gas(j) : ',gas_top
+    !WRITE(6,*) 'cloud_gas(1:n_gas) : ',cloud_gas(1:n_gas)
 
     ! Added 08/03/2021 FP
     IF ( verbose_level .GE. 1 ) THEN
@@ -3510,14 +3784,9 @@ CONTAINS
  
     END IF
 
-    WRITE(hy_unit_volcgas,210) x_top , y_top , z_top , r_top ,           &
-          u_atm_top, v_atm_top, rho_mix_top, mfr_top, cloud_gas(1:n_gas)
+    WRITE(hy_unit_volcgas,603) x_top , y_top , z_top , r_top , u_atm_top,       &
+         v_atm_top, rho_mix_top, mfr_top, cloud_gas(1:n_gas)
 
-207 FORMAT(1x,'     x (m)     ',1x,'      y (m)    ', 1x,'     z (m)     ', 1x,'     r (m)     ', &
-           1x,'     u_atm (m/s)     ', 1x,'     v_atm (m/s)     ', 1x,'     rho_mix (kg/m3)     ',1x,'     mfr (kg/s)     ')
-    
-208 FORMAT(2x,A)
-    
 210 FORMAT(33(1x,e15.8))
 
     RETURN
@@ -3652,17 +3921,17 @@ CONTAINS
 
     IF ( verbose_level .GE. 1 ) THEN
        
-       WRITE(*,*) 'MassL'
+       WRITE(6,*) 'MassL'
        WRITE(*,"(30ES8.1)") MassL
-       WRITE(*,*) 'MassR'
+       WRITE(6,*) 'MassR'
        WRITE(*,"(30ES8.1)") MassR
-       WRITE(*,*) 'Mass'
+       WRITE(6,*) 'Mass'
        WRITE(*,"(30ES8.1)") Mass
-       WRITE(*,*) 'Number'
+       WRITE(6,*) 'Number'
        WRITE(*,"(30ES8.1)") Number
 
 
-       READ(*,*)
+       READ(6,*)
 
     END IF
     

@@ -98,7 +98,7 @@ CONTAINS
 
     IF (xx .LE. 0) THEN
        
-       WRITE(*,*) "bad arg in gammln"
+       WRITE(6,*) "bad arg in gammln"
        gammln = 0.0_wp
 
     ELSE
