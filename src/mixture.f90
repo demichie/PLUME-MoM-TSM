@@ -204,7 +204,7 @@ CONTAINS
 
     REAL(wp) :: enth_at_vent
 
-    REAL(wp) :: mixt_enth , check_enth
+    REAL(wp) :: mixt_enth , check_enth , added_water_enth
 
     REAL(wp) :: erupted_mass_Fraction
 
@@ -332,9 +332,16 @@ CONTAINS
     ! WRITE(*,*) 'alfa_s',alfa_s
 
     !---------- Specific enthalpy after addition of external water --------------
+    added_water_enth = h_lw0+c_lw * ( added_water_temp-T_ref )
     mixt_enth = erupted_mass_fraction * enth_at_vent +                          &
-         added_water_mass_fraction * ( h_lw0+c_lw * ( added_water_temp-T_ref ) )
+         added_water_mass_fraction * added_water_enth
 
+    IF ( added_water_mass_fraction .GT. 0.0_wp ) THEN
+
+       WRITE(*,*) 'Added water enthalpy =', added_water_enth
+
+    END IF
+    
     ! The new temperature and the partitioning of water is computed
 
     CALL eval_temp(mixt_enth,pa,cpsolid)
