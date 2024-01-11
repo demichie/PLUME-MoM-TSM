@@ -41,9 +41,15 @@
 
 PROGRAM plume_model
   
-  USE inpout, ONLY: initialize , read_inp , check_hysplit
+  USE inpout, ONLY: initialize , read_inp , check_hysplit , inp_file
   
-  USE inpout, ONLY: open_file_units , close_file_units
+  USE inpout, ONLY: open_file_units , close_file_units , run_name
+
+  USE inpout, ONLY: col_file, sed_file, mom_file, hy_file, hy_file_volcgas
+
+  USE inpout, ONLY: dak_file, inversion_file
+
+  USE inpout, ONLY: args, num_args
 
   USE inversion, ONLY: invert_height
   
@@ -61,15 +67,40 @@ PROGRAM plume_model
  
   REAL(wp) :: t1 , t2
 
-  WRITE(*,*)
-  WRITE(*,*)
-  WRITE(*,*) '-------------------- PlumeMoM V.2 ---------------------'
-  WRITE(*,*)
-  WRITE(*,*) 'Created by M.de'' Michieli Vitturi(1) and F.Pardini (1)'
-  WRITE(*,*) ''
-  WRITE(*,*) '(1) Istituto Nazionale di Geofisica e Vulcanologia'
-  WRITE(*,*) '    Sezione Pisa, Pisa, Italy'
-  WRITE(*,*)
+  integer :: ix
+
+  num_args = command_argument_count()
+  allocate(args(num_args))
+  
+  do ix = 1, num_args
+     call get_command_argument(ix,args(ix))
+     ! WRITE(6,*) args(ix)
+     ! now parse the argument as you wish
+  end do
+
+  inp_file = 'plume_model.inp'
+
+  do ix = 1, num_args
+
+     if ( (args(ix)=="-i") .AND. (ix<num_args) ) THEN
+
+        inp_file = args(ix+1)
+        WRITE(6,*) "Input file from command line: ",inp_file
+
+     end if
+
+  end do
+
+
+  WRITE(6,*)
+  WRITE(6,*)
+  WRITE(6,*) '-------------------- PlumeMoM V.2 ---------------------'
+  WRITE(6,*)
+  WRITE(6,*) 'Created by M.de'' Michieli Vitturi(1) and F.Pardini (1)'
+  WRITE(6,*) ''
+  WRITE(6,*) '(1) Istituto Nazionale di Geofisica e Vulcanologia'
+  WRITE(6,*) '    Sezione Pisa, Pisa, Italy'
+  WRITE(6,*)
   
   CALL cpu_time(t1)
 
@@ -120,6 +151,8 @@ PROGRAM plume_model
   
   CALL cpu_time(t2)
 
-  WRITE(*,*) 'Time taken by the code was',t2-t1,'seconds'
+  WRITE(6,*) 'Time taken by the code was',t2-t1,'seconds'
 
+  CALL EXIT(0)
+  
 END PROGRAM plume_model

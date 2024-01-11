@@ -66,18 +66,18 @@ CONTAINS
 
        IF ( .NOT.isSet(r0) ) THEN
 
-          WRITE(*,*) 'Inversion: Searching for velocity/radius'
+          WRITE(6,*) 'Inversion: Searching for velocity/radius'
           w0 = 100.0_wp
           CALL velocity_radius_search
           
        ELSE
 
-          WRITE(*,*) 'Inversion: Searching for velocity'
+          WRITE(6,*) 'Inversion: Searching for velocity'
           w0 = 100.0_wp
           
           CALL velocity_search(w_opt,search_flag)
-          WRITE(*,*) 'Plume_height [m] =',opt_height,search_flag
-          WRITE(*,*) 'Velocity [m/s] =',w_opt
+          WRITE(6,*) 'Plume_height [m] =',opt_height,search_flag
+          WRITE(6,*) 'Velocity [m/s] =',w_opt
 
           CALL WRITE_INVERSION(r0,w_opt,opt_mfr,opt_height,search_flag, &
                opt_regime)
@@ -93,12 +93,12 @@ CONTAINS
 
        IF ( .NOT.isSet(r0) ) THEN
           
-          WRITE(*,*) 'Inversion: Searching for radius'
+          WRITE(6,*) 'Inversion: Searching for radius'
           r0 = 50.0_wp
           
           CALL radius_search(r_opt,search_flag)
-          WRITE(*,*) 'Best height [m] =',opt_height,search_flag
-          WRITE(*,*) 'Radius [m] =',r_opt
+          WRITE(6,*) 'Best height [m] =',opt_height,search_flag
+          WRITE(6,*) 'Radius [m] =',r_opt
 
           CALL WRITE_INVERSION(r0,w_opt,opt_mfr,opt_height,search_flag, &
                opt_regime)
@@ -109,7 +109,7 @@ CONTAINS
 
        ELSE
 
-          WRITE(*,*) 'No Inversion: radius and velocity fixed in input file'
+          WRITE(6,*) 'No Inversion: radius and velocity fixed in input file'
           
           write_flag = .TRUE.
           CALL plumerise
@@ -149,7 +149,7 @@ CONTAINS
     DO i=0,n_values-1
 
        r0 = r_min * (r_max/r_min)**( i / (n_values-1.0_wp) )
-       ! WRITE(*,*) 'r0 =',r0
+       ! WRITE(6,*) 'r0 =',r0
        CALL velocity_search(w_opt,search_flag)
        WRITE(*,101) r0,w_opt,opt_mfr,opt_height,search_flag, opt_regime
 
@@ -200,7 +200,7 @@ CONTAINS
     w0_init = SQRT(w_max*w_min)
     w0 = w0_init
 
-    !WRITE(*,*) 'w0 = ',w0
+    !WRITE(6,*) 'w0 = ',w0
     CALL plumerise
 
     IF ( ( umbrella_flag ) .OR. ( nbl_stop ) ) THEN
@@ -213,7 +213,7 @@ CONTAINS
        
     END IF
     
-    !WRITE(*,*) 'first solve',w0,plume_height,INT(column_regime)
+    !WRITE(6,*) 'first solve',w0,plume_height,INT(column_regime)
 
     w_opt = w0
     opt_value = ABS(check_height-height_obj)
@@ -263,7 +263,7 @@ CONTAINS
           
        END IF
 
-       !WRITE(*,*) 'search_interval',w0,plume_height,INT(column_regime)
+       !WRITE(6,*) 'search_interval',w0,plume_height,INT(column_regime)
 
        IF ( (check_height-height_obj)*init_sign .LT. 0.0_wp ) EXIT search_interval
        
@@ -271,7 +271,7 @@ CONTAINS
 
     IF ( iter_interval .EQ. 5 ) THEN
 
-       !WRITE(*,*) 'optimal velocity not found in the interval',w0_init,w0
+       !WRITE(6,*) 'optimal velocity not found in the interval',w0_init,w0
        w0 = w0_init
        search_flag = .FALSE.
        return
@@ -301,7 +301,7 @@ CONTAINS
 
        w0 = 0.5_wp * ( w0_0 + w0_2 )
 
-       !WRITE(*,*) 'search_zero',r0,w0,w0_0,w0_2
+       !WRITE(6,*) 'search_zero',r0,w0,w0_0,w0_2
        
        CALL plumerise
 
@@ -325,10 +325,10 @@ CONTAINS
 
        END IF
        
-       !WRITE(*,*) 'plume_height,regime',plume_height,INT(column_regime)
-       !WRITE(*,*) 'w0_0,w0_2',w0_0,w0_2
-       !WRITE(*,*) 'plume_0,plume_2',plume_height_0,plume_height_2
-       !READ(*,*)
+       !WRITE(6,*) 'plume_height,regime',plume_height,INT(column_regime)
+       !WRITE(6,*) 'w0_0,w0_2',w0_0,w0_2
+       !WRITE(6,*) 'plume_0,plume_2',plume_height_0,plume_height_2
+       !READ(6,*)
 
        IF ( ABS(plume_height_0-plume_height_2) .LT. 1.E-3_wp ) EXIT search_zero
        IF ( ABS(check_height-height_obj)/height_obj .LT. 1.E-5_wp ) EXIT search_zero
@@ -396,7 +396,7 @@ CONTAINS
     r0_init = r0
 
     CALL plumerise
-    !WRITE(*,*) 'first solve',r0,plume_height,INT(column_regime)
+    !WRITE(6,*) 'first solve',r0,plume_height,INT(column_regime)
 
     r_opt = r0
     
@@ -447,7 +447,7 @@ CONTAINS
           
        END IF
        
-       !WRITE(*,*) 'search interval',r0,plume_height,INT(column_regime)
+       !WRITE(6,*) 'search interval',r0,plume_height,INT(column_regime)
 
        IF ( ABS(check_height-height_obj) .LT. opt_value ) THEN
 
@@ -463,11 +463,11 @@ CONTAINS
        
     END DO search_interval
 
-    !WRITE(*,*) 'iter_interval',iter_interval
+    !WRITE(6,*) 'iter_interval',iter_interval
     
     IF ( iter_interval .EQ. 6 ) THEN
 
-       !WRITE(*,*) 'optimal velocity not found in the interval',r0_init,r0
+       !WRITE(6,*) 'optimal velocity not found in the interval',r0_init,r0
        r0 = r0_init
        search_flag = .FALSE.
        RETURN
@@ -520,10 +520,10 @@ CONTAINS
 
        END IF
        
-       !WRITE(*,*) 'search_zero',r0,check_height,INT(column_regime)
-       !WRITE(*,*) 'r0_0,r0_2',r0_0,r0_2
-       !WRITE(*,*) 'plume_0,height_obj,plume_2',plume_height_0,height_obj,plume_height_2
-       !READ(*,*)
+       !WRITE(6,*) 'search_zero',r0,check_height,INT(column_regime)
+       !WRITE(6,*) 'r0_0,r0_2',r0_0,r0_2
+       !WRITE(6,*) 'plume_0,height_obj,plume_2',plume_height_0,height_obj,plume_height_2
+       !READ(6,*)
 
        IF ( ABS(plume_height_0-plume_height_2) .LT. 1.E-3_wp ) EXIT search_zero
        IF ( ABS(check_height-height_obj)/height_obj .LT. 1.E-5_wp ) EXIT search_zero

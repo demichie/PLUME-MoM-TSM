@@ -452,7 +452,7 @@ CONTAINS
 
        END IF
 
-       ! WRITE(*,*) sphu_atm 
+       ! WRITE(6,*) sphu_atm 
        
        ! Density of dry air
        rho_dry = pa / ( rair*ta )
@@ -489,16 +489,16 @@ CONTAINS
 
     IF ( verbose_level .GE. 2 ) THEN
        
-       WRITE(*,*) 'Height (asl) = ',z
-       WRITE(*,*) 'Ambient temperature (K) = ',Ta
-       WRITE(*,*) 'Ambient pressure (Pa) = ', pa
+       WRITE(6,*) 'Height (asl) = ',z
+       WRITE(6,*) 'Ambient temperature (K) = ',Ta
+       WRITE(6,*) 'Ambient pressure (Pa) = ', pa
        IF ( read_atm_profile .EQ. 'standard' ) THEN 
-          WRITE(*,*) 'Dry atmosphere density (kg m-3) = ',rho_dry
+          WRITE(6,*) 'Dry atmosphere density (kg m-3) = ',rho_dry
        END IF
-       WRITE(*,*) 'Moist atmosphere density (kg m-3) = ',rho_atm
-       WRITE(*,*) 'Atmosphere viscosity = ',visc_atm
-       WRITE(*,*) 'Wind speed (m s-1) = ',u_atm
-       READ(*,*)
+       WRITE(6,*) 'Moist atmosphere density (kg m-3) = ',rho_atm
+       WRITE(6,*) 'Atmosphere viscosity = ',visc_atm
+       WRITE(6,*) 'Wind speed (m s-1) = ',u_atm
+       READ(6,*)
 
     END IF
 

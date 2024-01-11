@@ -154,7 +154,7 @@ CONTAINS
 
     REAL(wp) :: rate_mom , f_mom , coeff_mom
     
-    !WRITE(*,*) 'mag_u',mag_u
+    !WRITE(6,*) 'mag_u',mag_u
 
     cos_phi = SQRT( u**2+v**2 ) / mag_u
     sin_phi = w / mag_u
@@ -196,7 +196,7 @@ CONTAINS
 
        alpha_p = MAX( 0.0_wp , 0.5_wp * C + ( 1.0_wp - 1.0_wp / A ) * Ri )
 
-       !WRITE(*,*) 's_star,Ri,alpha_p',s_star,Ri,alpha_p
+       !WRITE(6,*) 's_star,Ri,alpha_p',s_star,Ri,alpha_p
 
     ELSE
 
@@ -434,7 +434,7 @@ CONTAINS
     f_(3) = f_(1) * v
     f_(4) = f_(1) * w
     
-    !WRITE(*,*) 'dry_air_mass_fraction',dry_air_mass_fraction
+    !WRITE(6,*) 'dry_air_mass_fraction',dry_air_mass_fraction
 
     mixture_enthalpy = dry_air_mass_fraction * cpair * t_mix                    &
          + solid_tot_mass_fraction * cpsolid * t_mix                            & 
@@ -512,11 +512,11 @@ CONTAINS
 
        fnew(i) = fold(i) + rate(i) * dz
 
-       ! WRITE(*,*) 'marching: i,fold(i),rate(i),dz',i,fold(i),rate(i),dz 
+       ! WRITE(6,*) 'marching: i,fold(i),rate(i),dz',i,fold(i),rate(i),dz 
 
     END DO
 
-    ! READ(*,*)
+    ! READ(6,*)
     
     RETURN
 
@@ -657,8 +657,8 @@ CONTAINS
        
        IF ( verbose_level .GE. 3 ) THEN
           
-          WRITE(*,*) 'rvolcgas_mix :', rvolcgas_mix
-          WRITE(*,*) 'cpvolcgas_mix :', cpvolcgas_mix
+          WRITE(6,*) 'rvolcgas_mix :', rvolcgas_mix
+          WRITE(6,*) 'cpvolcgas_mix :', cpvolcgas_mix
           
        END IF
        
@@ -713,18 +713,18 @@ CONTAINS
 
        IF ( verbose_level .GE. 2 ) THEN
 
-          WRITE(*,*) 'i_part',i_part
-          WRITE(*,*) 'rhoB_solid_w_r2',rhoB_solid_w_r2(i_part)
-          WRITE(*,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
-          WRITE(*,*) 'mom(0,1,i_part)',mom(0,1,i_part)
-          WRITE(*,*) 'mom(1,1,i_part)',mom(1,1,i_part)
+          WRITE(6,*) 'i_part',i_part
+          WRITE(6,*) 'rhoB_solid_w_r2',rhoB_solid_w_r2(i_part)
+          WRITE(6,*) 'i_part,rho_solid_avg',i_part, rho_solid_avg(i_part)
+          WRITE(6,*) 'mom(0,1,i_part)',mom(0,1,i_part)
+          WRITE(6,*) 'mom(1,1,i_part)',mom(1,1,i_part)
 
           DO i_sect=1,n_sections
 
-             WRITE(*,*) 'i_part,i_sect',i_part,i_sect
-             WRITE(*,*) 'mom(0,1,i_part)',mom(0,i_sect,i_part)
-             WRITE(*,*) 'mom(1,1,i_part)',mom(1,i_sect,i_part)
-             WRITE(*,*) 'f_quad(:,i_sect,i_part)',f_quad(:,i_sect,i_part)
+             WRITE(6,*) 'i_part,i_sect',i_part,i_sect
+             WRITE(6,*) 'mom(0,1,i_part)',mom(0,i_sect,i_part)
+             WRITE(6,*) 'mom(1,1,i_part)',mom(1,i_sect,i_part)
+             WRITE(6,*) 'f_quad(:,i_sect,i_part)',f_quad(:,i_sect,i_part)
 
           END DO
                    
@@ -748,18 +748,18 @@ CONTAINS
 
     IF ( verbose_level .GE. 2 ) THEN
        
-       WRITE(*,*)
-       WRITE(*,*) 't_mix',t_mix
-       WRITE(*,*) 'enth',enth
-       WRITE(*,*) 'mag_u',mag_u
-       WRITE(*,*) 'cpsolid',cpsolid
-       WRITE(*,*) 'solid_tot_mass_fraction',solid_tot_mass_fraction
-       WRITE(*,*) 'water_mass_fraction', water_mass_fraction
-       WRITE(*,*) 'volcgas_mix_mass_fraction', volcgas_mix_mass_fraction
-       WRITE(*,*) 'dry_air_mass_fraction', dry_air_mass_fraction
-       WRITE(*,*) 'water_vapor_mass_fraction', water_vapor_mass_fraction
-       WRITE(*,*) 'ice_mass_fraction',ice_mass_fraction
-       READ(*,*)
+       WRITE(6,*)
+       WRITE(6,*) 't_mix',t_mix
+       WRITE(6,*) 'enth',enth
+       WRITE(6,*) 'mag_u',mag_u
+       WRITE(6,*) 'cpsolid',cpsolid
+       WRITE(6,*) 'solid_tot_mass_fraction',solid_tot_mass_fraction
+       WRITE(6,*) 'water_mass_fraction', water_mass_fraction
+       WRITE(6,*) 'volcgas_mix_mass_fraction', volcgas_mix_mass_fraction
+       WRITE(6,*) 'dry_air_mass_fraction', dry_air_mass_fraction
+       WRITE(6,*) 'water_vapor_mass_fraction', water_vapor_mass_fraction
+       WRITE(6,*) 'ice_mass_fraction',ice_mass_fraction
+       READ(6,*)
        
     END IF
 
@@ -769,7 +769,7 @@ CONTAINS
 
     IF ( verbose_level .GE. 2 ) THEN
 
-       WRITE(*,*) 'liquid_water_mass_fraction',liquid_water_mass_fraction
+       WRITE(6,*) 'liquid_water_mass_fraction',liquid_water_mass_fraction
        
     END IF
        
@@ -795,12 +795,12 @@ CONTAINS
        
     IF ( verbose_level .GE. 3 ) THEN
 
-       WRITE(*,*)
-       WRITE(*,*) '*********************** UNLUMP ***********************'
-       WRITE(*,*) 'pa,t_mix',pa,t_mix
-       WRITE(*,*) 'rgasmix',rgasmix
+       WRITE(6,*)
+       WRITE(6,*) '*********************** UNLUMP ***********************'
+       WRITE(6,*) 'pa,t_mix',pa,t_mix
+       WRITE(6,*) 'rgasmix',rgasmix
     
-       WRITE(*,*) 'rho_gas,rhovolcgas_mix',rho_gas,rhovolcgas_mix
+       WRITE(6,*) 'rho_gas,rhovolcgas_mix',rho_gas,rhovolcgas_mix
 
     END IF
 
@@ -826,9 +826,9 @@ CONTAINS
     
     IF ( verbose_level .GE. 3 ) THEN
 
-       WRITE(*,*)
-       WRITE(*,*) 'w_r2,r,w',w_r2,r,w
-       WRITE(*,*)
+       WRITE(6,*)
+       WRITE(6,*) 'w_r2,r,w',w_r2,r,w
+       WRITE(6,*)
        
     END IF
            
@@ -849,22 +849,22 @@ CONTAINS
     
     IF ( verbose_level .GE. 3 ) THEN
 
-       WRITE(*,*) '*********** SUM(alfa_s(1:n_part))' ,                         &
+       WRITE(6,*) '*********** SUM(alfa_s(1:n_part))' ,                         &
             SUM(alfa_s_w_r2(1:n_part))/w_r2
-       WRITE(*,*) ' alfa_g', alfa_g_w_r2/ w_r2
-       WRITE(*,*) ' alfa_lw', alfa_lw_w_r2/ w_r2
-       WRITE(*,*) ( alfa_lw_w_r2 + alfa_ice_w_r2 + alfa_g_w_r2                  &
+       WRITE(6,*) ' alfa_g', alfa_g_w_r2/ w_r2
+       WRITE(6,*) ' alfa_lw', alfa_lw_w_r2/ w_r2
+       WRITE(6,*) ( alfa_lw_w_r2 + alfa_ice_w_r2 + alfa_g_w_r2                  &
             + SUM(alfa_s_w_r2(1:n_part)) ) / w_r2
        
-       WRITE(*,*) 'rho_gas',rho_gas
-       WRITE(*,*) '*********** SUM(alfa_s_w_r2(1:n_part))' ,                    &
+       WRITE(6,*) 'rho_gas',rho_gas
+       WRITE(6,*) '*********** SUM(alfa_s_w_r2(1:n_part))' ,                    &
             SUM(alfa_s_w_r2(1:n_part))
-       WRITE(*,*) 'w_r2,r,w',w_r2,r,w
-       WRITE(*,*) 'f_(1),rho_gas',f_(1),rho_gas
-       WRITE(*,*) 'rhoB_solid_tot_w_r2',rhoB_solid_tot_w_r2
-       WRITE(*,*) 'rho_mix',rho_mix
-       WRITE(*,*) 'alfa_g', alfa_g_w_r2 / w_r2
-       READ(*,*)
+       WRITE(6,*) 'w_r2,r,w',w_r2,r,w
+       WRITE(6,*) 'f_(1),rho_gas',f_(1),rho_gas
+       WRITE(6,*) 'rhoB_solid_tot_w_r2',rhoB_solid_tot_w_r2
+       WRITE(6,*) 'rho_mix',rho_mix
+       WRITE(6,*) 'alfa_g', alfa_g_w_r2 / w_r2
+       READ(6,*)
 
     END IF
 
@@ -907,65 +907,65 @@ CONTAINS
     
     IF ( verbose_level .GE. 2 ) THEN
        
-       WRITE(*,*) ''
-       WRITE(*,*) '************** UNLUMPED VARIABLES **************'
-       WRITE(*,*) 'pres',pa
-       WRITE(*,*) 'rgasmix',rgasmix
-       WRITE(*,*) 't_mix',t_mix
-       WRITE(*,*) 'u,v,w',u,v,w
-       WRITE(*,*) 'r',r
-       WRITE(*,*) 'z',z
-       WRITE(*,*) 'mass_flow_rate', pi_g * rho_mix * w * (r**2)
+       WRITE(6,*) ''
+       WRITE(6,*) '************** UNLUMPED VARIABLES **************'
+       WRITE(6,*) 'pres',pa
+       WRITE(6,*) 'rgasmix',rgasmix
+       WRITE(6,*) 't_mix',t_mix
+       WRITE(6,*) 'u,v,w',u,v,w
+       WRITE(6,*) 'r',r
+       WRITE(6,*) 'z',z
+       WRITE(6,*) 'mass_flow_rate', pi_g * rho_mix * w * (r**2)
        
-       WRITE(*,*) ''
-       WRITE(*,*) '************** DENSITIES **************'
-       WRITE(*,*) 'rho_gas',rho_gas       
-       WRITE(*,*) 'rho solids',rho_solid_avg
-       WRITE(*,*) 'rho solid tot avg',rho_solid_tot_avg
-       WRITE(*,*) 'rho_atm',rho_atm
-       WRITE(*,*) 'rho_mix',rho_mix
+       WRITE(6,*) ''
+       WRITE(6,*) '************** DENSITIES **************'
+       WRITE(6,*) 'rho_gas',rho_gas       
+       WRITE(6,*) 'rho solids',rho_solid_avg
+       WRITE(6,*) 'rho solid tot avg',rho_solid_tot_avg
+       WRITE(6,*) 'rho_atm',rho_atm
+       WRITE(6,*) 'rho_mix',rho_mix
 
-       WRITE(*,*) ''
-       WRITE(*,*) '************** VOLUME FRACTIONS **************'
-       WRITE(*,*) 'solid partial volume fractions',solid_partial_volume_fraction 
-       WRITE(*,*) 'solid tot volume fraction',solid_tot_volume_fraction       
-       WRITE(*,*) 'liquid water volume fraction',liquid_water_volume_fraction
-       WRITE(*,*) 'ice volume fraction',ice_volume_fraction
-       WRITE(*,*) 'gas volume fraction',gas_volume_fraction
-       WRITE(*,*) 'sum of previous four volume fractions',                      &
+       WRITE(6,*) ''
+       WRITE(6,*) '************** VOLUME FRACTIONS **************'
+       WRITE(6,*) 'solid partial volume fractions',solid_partial_volume_fraction 
+       WRITE(6,*) 'solid tot volume fraction',solid_tot_volume_fraction       
+       WRITE(6,*) 'liquid water volume fraction',liquid_water_volume_fraction
+       WRITE(6,*) 'ice volume fraction',ice_volume_fraction
+       WRITE(6,*) 'gas volume fraction',gas_volume_fraction
+       WRITE(6,*) 'sum of previous four volume fractions',                      &
             solid_tot_volume_fraction + liquid_water_volume_fraction +          &
             gas_volume_fraction + ice_volume_fraction
 
-       WRITE(*,*) ''
-       WRITE(*,*) '************** MASS FRACTIONS **************'
-       WRITE(*,*) 'solid partial mass fractions',solid_partial_mass_fraction 
-       WRITE(*,*) 'solid tot mass fraction',solid_tot_mass_fraction 
-       WRITE(*,*) 'liquid water mass fraction',liquid_water_mass_fraction
-       WRITE(*,*) 'ice mass fraction',ice_mass_fraction
-       WRITE(*,*) 'gas mass fraction',gas_mass_fraction
-       WRITE(*,*) 'sum of previous four mass fractions',                        &
+       WRITE(6,*) ''
+       WRITE(6,*) '************** MASS FRACTIONS **************'
+       WRITE(6,*) 'solid partial mass fractions',solid_partial_mass_fraction 
+       WRITE(6,*) 'solid tot mass fraction',solid_tot_mass_fraction 
+       WRITE(6,*) 'liquid water mass fraction',liquid_water_mass_fraction
+       WRITE(6,*) 'ice mass fraction',ice_mass_fraction
+       WRITE(6,*) 'gas mass fraction',gas_mass_fraction
+       WRITE(6,*) 'sum of previous four mass fractions',                        &
             solid_tot_mass_fraction + liquid_water_mass_fraction +              &
             gas_mass_fraction + ice_mass_fraction
 
-       WRITE(*,*) 
+       WRITE(6,*) 
 
-       WRITE(*,*) 'volcgas_mass_fractions',volcgas_mass_fraction
-       WRITE(*,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
-       WRITE(*,*) 'water vapor mass fraction',water_vapor_mass_fraction
-       WRITE(*,*) 'dry air mass fraction',dry_air_mass_fraction
-       WRITE(*,*) 'sum of previous three mass fractions',                       &
+       WRITE(6,*) 'volcgas_mass_fractions',volcgas_mass_fraction
+       WRITE(6,*) 'volcgas_mix_mass_fraction',volcgas_mix_mass_fraction
+       WRITE(6,*) 'water vapor mass fraction',water_vapor_mass_fraction
+       WRITE(6,*) 'dry air mass fraction',dry_air_mass_fraction
+       WRITE(6,*) 'sum of previous three mass fractions',                       &
             volcgas_mix_mass_fraction + water_vapor_mass_fraction +             &
             dry_air_mass_fraction
-       WRITE(*,*) 'liquid water mass fraction',liquid_water_mass_fraction
-       WRITE(*,*) 'ice mass fraction',ice_mass_fraction
+       WRITE(6,*) 'liquid water mass fraction',liquid_water_mass_fraction
+       WRITE(6,*) 'ice mass fraction',ice_mass_fraction
        
-       WRITE(*,*) ''
+       WRITE(6,*) ''
 
-       WRITE(*,*) 'Solid partial mass fractions'
+       WRITE(6,*) 'Solid partial mass fractions'
        
        DO i_part=1,n_part
           
-          WRITE(*,*) 'Particle phase:',i_part
+          WRITE(6,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part) /                  &
@@ -975,11 +975,11 @@ CONTAINS
              WRITE(*,"(30ES8.1)") mom(1,n_sections:1:-1,i_part)
           END IF
 
-          WRITE(*,*)
+          WRITE(6,*)
           
        END DO
 
-       READ(*,*)
+       READ(6,*)
 
     END IF
 

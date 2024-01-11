@@ -67,7 +67,7 @@ else:
 
 runtime=endemittime_round-starttime_round
 
-n_runs = int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # total number of plumemom runs
+n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # total number of plumemom runs
 
 if deltat_plumemom >= 3600: # deltat_hhhh cannot be lesss than 3600
     

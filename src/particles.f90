@@ -486,9 +486,9 @@ CONTAINS
 
        IF ( Vg_Ganser .LE. 0.0_wp ) THEN
 
-          WRITE(*,*) 'diam',diam
-          WRITE(*,*) 'NEGATIVE VALUE', Vinit,Vg_Ganser
-          READ(*,*)
+          WRITE(6,*) 'diam',diam
+          WRITE(6,*) 'NEGATIVE VALUE', Vinit,Vg_Ganser
+          READ(6,*)
           
        END IF
 
@@ -522,10 +522,10 @@ CONTAINS
 
        IF ( verbose_level .GE. 4 ) THEN
 
-          WRITE(*,*) 'rho_atm , diam , Us_1 , visc_atm',rho_atm , diam , Us_1 , &
+          WRITE(6,*) 'rho_atm , diam , Us_1 , visc_atm',rho_atm , diam , Us_1 , &
                visc_atm
-          WRITE(*,*) 'Rey1,Rey2',Rey1,Rey2
-          READ(*,*)
+          WRITE(6,*) 'Rey1,Rey2',Rey1,Rey2
+          READ(6,*)
 
        END IF
 
@@ -578,16 +578,16 @@ CONTAINS
 
     ELSE
 
-       WRITE(*,*) 'wrong settling model'
-       STOP
+       WRITE(0,*) 'Particle settling velocity: wrong settling model'
+       CALL EXIT(1)
 
     END IF
 
-    !WRITE(*,*) 'diam',diam
-    !WRITE(*,*) 'rhop',rhop
-    !WRITE(*,*) 'shape factor',shape_fact
-    !WRITE(*,*) 'particles_settling_velocit',particles_settling_velocity
-    !READ(*,*)
+    !WRITE(6,*) 'diam',diam
+    !WRITE(6,*) 'rhop',rhop
+    !WRITE(6,*) 'shape factor',shape_fact
+    !WRITE(6,*) 'particles_settling_velocit',particles_settling_velocity
+    !READ(6,*)
 
     RETURN
 
@@ -751,8 +751,8 @@ CONTAINS
 
     IF ( verbose_level .GE. 3 ) THEN
 
-       WRITE(*,*) 'beta =',particles_beta
-       WRITE(*,*) 
+       WRITE(6,*) 'beta =',particles_beta
+       WRITE(6,*) 
 
        WRITE(*,FMT) ' ','END particles_beta'
        indent_space = indent_space - 2
@@ -814,11 +814,11 @@ CONTAINS
        WRITE(FMT,*) indent_space
        FMT = "(A" // TRIM(FMT) // ",A)"
        WRITE(*,FMT) ' ','BEGINNING aggregation_kernel'
-       READ(*,*)
+       READ(6,*)
 
     END IF
 
-    !WRITE(*,*) 'aggregation_kernel: Vs_i,Vs_j',Vs_i,Vs_j
+    !WRITE(6,*) 'aggregation_kernel: Vs_i,Vs_j',Vs_i,Vs_j
 
     beta = collision_kernel(diam_i,rho_i,Vs_i,diam_j,rho_j,Vs_j,temp,visc)
 
@@ -829,9 +829,9 @@ CONTAINS
 
     IF ( aggregation_kernel .GT. 0.0_wp ) THEN
 
-       !WRITE(*,*) 'lw_vf,ice_vf',lw_vf,ice_vf
-       !WRITE(*,*) 'aggregation_kernel, beta, alfa',aggregation_kernel, beta, alfa
-       !READ(*,*)
+       !WRITE(6,*) 'lw_vf,ice_vf',lw_vf,ice_vf
+       !WRITE(6,*) 'aggregation_kernel, beta, alfa',aggregation_kernel, beta, alfa
+       !READ(6,*)
 
     END IF
        
@@ -901,7 +901,7 @@ CONTAINS
     !> Fluid shear
     REAL(wp) :: Gamma_s
 
-    !WRITE(*,*) 'collision_kernel'
+    !WRITE(6,*) 'collision_kernel'
 
     IF ( verbose_level .GE. 3 ) THEN
 
@@ -909,7 +909,7 @@ CONTAINS
        WRITE(FMT,*) indent_space
        FMT = "(A" // TRIM(FMT) // ",A)"
        WRITE(*,FMT) ' ','BEGINNING collision_kernel'
-       READ(*,*)
+       READ(6,*)
 
     END IF
 
@@ -926,9 +926,9 @@ CONTAINS
     ! Eq. 3, third term Costa et al. JGR 2010
     beta_DS = pi_g / 4.0_wp * ( diam_i + diam_j )**2 * ABS( Vs_j - Vs_i )
 
-    !WRITE(*,*) ' diam_i , diam_j',diam_i , diam_j
-    !WRITE(*,*) 'beta_B,beta_S,beta_DS',beta_B,beta_S, beta_DS
-    !READ(*,*)
+    !WRITE(6,*) ' diam_i , diam_j',diam_i , diam_j
+    !WRITE(6,*) 'beta_B,beta_S,beta_DS',beta_B,beta_S, beta_DS
+    !READ(6,*)
 
     collision_kernel = beta_B + beta_S + beta_DS
 
@@ -1119,9 +1119,9 @@ CONTAINS
              
              IF ( verbose_level .GE. 3 ) THEN
                 
-                WRITE(*,*) 'i_part,i_mom',i_part,i_mom
-                WRITE(*,*) 'abscissas', m_quad(1:n_nodes,i_sect,i_part)
-                WRITE(*,*) 'set_mom(i_mom,i_sect,i_part) = ' ,                  &
+                WRITE(6,*) 'i_part,i_mom',i_part,i_mom
+                WRITE(6,*) 'abscissas', m_quad(1:n_nodes,i_sect,i_part)
+                WRITE(6,*) 'set_mom(i_mom,i_sect,i_part) = ' ,                  &
                      set_mom(i_mom,i_sect,i_part)
                 
              END IF
@@ -1212,10 +1212,10 @@ CONTAINS
 
     IF ( verbose_level .GE. 2 ) THEN
 
-       WRITE(*,*) 'original quadrature points in [-1;1]'
-       WRITE(*,*) x
-       WRITE(*,*) w
-       READ(*,*)
+       WRITE(6,*) 'original quadrature points in [-1;1]'
+       WRITE(6,*) x
+       WRITE(6,*) w
+       READ(6,*)
 
     END IF
     
@@ -1232,11 +1232,11 @@ CONTAINS
 
           IF ( verbose_level .GE. 2 ) THEN
 
-             WRITE(*,*) 'i_part,i_sect',i_part,i_sect
-             WRITE(*,*) 'Ml,Mr',Ml,Mr
+             WRITE(6,*) 'i_part,i_sect',i_part,i_sect
+             WRITE(6,*) 'Ml,Mr',Ml,Mr
              WRITE(*,"(100ES12.4)") m_quad(:,i_sect,i_part)
              WRITE(*,"(100ES12.3)") w_quad(:,i_sect,i_part)
-             READ(*,*)
+             READ(6,*)
              
           END IF
         
@@ -1307,35 +1307,35 @@ CONTAINS
 
        IF ( verbose_level .GE. 3 ) THEN
        
-          WRITE(*,*) 'm_quad'
+          WRITE(6,*) 'm_quad'
           DO i_sect=1,n_sections
              
-             WRITE(*,*) m_quad(1:n_nodes,i_sect,i_part)
+             WRITE(6,*) m_quad(1:n_nodes,i_sect,i_part)
              
           END DO
           
-          WRITE(*,*) 'f1'
+          WRITE(6,*) 'f1'
           DO i_sect=1,n_sections
              
-             WRITE(*,*) f1(1:n_nodes,i_sect)
+             WRITE(6,*) f1(1:n_nodes,i_sect)
              
           END DO
           
-          WRITE(*,*) 'f2'
+          WRITE(6,*) 'f2'
           DO i_sect=1,n_sections
              
-             WRITE(*,*) f2(1:n_nodes,i_sect)
+             WRITE(6,*) f2(1:n_nodes,i_sect)
              
           END DO
 
-          WRITE(*,*) 'f1*f2'
+          WRITE(6,*) 'f1*f2'
           DO i_sect=1,n_sections
              
-             WRITE(*,*) f1(1:n_nodes,i_sect)*f2(1:n_nodes,i_sect)
+             WRITE(6,*) f1(1:n_nodes,i_sect)*f2(1:n_nodes,i_sect)
              
           END DO
           
-          READ(*,*)
+          READ(6,*)
 
        END IF
 
@@ -1441,18 +1441,18 @@ CONTAINS
        
        IF ( verbose_level .GE. 2 ) THEN
 
-          WRITE(*,*) 'i_part',i_part
-          WRITE(*,*) 'phi'
+          WRITE(6,*) 'i_part',i_part
+          WRITE(6,*) 'phi'
           WRITE(*,"(100ES9.1)") phi_quad(1:n_nodes,1:n_sections,i_part)
-          WRITE(*,*) 'diam'
+          WRITE(6,*) 'diam'
           WRITE(*,"(100ES9.1)") diam_quad(1:n_nodes,1:n_sections,i_part)
-          WRITE(*,*) 'vol'
+          WRITE(6,*) 'vol'
           WRITE(*,"(100E9.1)") vol_quad(1:n_nodes,1:n_sections,i_part)
-          WRITE(*,*) 'rho'
+          WRITE(6,*) 'rho'
           WRITE(*,"(100ES9.1)") rho_quad(1:n_nodes,1:n_sections,i_part)
-          WRITE(*,*) 'dM_ddiam'
+          WRITE(6,*) 'dM_ddiam'
           !WRITE(*,"(100ES9.1)") d_Mi_d_diam_quad(1:n_nodes,1:n_sections,i_part)
-          !READ(*,*)
+          !READ(6,*)
           
        END IF
        
@@ -1720,7 +1720,7 @@ CONTAINS
 
     END DO
 
-    WRITE(*,*) 'Aggregation initialization completed'
+    WRITE(6,*) 'Aggregation initialization completed'
     
     RETURN
 

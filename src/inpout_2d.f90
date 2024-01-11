@@ -183,14 +183,14 @@ CONTAINS
     grav = gi
     N = SQRT( - grav / rho_nbl * drho_dz )
 
-    WRITE(*,*) 'x_source =',x_source
-    WRITE(*,*) 'y_source =',y_source
-    WRITE(*,*) 'r_source =',r_source
-    WRITE(*,*) 'grav =',grav
-    WRITE(*,*) 'rho_nbl =',rho_nbl
-    WRITE(*,*) 'drho_dz =',drho_dz
+    WRITE(6,*) 'x_source =',x_source
+    WRITE(6,*) 'y_source =',y_source
+    WRITE(6,*) 'r_source =',r_source
+    WRITE(6,*) 'grav =',grav
+    WRITE(6,*) 'rho_nbl =',rho_nbl
+    WRITE(6,*) 'drho_dz =',drho_dz
     
-    WRITE(*,*) 'N',N
+    WRITE(6,*) 'N',N
     
   END SUBROUTINE init_param
 
@@ -254,7 +254,7 @@ CONTAINS
     END IF
 
        
-    IF ( VERBOSE_LEVEL .GE. 0 ) WRITE(*,*) 'WRITING ',output_file_2d
+    IF ( VERBOSE_LEVEL .GE. 0 ) WRITE(6,*) 'WRITING ',output_file_2d
 
     OPEN(output_unit_2d,FILE=output_file_2d,status='unknown',form='formatted')
 

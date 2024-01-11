@@ -266,10 +266,10 @@ CONTAINS
 
     IF ( ( height_obj .EQ. 0.0_wp ) .OR. ( log10_mfr .EQ. 0.0_wp ) ) THEN
 
-       WRITE(*,*) 'WRITING ZERO EMISSION HYSPLIT FILE'
+       WRITE(6,*) 'WRITING ZERO EMISSION HYSPLIT FILE'
        CALL write_zero_hysplit
        CALL write_column
-       STOP
+       CALL EXIT(1)
 
     END IF
 
@@ -470,12 +470,12 @@ CONTAINS
           CALL unlump( ftemp )
 
           
-          ! WRITE(*,*) 'i_RK,rho_mix',i_RK,rho_mix
-          ! WRITE(*,*) 'rho_gas',rho_gas
-          ! WRITE(*,*) 'f',f
-          ! WRITE(*,*) 't_mix',t_mix
-          ! WRITE(*,*) 'rgasmix',rgasmix
-          ! WRITE(*,*) 'w',w
+          ! WRITE(6,*) 'i_RK,rho_mix',i_RK,rho_mix
+          ! WRITE(6,*) 'rho_gas',rho_gas
+          ! WRITE(6,*) 'f',f
+          ! WRITE(6,*) 't_mix',t_mix
+          ! WRITE(6,*) 'rgasmix',rgasmix
+          ! WRITE(6,*) 'w',w
 
           ! ----- Check on the solution to reduce step-size condition -----------
 
@@ -490,18 +490,18 @@ CONTAINS
 
                 IF ( w .LE. 0.0_wp) THEN
 
-                   WRITE(*,*) 'WARNING: negative velocity w= ',w
+                   WRITE(6,*) 'WARNING: negative velocity w= ',w
 
                 ELSE
 
-                   WRITE(*,*) 'WARNING: rgasmix =',rgasmix
+                   WRITE(6,*) 'WARNING: rgasmix =',rgasmix
 
-                   WRITE(*,*) 'rair =',rair,' rvolcgas_mix =',rvolcgas_mix
+                   WRITE(6,*) 'rair =',rair,' rvolcgas_mix =',rvolcgas_mix
 
                 END IF
 
-                WRITE(*,*) 'reducing step-size dz= ',dz
-                READ(*,*) 
+                WRITE(6,*) 'reducing step-size dz= ',dz
+                READ(6,*) 
 
              END IF
 
@@ -543,11 +543,11 @@ CONTAINS
 
        IF ( errmax .GT. 1.0_wp ) THEN
 
-          !WRITE(*,*) 'errmax',errmax
-          !WRITE(*,*) f5th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
-          !WRITE(*,*) f4th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
-          !WRITE(*,*) f_stepold(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
-          !READ(*,*)
+          !WRITE(6,*) 'errmax',errmax
+          !WRITE(6,*) f5th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !WRITE(6,*) f4th(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !WRITE(6,*) f_stepold(MAXLOC( ABS( (f5th-f4th)/fscal ) ))
+          !READ(6,*)
 
           delta = SAFETY*errmax**PSHRNK
           dz = SIGN( MAX(ABS(dz*delta),0.1_wp*ABS(dz)) , dz )
@@ -594,7 +594,7 @@ CONTAINS
 
                 ELSE
 
-                   WRITE(*,*) 'z,dz,i_part,i_sect',z,dz,i_part,i_sect
+                   WRITE(6,*) 'z,dz,i_part,i_sect',z,dz,i_part,i_sect
                    ! if error is large decrease the integration step
                    dz = 0.5_wp * dz
                    z = z_temp
@@ -630,16 +630,16 @@ CONTAINS
 
              IF ( w .LE. 0.0_wp) THEN
 
-                WRITE(*,*) 'WARNING: negative velocity w= ',w
+                WRITE(6,*) 'WARNING: negative velocity w= ',w
 
              ELSE
 
-                WRITE(*,*) 'WARNING: rgasmix = ',rgasmix
+                WRITE(6,*) 'WARNING: rgasmix = ',rgasmix
 
              END IF
 
-             WRITE(*,*) 'reducing step-size dz= ',dz
-             READ(*,*) 
+             WRITE(6,*) 'reducing step-size dz= ',dz
+             READ(6,*) 
 
           END IF
 
@@ -689,11 +689,11 @@ CONTAINS
              IF ( deltarho .GT. 0.0_wp ) THEN
 
                 flag_nbl = .TRUE.
-                !WRITE(*,*) 'z nbl',z
-                !WRITE(*,*) 'dz at nbl',dz
-                !WRITE(*,*) rho_atm,rho_atm_old
-                !WRITE(*,*) drho_dz
-                !READ(*,*)
+                !WRITE(6,*) 'z nbl',z
+                !WRITE(6,*) 'dz at nbl',dz
+                !WRITE(6,*) rho_atm,rho_atm_old
+                !WRITE(6,*) drho_dz
+                !READ(6,*)
 
              END IF
                 
@@ -710,13 +710,13 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'z',z
-          ! WRITE(*,*) 'f',f
-          WRITE(*,*) 'rho_mix',rho_mix
-          WRITE(*,*) 'rho_atm',rho_atm
-          WRITE(*,*) 'w',w
+          WRITE(6,*) 'z',z
+          ! WRITE(6,*) 'f',f
+          WRITE(6,*) 'rho_mix',rho_mix
+          WRITE(6,*) 'rho_atm',rho_atm
+          WRITE(6,*) 'w',w
           IF (.NOT.(rho_mix < 1.33)) THEN
-             READ(*,*)
+             READ(6,*)
           END IF
 
        END IF
@@ -779,10 +779,10 @@ CONTAINS
           
           IF ( verbose_level .GE. 1 ) THEN
 
-             WRITE(*,*) 'Vertical velocity [m/s]',w
-             WRITE(*,*) 'Integration step dz [m]',dz
-             WRITE(*,*) 'rho_mix',rho_mix
-             WRITE(*,*) 'rho_atm',rho_atm
+             WRITE(6,*) 'Vertical velocity [m/s]',w
+             WRITE(6,*) 'Integration step dz [m]',dz
+             WRITE(6,*) 'rho_mix',rho_mix
+             WRITE(6,*) 'rho_atm',rho_atm
              
           END IF
           
@@ -795,9 +795,9 @@ CONTAINS
 
     IF ( write_flag) THEN
 
-       WRITE(*,*)
-       WRITE(*,*) '---------- MODEL RESULTS ----------'
-       WRITE(*,*)
+       WRITE(6,*)
+       WRITE(6,*) '---------- MODEL RESULTS ----------'
+       WRITE(6,*)
 
     END IF
 
@@ -813,12 +813,12 @@ CONTAINS
 
        rho_mix_final = rho_mix
 
-       IF ( write_flag ) WRITE(*,*) 'Plume Regime: Collapsing'
+       IF ( write_flag ) WRITE(6,*) 'Plume Regime: Collapsing'
 
 
        IF ( hysplit_flag ) THEN
 
-          WRITE(*,*) 'WARNING: problem in hysplit file'
+          WRITE(6,*) 'WARNING: problem in hysplit file'
           ! CALL write_hysplit(x,y,z,.TRUE.)
 
        END IF
@@ -841,15 +841,15 @@ CONTAINS
 
        IF ( check_sb .GT. eps_sb ) THEN
 
-          !WRITE(*,*) 'w_minrel,w_maxrel,w_maxabs',w_minrel,w_maxrel,w_maxabs
+          !WRITE(6,*) 'w_minrel,w_maxrel,w_maxabs',w_minrel,w_maxrel,w_maxabs
 
-          IF ( write_flag) WRITE(*,*) 'Plume Regime: Superbuoyant'
+          IF ( write_flag) WRITE(6,*) 'Plume Regime: Superbuoyant'
 
           column_regime = 2
 
        ELSE
 
-          IF ( write_flag) WRITE(*,*) 'Plume Regime: Buoyant'
+          IF ( write_flag) WRITE(6,*) 'Plume Regime: Buoyant'
 
           column_regime = 1
 
@@ -965,54 +965,54 @@ CONTAINS
         
     IF ( write_flag) THEN
 
-       WRITE(*,*) 'Plume height above the vent [m] =', plume_height
-       WRITE(*,*) 'Plume height above sea level [m] =',z
+       WRITE(6,*) 'Plume height above the vent [m] =', plume_height
+       WRITE(6,*) 'Plume height above sea level [m] =',z
 
        IF ( column_regime .LT. 3 ) THEN
 
-          WRITE(*,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
-          WRITE(*,*) 'Neutral buoyance level height above sea level [m] =',        &
+          WRITE(6,*) 'Neutral buoyance level height above the vent [m] =',height_nbl
+          WRITE(6,*) 'Neutral buoyance level height above sea level [m] =',        &
                height_nbl + ( z - plume_height )
-          WRITE(*,*) 'Plume temperature [K]',t_mix
-          WRITE(*,*) 'Pressure [Pa]',pa
-          WRITE(*,*) 'Plume density at neutral buoyancy level [kg/m3]',rho_nbl
-          WRITE(*,*) 'Atmoshepric density at neutral buoyancy level [kg/m3]',      &
+          WRITE(6,*) 'Plume temperature [K]',t_mix
+          WRITE(6,*) 'Pressure [Pa]',pa
+          WRITE(6,*) 'Plume density at neutral buoyancy level [kg/m3]',rho_nbl
+          WRITE(6,*) 'Atmoshepric density at neutral buoyancy level [kg/m3]',      &
                rho_atm_nbl
-          WRITE(*,*) 'Atmospheric density at top height [kg/m3]',rho_atm
-          WRITE(*,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
-          WRITE(*,*) 'Vertical gradient of radius at nbl: dr/dz [m/m] =', dr_dz
-          WRITE(*,*) 'Mass flow rate at neutral buoyancy level [kg/s] =',          &
+          WRITE(6,*) 'Atmospheric density at top height [kg/m3]',rho_atm
+          WRITE(6,*) 'Radius at neutral buoyancy level [m] =',radius_nbl
+          WRITE(6,*) 'Vertical gradient of radius at nbl: dr/dz [m/m] =', dr_dz
+          WRITE(6,*) 'Mass flow rate at neutral buoyancy level [kg/s] =',          &
                rho_nbl * pi_g * radius_nbl**2 * w_nbl
-          WRITE(*,*) 'Volume flow rate at neutral buoyancy level [m3/s] =',        &
+          WRITE(6,*) 'Volume flow rate at neutral buoyancy level [m3/s] =',        &
                pi_g * radius_nbl**2 * w_nbl
-          WRITE(*,*) 'Plume vertical velocity at neutral buoyancy level [m/s] =',  &
+          WRITE(6,*) 'Plume vertical velocity at neutral buoyancy level [m/s] =',  &
                w_nbl
-          WRITE(*,*) 'Plume horizontal velocity at neutral buoyancy level [m/s] =',&
+          WRITE(6,*) 'Plume horizontal velocity at neutral buoyancy level [m/s] =',&
                u_source,v_source
-          WRITE(*,*) 'Wind velocity at neutral buoyancy level [m/s] =', u_atm_nbl ,&
+          WRITE(6,*) 'Wind velocity at neutral buoyancy level [m/s] =', u_atm_nbl ,&
                v_atm_nbl
-          WRITE(*,*) 'Atmospheric density vertical gradient at nbl [kg/m4] =',     &
+          WRITE(6,*) 'Atmospheric density vertical gradient at nbl [kg/m4] =',     &
                drho_atm_dz
-          WRITE(*,*) 'Wind velocity at plume top [m/s] =', u_atm_top ,&
+          WRITE(6,*) 'Wind velocity at plume top [m/s] =', u_atm_top ,&
                v_atm_top
 
        END IF
        
-       WRITE(*,*) 
-       WRITE(*,*) 'Dry air mass fraction  =',dry_air_mass_fraction
-       WRITE(*,*) 'Water vapor mass fraction =',water_vapor_mass_fraction
-       WRITE(*,*) 'Other volcanic gas mass_fraction =',volcgas_mix_mass_fraction
-       WRITE(*,*)
-       WRITE(*,*) 'Gas mass fraction (volcgas + water vapor + dry air) =',      &
+       WRITE(6,*) 
+       WRITE(6,*) 'Dry air mass fraction  =',dry_air_mass_fraction
+       WRITE(6,*) 'Water vapor mass fraction =',water_vapor_mass_fraction
+       WRITE(6,*) 'Other volcanic gas mass_fraction =',volcgas_mix_mass_fraction
+       WRITE(6,*)
+       WRITE(6,*) 'Gas mass fraction (volcgas + water vapor + dry air) =',      &
             gas_mass_fraction
-       WRITE(*,*) 'Particles mass fraction  =',mass_fract 
-       WRITE(*,*) 'Liquid water mass fraction =',liquid_water_mass_fraction
-       WRITE(*,*) 'Ice mass fraction =',ice_mass_fraction
-       WRITE(*,*)
-       WRITE(*,*) 'Water mass fraction (water vapor + liquid water + ice) =',   &
+       WRITE(6,*) 'Particles mass fraction  =',mass_fract 
+       WRITE(6,*) 'Liquid water mass fraction =',liquid_water_mass_fraction
+       WRITE(6,*) 'Ice mass fraction =',ice_mass_fraction
+       WRITE(6,*)
+       WRITE(6,*) 'Water mass fraction (water vapor + liquid water + ice) =',   &
             water_mass_fraction
-       WRITE(*,*)
-       WRITE(*,*) 'Solid partial mass distribution'
+       WRITE(6,*)
+       WRITE(6,*) 'Solid partial mass distribution'
 
        phi_mean = 0.0_wp
        
@@ -1022,16 +1022,16 @@ CONTAINS
 
           phi_mean = SUM(partial_mf(:) * phiR(:)) 
 
-          WRITE(*,*) 'Particle phase:',i_part
+          WRITE(6,*) 'Particle phase:',i_part
           WRITE(*,"(30F8.2)") phiL(n_sections:1:-1) 
           WRITE(*,"(30F8.2)") phiR(n_sections:1:-1) 
           WRITE(*,"(30ES8.1)") partial_mf(n_sections:1:-1)
           IF ( verbose_level .GE. 1 ) THEN
              WRITE(*,"(30ES8.1)") mom(0,n_sections:1:-1,i_part)
           END IF
-          WRITE(*,*)
-          WRITE(*,*) 'Phi mean',phi_mean
-          !READ(*,*)
+          WRITE(6,*)
+          WRITE(6,*) 'Phi mean',phi_mean
+          !READ(6,*)
 
        END DO
 

@@ -115,9 +115,9 @@ CONTAINS
     !  ALLOCATE( j_min(comp_cells_x) )
 
 
-    WRITE(*,*) '---------------------'
-    WRITE(*,*) 'SW_UMBRELLA 1.0'
-    WRITE(*,*) '---------------------'
+    WRITE(6,*) '---------------------'
+    WRITE(6,*) 'SW_UMBRELLA 1.0'
+    WRITE(6,*) '---------------------'
 
     !$ use_openmp = .true.
     !$ print *, "OpenMP program"
@@ -130,13 +130,13 @@ CONTAINS
 
        !$ n_threads = omp_get_max_threads()
        !$ CALL OMP_SET_NUM_THREADS(n_threads)
-       IF ( verbose_level .GE. 0 ) WRITE(*,*) 'Number of threads used', n_threads
+       IF ( verbose_level .GE. 0 ) WRITE(6,*) 'Number of threads used', n_threads
 
     END IF
 
 
-    WRITE(*,*) 'u_atm',u_atm_umbl
-    WRITE(*,*) 'v_atm',v_atm_umbl
+    WRITE(6,*) 'u_atm',u_atm_umbl
+    WRITE(6,*) 'v_atm',v_atm_umbl
     
     
 
@@ -192,18 +192,18 @@ CONTAINS
 
     IF ( verbose_level .GE. 0 ) THEN
 
-       WRITE(*,*) 
-       WRITE(*,*) '******** START COMPUTATION *********'
-       WRITE(*,*)
+       WRITE(6,*) 
+       WRITE(6,*) '******** START COMPUTATION *********'
+       WRITE(6,*)
 
     END IF
 
     IF ( verbose_level .GE. 1 ) THEN
 
-       WRITE(*,*) 'Min q(1,:,:)=',MINVAL(q(1,:,:))
-       WRITE(*,*) 'Max q(1,:,:)=',MAXVAL(q(1,:,:))
+       WRITE(6,*) 'Min q(1,:,:)=',MINVAL(q(1,:,:))
+       WRITE(6,*) 'Max q(1,:,:)=',MAXVAL(q(1,:,:))
 
-       WRITE(*,*) 'SUM(q(1,:,:)=',SUM(q(1,:,:))
+       WRITE(6,*) 'SUM(q(1,:,:)=',SUM(q(1,:,:))
 
     END IF
 
@@ -239,7 +239,7 @@ CONTAINS
     r_new_source = r_source
     r_old_source = r_source
 
-    WRITE(*,*) dx*dy*COUNT(q(1,:,:).GT.1.E-5_wp)
+    WRITE(6,*) dx*dy*COUNT(q(1,:,:).GT.1.E-5_wp)
     IF ( verbose_level .GE. 0.0_wp ) THEN
 
        WRITE(*,FMT="(A3,F10.4,A5,F9.5,A9,ES11.3E3,A11,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)")   &
@@ -258,7 +258,7 @@ CONTAINS
 
        IF ( verbose_level .GE. 1 ) THEN
 
-          WRITE(*,*) 'cells to solve and reconstruct:' , COUNT(solve_mask)
+          WRITE(6,*) 'cells to solve and reconstruct:' , COUNT(solve_mask)
 
        END IF
 
@@ -344,8 +344,8 @@ CONTAINS
 
        !$OMP END PARALLEL DO
 
-       !WRITE(*,*) max_up_dist
-       !WRITE(*,*) x1,y1,x2,y2,x3,y3
+       !WRITE(6,*) max_up_dist
+       !WRITE(6,*) x1,y1,x2,y2,x3,y3
 
        IF ( ABS( y1 - y2 ) .LT. ABS( y1 - y3 ) ) THEN
 
@@ -390,8 +390,8 @@ CONTAINS
 
           IF ( verbose_level .GE. 0.0_wp ) THEN
 
-             WRITE(*,*) 'Time taken by iterations is',t3-t2,'seconds'
-             WRITE(*,*) 'Elapsed real time = ', DBLE( st3-st2 ) / rate,'seconds'
+             WRITE(6,*) 'Time taken by iterations is',t3-t2,'seconds'
+             WRITE(6,*) 'Elapsed real time = ', DBLE( st3-st2 ) / rate,'seconds'
 
           END IF
 
@@ -409,7 +409,7 @@ CONTAINS
           
           IF ( steady_flag .AND. ( r_new_source .EQ. r_old_source ) ) THEN
 
-             WRITE(*,*) 'STEADY UMBRELLA REACHED'
+             WRITE(6,*) 'STEADY UMBRELLA REACHED'
              EXIT time_loop
 
           END IF
@@ -471,8 +471,8 @@ CONTAINS
 
     d_upw_nbl = SQRT(x_upw**2 + y_upw**2) 
     
-    WRITE(*,*) 'Upwind plume point',x_upw,y_upw
-    WRITE(*,*) 'Upwind plume distance',d_upw_nbl
+    WRITE(6,*) 'Upwind plume point',x_upw,y_upw
+    WRITE(6,*) 'Upwind plume distance',d_upw_nbl
 
     
     WRITE(*,FMT="(A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3,A9,ES11.3E3)") ' xnew =', &
@@ -486,11 +486,11 @@ CONTAINS
 
     d_upw_umb = SQRT(x_upw**2 + y_upw**2) 
 
-    WRITE(*,*) 'Upwind umbrella point',x_upw,y_upw
-    WRITE(*,*) 'Upwind umbrella distance',d_upw_umb
-    WRITE(*,*) 
-    WRITE(*,*) 'Radius increase', r_new_source/r_source 
-    WRITE(*,*) 'Upwind spreading increase', d_upw_umb/d_upw_nbl 
+    WRITE(6,*) 'Upwind umbrella point',x_upw,y_upw
+    WRITE(6,*) 'Upwind umbrella distance',d_upw_umb
+    WRITE(6,*) 
+    WRITE(6,*) 'Radius increase', r_new_source/r_source 
+    WRITE(6,*) 'Upwind spreading increase', d_upw_umb/d_upw_nbl 
 
     IF ( dakota_flag ) THEN
     
@@ -512,9 +512,9 @@ CONTAINS
     END IF
 
     
-    WRITE(*,*)
-    WRITE(*,*) 'Total time taken by the code is',t3-t1,'seconds'
-    WRITE(*,*) 'Total elapsed real time is', DBLE( st3 - st1 ) / rate,'seconds'
+    WRITE(6,*)
+    WRITE(6,*) 'Total time taken by the code is',t3-t1,'seconds'
+    WRITE(6,*) 'Total elapsed real time is', DBLE( st3 - st1 ) / rate,'seconds'
 
     ! Write x_new_soure, y_new_source , r_new_source on a file
 
