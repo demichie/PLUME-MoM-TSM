@@ -1,16 +1,17 @@
-from matplotlib.pyplot import cm
-import argparse
-from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import cm
+from mpl_toolkits.mplot3d import Axes3D
+
+import argparse
+
 import numpy as np
+
 import pkg_resources
+
 import re
 import os
 import sys
-import matplotlib
-
-matplotlib.use("TkAgg")
-
 
 def animate(i):
 
@@ -811,43 +812,63 @@ def main():
                         required=False,
                         help="Input argument: run_name")
 
-    parser.add_argument("-col",
-                        dest="col_file",
-                        required=False,
-                        help="Input argument: col values (required if -run is not used)")
-    parser.add_argument("-sed",
-                        dest="sed_file",
-                        required=False,
-                        help="Input argument: sed values (required if -run is not used)")
-    parser.add_argument("-bak",
-                        dest="bak_file",
-                        required=False,
-                        help="Input argument: bak file (required if -run is not used)")
+    parser.add_argument(
+        "-col",
+        dest="col_file",
+        required=False,
+        help="Input argument: col values (required if -run is not used)")
+    parser.add_argument(
+        "-sed",
+        dest="sed_file",
+        required=False,
+        help="Input argument: sed values (required if -run is not used)")
+    parser.add_argument(
+        "-bak",
+        dest="bak_file",
+        required=False,
+        help="Input argument: bak file (required if -run is not used)")
 
-    parser.add_argument("-out1",
-                        dest="mass_fract_file",
-                        required=False,
-                        help="Output argument: mass fractions pdf file (required if -run is not used)")
-    parser.add_argument("-out2",
-                        dest="temp_file",
-                        required=False,
-                        help="Output argument: temperature pdf file (required if -run is not used)")
-    parser.add_argument("-out3",
-                        dest="part_fract_file",
-                        required=False,
-                        help="Output argument: solid particles pdf file (required if -run is not used)")
-    parser.add_argument("-out4",
-                        dest="profiles_file",
-                        required=False,
-                        help="Output argument: plume profiles pdf file (required if -run is not used)")
-    parser.add_argument("-out5",
-                        dest="plume_file",
-                        required=False,
-                        help="Output argument: plume 3D view pdf file (required if -run is not used)")
-    parser.add_argument("-out6",
-                        dest="video_file",
-                        required=False,
-                        help="Output argument: sedimentation mp4 video file (required if -run is not used)")
+    parser.add_argument(
+        "-out1",
+        dest="mass_fract_file",
+        required=False,
+        help=
+        "Output argument: mass fractions pdf file (required if -run is not used)"
+    )
+    parser.add_argument(
+        "-out2",
+        dest="temp_file",
+        required=False,
+        help=
+        "Output argument: temperature pdf file (required if -run is not used)")
+    parser.add_argument(
+        "-out3",
+        dest="part_fract_file",
+        required=False,
+        help=
+        "Output argument: solid particles pdf file (required if -run is not used)"
+    )
+    parser.add_argument(
+        "-out4",
+        dest="profiles_file",
+        required=False,
+        help=
+        "Output argument: plume profiles pdf file (required if -run is not used)"
+    )
+    parser.add_argument(
+        "-out5",
+        dest="plume_file",
+        required=False,
+        help=
+        "Output argument: plume 3D view pdf file (required if -run is not used)"
+    )
+    parser.add_argument(
+        "-out6",
+        dest="video_file",
+        required=False,
+        help=
+        "Output argument: sedimentation mp4 video file (required if -run is not used)"
+    )
 
     args = parser.parse_args()
 
@@ -864,9 +885,10 @@ def main():
             sed_file = args.sed_file
             bak_file = args.bak_file
 
-        if (mass_fract_file is None) or (temp_file is None) or (
-                part_fract_file is None) or (profiles_file is None) or (
-                    plume_file is None) or (video_file is None):
+        if (args.mass_fract_file is None) or (args.temp_file is None) or (
+                args.part_fract_file is
+                None) or (args.profiles_file is None) or (
+                    args.plume_file is None) or (args.video_file is None):
 
             sys.exit('Error with output parameters')
 
@@ -878,6 +900,10 @@ def main():
             profiles_file = args.profiles_file
             plume_file = args.plume_file
             video_file = args.video_file
+            
+            if not video_file.endswith('.mp4'):
+            
+                sys.exit('Error with output parameters: video file needs to be .mp4')    
 
     else:
 
