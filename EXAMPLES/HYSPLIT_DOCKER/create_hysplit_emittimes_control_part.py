@@ -9,12 +9,21 @@ from collections import Counter
 import pyproj
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import csv
 
 from part_density import calc_density
 from input_file import *
 
 from WriteEmittimesFunc import *
 from UmbrellaFunc import *
+
+def read_csv_file(file_path):
+
+    data_array = np.genfromtxt(file_path, delimiter=',', skip_header=1)
+    data_array=np.delete(data_array,-1,axis=1)
+
+    return data_array
+
 
 
 def round_minutes(dt, direction, resolution):
@@ -285,7 +294,7 @@ First EMITTIMES.part Block
 """
 
 # name of the .hy file
-plume_hy = runname + '_{0:03}'.format(1)+'.hy'
+plume_hy = runname + '_{0:03}'.format(1)+'_hy.csv'
 
 
 # time of the block
@@ -321,7 +330,8 @@ timei_str_mm = timei.strftime("%Y %m %d %H %M")
 
 if os.path.isfile(str(plume_hy)):
 
-    data=np.loadtxt(plume_hy,skiprows=1)
+    data=read_csv_file(plume_hy)
+    #data=np.loadtxt(plume_hy,skiprows=1)
     data=data.reshape((-1,int(8+(npart*n_sections))))    
 
     # data1: array containing data from .hy file, without x,z,h
@@ -472,7 +482,7 @@ for i in range(2,n_runs,1):
     
 
     # name of the .hy file
-    plume_hy = runname + '_{0:03}'.format(i)+'.hy'
+    plume_hy = runname + '_{0:03}'.format(i)+'_hy.csv'
 
     # time of the block
     timei =  starttime_round+datetime.timedelta(seconds=(i-1)*deltat_plumemom)    	
@@ -494,24 +504,8 @@ for i in range(2,n_runs,1):
 
     if os.path.isfile(str(plume_hy)):
 
-        # read the whole plumemom .hy file
-        with open(plume_hy, 'r') as fin:
-            data = fin.read().splitlines(True)
-        fin.close()
-
-        # delete the header line and save to temp.hy
-        with open('temp.hy', 'w') as fout:
-            fout.writelines(data[1:])
-        fout.close()
-
-        # load the data from temp.hy
-        with open('temp.hy', 'r') as fin:
-            data = np.loadtxt(fin)
-        fin.close()
-        subprocess.call('rm temp.hy', shell=True)
-        # put the data in a numpy array
-        data=np.asarray(data)
-        data=np.loadtxt(plume_hy,skiprows=1)
+        data=read_csv_file(plume_hy)        
+        #data=np.loadtxt(plume_hy,skiprows=1)
         data=data.reshape((-1,int(8+(npart*n_sections))))    
 
         # data1: array containing data from .hy file, without x,z,h
@@ -720,10 +714,11 @@ if ( n_runs > 1):
     print ( 'Block',n_runs,duration_hhmm,t_sec)
 
     # name of the .hy file
-    plume_hy = runname + '_{0:03}'.format(n_runs)+'.hy'
+    plume_hy = runname + '_{0:03}'.format(n_runs)+'_hy.csv'
     if os.path.isfile(str(plume_hy)):
 
-        data=np.loadtxt(plume_hy,skiprows=1)
+        #data=np.loadtxt(plume_hy,skiprows=1)
+        data=read_csv_file(plume_hy)
         data=data.reshape((-1,int(8+(npart*n_sections))))    
 
         # data1: array containing data from .hy file, without x,z,h

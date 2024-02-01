@@ -32,16 +32,8 @@ for filename in lines:
         # Add .air extension to distinguish the files from other types 
         os.rename(filename.strip(),filename.strip()+'.air')
 
-try:
-
-    from tkFileDialog import askopenfilename
-    filename = askopenfilename(filetypes=[("air files", "*.air")])
-
-except:
-
-    import tkinter
-    import tkinter.filedialog
-    filename =  tkinter.filedialog.askopenfilename(title = "choose your file",filetypes=[("air files", "*.air")])
+filename0 = input("Enter file to plot: ")
+filename=filename0+".air"
 
 AIR=[]
 
@@ -65,12 +57,8 @@ for i in range(100):
     else:
         break
 
-# find day and time from filename
-und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
-dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
-
-time = filename[und_where[-1]+1:dot_where[0]]
-day = filename[und_where[-2]+1:und_where[-1]]
+time = filename0[-4:]
+day= filename0[-8:-5]
 
 print ( ' ' )           
 print ( ' ---> day and time ',day,' ',time,' ' )

@@ -1,5 +1,5 @@
 hysplit_dir = "/home/ash/Scrivania/Codes/Hysplit/hysplit/tags/hysplit.v5.0.1"
-plumemom_dir = "/home/ash/Scrivania/Applicazioni/PLUME-MoM-TSM-master"
+plumemom_dir = "/home/ash/Scrivania/Applicazioni/PLUME-MoM-TSM-master2024"
 runname = 'Etna_test'
 starttime   = "18 12 24 12 00" # Year,month,day,hour,minute
 endemittime = "18 12 24 13 00"
@@ -122,8 +122,8 @@ shapefactor = 0.9
 settling_formulation = "ganser" #Possible options: ganser and stokes
 
 #SAMPLING POINTS: LAT - LON - SAMPLED_DEPOSIT (kgm-2)
-P01=[36.00, 18.00, 1]
-P02=[36.01, 18.01, 1]
+P01=[37.50, 16.00, 1]
+P02=[37.00, 16.50, 1]
 P03=[35.99, 18.00, 1]
 P04=[37.73, 15.00, 1]
 

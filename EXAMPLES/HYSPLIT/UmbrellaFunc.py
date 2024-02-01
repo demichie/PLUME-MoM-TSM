@@ -10,6 +10,7 @@ def UmbrellaFitting(runname,data,b,t_sec,T_sec,vent_lat,vent_lon,i):
     r_old_nbl = data[-1,3] # radius at NBL m
     x_old_nbl = data[-1,0]
     y_old_nbl = data[-1,1]
+    #print(r_old_nbl,x_old_nbl,y_old_nbl)
 
     d_old = np.sqrt((x_old_nbl)**2+(y_old_nbl)**2)
 
@@ -181,6 +182,7 @@ def generate_small_sources(r,x_c,y_c,r_c,gaussian_source):
     
 # Function to create a map with multiple circles
 def create_circles_map(circle_data,lat_new, lon_new,r_c,figname):
+    print("create fig")
     fig = plt.figure(figsize=(8, 6))
     ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
 
@@ -201,6 +203,7 @@ def create_circles_map(circle_data,lat_new, lon_new,r_c,figname):
 
     ax.coastlines(resolution='50m')
     ax.set_title(figname)
+    #plt.show()
     fig.savefig(figname+'.png', dpi=1200, bbox_inches='tight')
     plt.close()
 

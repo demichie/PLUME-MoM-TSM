@@ -1,4 +1,4 @@
 #!/bin/sh
 
-docker stop plumemom_hysplitDec2023
-docker rm plumemom_hysplitDec2023
+docker stop plumemom_hysplit2024
+docker rm plumemom_hysplit2024

@@ -29,7 +29,7 @@ ${MDL}/exec/con2asc -i$DUMP_PART -t -x -z
 
 mv CON2ASC.OUT CON2ASC.AIR
 
-streamlit run plot_part_air.py
+python plot_part_air.py
 
 rm CON2ASC.AIR
 rm *.air

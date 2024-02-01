@@ -180,7 +180,7 @@ runtime=endemittime_round-starttime_round
 print ( endemittime_round, starttime_round )
 print ( runtime,deltat_plumemom )
 
-n_runs = np.int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
+n_runs = int(np.ceil( runtime.total_seconds() / deltat_plumemom ) ) # numero run di PlumeMoM
 
 print ( 'runtime.total_seconds() ',runtime.total_seconds() )
 

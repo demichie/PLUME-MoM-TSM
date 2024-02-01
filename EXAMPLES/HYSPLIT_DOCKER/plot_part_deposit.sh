@@ -31,7 +31,7 @@ ${MDL}/exec/con2asc -i$DUMP_ACC_PART -t -x -z
 
 mv CON2ASC.OUT CON2ASC.GROUND
 
-streamlit run plot_part_deposit.py
+python plot_part_deposit.py
 
 rm CON2ASC.GROUND
 rm *.gnd

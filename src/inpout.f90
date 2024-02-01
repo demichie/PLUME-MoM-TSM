@@ -3339,6 +3339,9 @@ CONTAINS
 
     n_unit = n_unit + 1
     read_col_unit = n_unit
+
+!611 FORMAT(*(es16.9))
+611 FORMAT(90(1x,es16.9))
      
     OPEN(read_col_unit,FILE=col_file)
 
@@ -3369,7 +3372,7 @@ CONTAINS
 
     END DO
         
-611 FORMAT(*(es16.9))
+
 
     CLOSE(read_col_unit)    
   
@@ -3384,7 +3387,6 @@ CONTAINS
 
        READ(read_sed_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
             solid_mass_loss_cum(1:n_tot,i)
-
     END DO
 
     CLOSE(read_sed_unit)  
@@ -3493,6 +3495,7 @@ CONTAINS
                    0.5_wp * ( u_atm_top + u_atm_bot ) ,0.5_wp * ( v_atm_top + v_atm_bot ) , &
                    0.5_wp * ( rho_mix_top + rho_mix_bot ) , & 
                    0.5_wp * ( mfr_top + mfr_bot ) , delta_solid(1:n_tot)
+
           END IF
 
        ELSE

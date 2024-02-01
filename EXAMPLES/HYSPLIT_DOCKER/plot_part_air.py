@@ -10,30 +10,8 @@ from salem import get_demo_file, DataLevels, GoogleVisibleMap, Map
 import warnings
 warnings.simplefilter(action='ignore')
 
-import streamlit as st
 
 from input_file import *
-
-def file_selector(folder_path='.', ext='air'):
-    filenames = os.listdir(folder_path)
-    filelist = []
-    for file in filenames:
-        if file.endswith(".air"):
-            filelist.append(file)
-
-    filelist.insert(0, '')    
-
-    selected_filename = st.selectbox('Select a file', filelist, format_func=lambda x: 'Select a file' if x == '' else x)
-
-    if selected_filename !='':
-        st.write('You selected `%s`' % selected_filename)
-    elif selected_filename =='':
-        st.stop()
-        st.warning('No option is selected')
-
-    return os.path.join(folder_path,selected_filename)
-
-
 
 def fmt(x, pos):
     a, b = '{:.2e}'.format(x).split('e')
@@ -54,9 +32,8 @@ for filename in lines:
         # Add .air extension to distinguish the files from other types 
         os.rename(filename.strip(),filename.strip()+'.air')
 
-f.close()
-
-filename = file_selector(ext='air')
+filename0 = input("Enter file to plot: ")
+filename=filename0+".air"
 
 AIR=[]
 
@@ -80,12 +57,8 @@ for i in range(100):
     else:
         break
 
-# find day and time from filename
-und_where = ( [pos for pos, char in enumerate(filename) if char == '_'])
-dot_where = ( [pos for pos, char in enumerate(filename) if char == '.'])
-
-time = filename[und_where[-1]+1:dot_where[1]]
-day = filename[und_where[-2]+1:und_where[-1]]
+time = filename0[-4:]
+day= filename0[-8:-5]
 
 print ( ' ' )           
 print ( ' ---> day and time ',day,' ',time,' ' )
