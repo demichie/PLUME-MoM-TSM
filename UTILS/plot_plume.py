@@ -7,7 +7,7 @@ import argparse
 
 import numpy as np
 
-import pkg_resources
+# import pkg_resources
 
 import re
 import os
@@ -47,8 +47,8 @@ def animate(i):
         b.set_y(sed_solid_bot[j])
         b.set_color(bar_colors[j])
 
-    mark_pos.set_xdata(solid_mass_tot_loss_cum[idx_steps[i]])
-    mark_pos.set_ydata(z[idx_steps[i]])
+    mark_pos.set_xdata([solid_mass_tot_loss_cum[idx_steps[i]]])
+    mark_pos.set_ydata([z[idx_steps[i]]])
 
     title.set_text("t=" + "{:6.1f}".format(float(time_steps[i])) + 's')
 
