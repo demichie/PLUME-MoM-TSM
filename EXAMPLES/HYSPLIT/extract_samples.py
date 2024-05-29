@@ -21,7 +21,7 @@ for i in range(0,100):
     if (checkP in vars()):
         print ( '{:03d}'.format(i),'{:15.10f}'.format(eval(checkP)[0]),'{:15.10f}'.format(eval(checkP)[1]) )
 
-        f1.write('{:03d}'.format(i)+'{:15.10f}'.format(eval(checkP)[0])+'{:15.10f}'.format(eval(checkP)[1]))
+        f1.write('{:03d}'.format(i)+' {:15.10f} '.format(eval(checkP)[0])+' {:15.10f} '.format(eval(checkP)[1]))
         f1.write("\n")
 
         if len(eval(checkP))==3:
