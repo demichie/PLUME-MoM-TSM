@@ -290,7 +290,7 @@ CONTAINS
        CALL interp_1d_scalar(atm_profile(1,:), atm_profile(7,:), z, NS_wind)
 
        u_wind = WE_wind
-       v_wind = -NS_wind
+       v_wind = NS_wind
        
        IF ( ( WE_wind .EQ. 0.0_wp ) .AND. ( NS_wind .EQ. 0.0_wp ) ) THEN
 

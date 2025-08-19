@@ -3018,7 +3018,10 @@ CONTAINS
 604 FORMAT(*(A16,","))
 601 FORMAT(*(es16.9,:,","))
 603 FORMAT(*(es16.9,","))
-    
+701 FORMAT(*(es16.9,:,", "))
+703 FORMAT(*(es16.9,", "))
+
+
     IF ( z .EQ. vent_height ) THEN
 
        col_lines = 0
@@ -3065,7 +3068,7 @@ CONTAINS
        END DO
        
        WRITE(col_unit,602) 'volgasmix.massf', 'atm.rho(kg/m3)', 'MFR(kg/s)',    &
-            'atm.temp(K)', 'atm.pres.(Pa)', 'U_atm.(m/s)', 'V_atm.(m/s)'
+            'atm.temp(K)', 'atm.pres.(Pa)', 'U_atm.(m/s)', 'V_atm.(m/s)' 
 
     END IF
 
@@ -3075,14 +3078,14 @@ CONTAINS
          w , mag_u, dry_air_mass_fraction , water_vapor_mass_fraction ,         & 
          liquid_water_mass_fraction , ice_mass_fraction
 
-    WRITE(sed_unit,603,advance="no") z , r , x , y
+    WRITE(sed_unit,703,advance="no") z , r , x , y
 
     DO i_part=1,n_part
 
        DO i_sect=1,n_sections
 
           WRITE(col_unit,603,advance="no") mom(1,i_sect,i_part)
-          WRITE(sed_unit,603,advance="no") ABS(cum_particle_loss_rate(i_part,i_sect))
+          WRITE(sed_unit,703,advance="no") ABS(cum_particle_loss_rate(i_part,i_sect))
                     
           DO i_mom=0,n_mom-1
 
@@ -3101,9 +3104,8 @@ CONTAINS
     !WRITE(col_unit,103) volcgas_mass_fraction(1:n_gas) ,                        &
     !     volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_atm
 
-    WRITE(col_unit,601) volcgas_mass_fraction(1:n_gas) ,                        &
-         volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_wind , v_wind
-
+    WRITE(col_unit,603) volcgas_mass_fraction(1:n_gas) ,                        &
+         volcgas_mix_mass_fraction , rho_atm , mfr , ta, pa , u_wind , v_wind 
 
     IF ( verbose_level .GE. 1 ) THEN
        
@@ -3287,6 +3289,10 @@ CONTAINS
 
     IMPLICIT NONE
 
+    integer, parameter :: max_line = 600
+    character(len=max_line) :: line, token
+    integer :: pos1, pos2, ios , ios_u , ios_v ,  n_fields , field_counter
+
     CHARACTER(len=8) :: x1 , x2 ! format descriptor
 
     INTEGER :: i , j , n_hy
@@ -3316,14 +3322,26 @@ CONTAINS
     REAL(wp) :: vect(3) , vect0(3) , v(3) , c , s
     REAL(wp) :: mat_v(3,3) , mat_R(3,3)
 
+    LOGICAL :: is_last_token
+
+
     INTEGER :: i_part , i_sect
-    INTEGER :: n_tot
+    INTEGER :: n_tot 
 
     INTEGER :: read_col_unit , read_sed_unit
   
+    integer :: offset_mom, offset_volcgas, offset_rest 
+    integer :: offset_solid_mass_loss_cum, offset_max
 
     n_tot = n_part * n_sections
-    
+
+    n_fields = 19 + n_tot + n_gas
+
+  ! Calcola gli offset per il parsing
+  offset_mom = 12
+  offset_volcgas = offset_mom + n_tot
+  offset_rest = offset_volcgas + n_gas
+
     ALLOCATE( x_col(col_lines) , y_col(col_lines) , z_col(col_lines))
     ALLOCATE( r_col(col_lines) , rho_mix_col(col_lines))
     ALLOCATE (u_atm_col(col_lines), v_atm_col(col_lines))
@@ -3349,11 +3367,100 @@ CONTAINS
 
     DO i = 1,col_lines
 
+   read(read_col_unit, '(A)', iostat=ios) line
+   !PRINT *, "Debug: Contenuto riga completa: '", line(1:LEN_TRIM(line)), "'"
+    if (ios /= 0) exit
+    field_counter = 1
+    pos1 = 1
+
+    ! Funzione interna per leggere il prossimo campo
+    do
+      pos2 = index(line(pos1:), ',')
+      !PRINT *, "Debug: Prima estrazione token. Riga ", i, ", Campo ", field_counter, ", pos1=", pos1, ", pos2=", pos2
+!PRINT *, "Debug: Substring per index: '", TRIM(line(pos1:)), "'"
+      is_last_token = (pos2 == 0)
+      if (is_last_token) then
+          token = adjustl(line(pos1:))
+      else
+          token = adjustl(line(pos1:pos1+pos2-2))
+      end if
+
+      !PRINT *, "Debug: Token estratto: '", TRIM(token), "', is_last_token=", is_last_token
+
+
+
+IF (field_counter == 1) THEN
+        READ(token, *) z_col(i)
+      ELSE IF (field_counter == 2) THEN
+        READ(token, *) r_col(i)
+      ELSE IF (field_counter == 3) THEN
+        READ(token, *) x_col(i)
+      ELSE IF (field_counter == 4) THEN
+        READ(token, *) y_col(i)
+      ELSE IF (field_counter == 5) THEN
+        READ(token, *) rho_mix_col(i)
+      ELSE IF (field_counter == 6) THEN
+        READ(token, *) temp_k
+      ELSE IF (field_counter == 7) THEN
+        READ(token, *) w
+      ELSE IF (field_counter == 8) THEN
+        READ(token, *) mag_u
+      ELSE IF (field_counter == 9) THEN
+        READ(token, *) da_mf
+      ELSE IF (field_counter == 10) THEN
+        READ(token, *) wv_mf
+      ELSE IF (field_counter == 11) THEN
+        READ(token, *) lw_mf
+      ELSE IF (field_counter == 12) THEN
+        READ(token, *) ice_mf
+      ELSE IF (field_counter >= offset_mom + 1 .AND. field_counter <= offset_volcgas) THEN ! mom_col
+        READ(token, *) mom_col(field_counter - offset_mom, i)
+      ELSE IF (field_counter >= offset_volcgas + 1 .AND. field_counter <= offset_rest) THEN ! volcgas_mf
+        READ(token, *) volcgas_mf(field_counter - offset_volcgas, i)
+      ELSE IF (field_counter == offset_rest + 1) THEN
+        READ(token, *) volcgas_tot_mf
+      ELSE IF (field_counter == offset_rest + 2) THEN
+        READ(token, *) rho_atm
+      ELSE IF (field_counter == offset_rest + 3) THEN
+        READ(token, *) mfr_col(i)
+      ELSE IF (field_counter == offset_rest + 4) THEN
+        READ(token, *) ta
+      ELSE IF (field_counter == offset_rest + 5) THEN
+        READ(token, *) pa
+        !PRINT *, "Debug: Riga ", i, ", Campo ", field_counter, ", Token: '", TRIM(token), "'"
+      ELSE IF (field_counter == offset_rest + 6) THEN
+        READ(token, *, IOSTAT=ios_u) u_atm_col(i)
+        !PRINT *, "Debug: Riga ", i, ", Campo ", field_counter, ", Token: '", TRIM(token), "'"
+        IF (ios_u /= 0) THEN
+          !PRINT *, "Errore lettura U_atm per riga ", i, ", token: '", TRIM(token), "'"
+        END IF
+      ELSE IF (field_counter == offset_rest + 7) THEN
+        READ(token, *, IOSTAT=ios_v) v_atm_col(i)
+        !PRINT *, "Debug: Riga ", i, ", Campo ", field_counter, ", Token: '", TRIM(token), "'"
+        IF (ios_v /= 0) THEN
+          !PRINT *, "Errore lettura V_atm per riga ", i, ", token: '", TRIM(token), "'"
+        END IF
+      ELSE
+        ! Questo blocco cattura eventuali colonne in eccesso o inattese
+        !PRINT *, "Attenzione: Colonna inattesa alla riga ", i, ", campo ", field_counter, ": '", TRIM(token), "'"
+      END IF
+      field_counter = field_counter + 1
+
+      ! Esci dal ciclo interno solo DOPO aver processato l'ultimo token
+      IF (is_last_token) EXIT
+
+      ! Se abbiamo letto tutti i campi attesi, possiamo uscire anche se ci sono token extra
+      IF (field_counter > n_fields) EXIT
+
+      pos1 = pos1 + pos2 ! Sposta il puntatore all'inizio del prossimo campo
+
+    end do ! Fine del loop interno per i campi
+
        ! changed format from 111 to 611
-       READ(read_col_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
-	    rho_mix_col(i) , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf,&
-            mom_col(1:n_tot,i) , volcgas_mf(1:n_gas,i) , volcgas_tot_mf ,       &
-            rho_atm , mfr_col(i) , ta, pa, u_atm_col(i) , v_atm_col(i)
+       !READ(read_col_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
+	!    rho_mix_col(i) , temp_k , w , mag_u, da_mf , wv_mf , lw_mf , ice_mf,&
+        !    mom_col(1:n_tot,i) , volcgas_mf(1:n_gas,i) , volcgas_tot_mf ,       &
+        !    rho_atm , mfr_col(i) , ta, pa, u_atm_col(i) , v_atm_col(i)
 
        solid_mass_flux(1:n_tot,i) = mom_col(1:n_tot,i) * pi_g * r_col(i)**2     &
             * w
@@ -3365,10 +3472,11 @@ CONTAINS
        !WRITE(6,*) 'Total solid mass flux (kg/s): ',SUM(solid_mass_flux(1:n_tot,i))
        !WRITE(6,*) 'solid_pmf: ',solid_pmf(1:n_tot,i)
        !WRITE(6,*) 'Sum solid mass fractions: ',SUM(solid_pmf(1:n_tot,i))
-       !WRITE(6,*) z_col(i) , solid_mass_loss_cum(1:n_tot,i)
+       !WRITE(*,*) "col ",z_col(i) , r_col(i) , x_col(i) , y_col(i), mfr_col(i),ta,pa,u_atm_col(i) , v_atm_col(i)
+       !WRITE(6,*)
        !READ(6,*)
        !WRITE(6,*) 'volcgas_mass_flux ',volcgas_mass_flux(1:n_gas,i), z_col(i)
-       !READ(6,*)
+       !READ(*,*)
 
     END DO
         
@@ -3385,8 +3493,45 @@ CONTAINS
 
     DO i = 1,col_lines
 
-       READ(read_sed_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
-            solid_mass_loss_cum(1:n_tot,i)
+   read(read_sed_unit, '(A)', iostat=ios) line
+    if (ios /= 0) exit
+
+    field_counter = 1
+    pos1 = 1
+    offset_solid_mass_loss_cum = 4
+    offset_max = offset_solid_mass_loss_cum + n_tot
+
+    ! Funzione interna per leggere il prossimo campo
+    do
+      pos2 = index(line(pos1:), ',')
+      if (pos2 == 0) then
+        token = adjustl(line(pos1:))
+      else
+        token = adjustl(line(pos1:pos1+pos2-2))
+      end if
+   ! Assegna i valori alle variabili corrette
+      if (field_counter == 1) then
+        read(token, *) z_col(i)
+      elseif (field_counter == 2) then
+        read(token, *) r_col(i)
+      elseif (field_counter == 3) then
+        read(token, *) x_col(i)
+      elseif (field_counter == 4) then
+        read(token, *) y_col(i)
+      elseif (field_counter >= offset_solid_mass_loss_cum + 1 .and. field_counter <= offset_max) then
+        read(token, *) solid_mass_loss_cum(field_counter - offset_solid_mass_loss_cum, i)
+      else
+        exit  ! Ignora eventuali colonne extra
+      end if
+
+      field_counter = field_counter + 1
+      if (pos2 == 0) exit
+      pos1 = pos1 + pos2
+    end do
+
+       !READ(read_sed_unit,611) z_col(i) , r_col(i) , x_col(i) , y_col(i) ,      &
+       !     solid_mass_loss_cum(1:n_tot,i)
+
     END DO
 
     CLOSE(read_sed_unit)  
@@ -3473,6 +3618,10 @@ CONTAINS
           delta_solid(j) = ABS(solid_loss_top - solid_loss_bot)
            
        END DO
+       !WRITE(*,*) x_bot, y_bot , x_top , y_top
+       !WRITE(*,*) "z_col",z_col
+       !WRITE(*,*) "x_col",x_col
+       !WRITE(*,*) "z_top",z_top
 
        IF ( n_cloud .EQ. 1 ) THEN
           
